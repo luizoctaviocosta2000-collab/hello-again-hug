@@ -1,0 +1,23 @@
+/* Imobfy visual polish: spacing, typography and responsive alignment fixes. */
+.page-head{align-items:flex-end;gap:24px}
+.page-head>div{min-width:0}
+.page-head h1{line-height:1.12;word-break:normal;overflow-wrap:normal}
+.eyebrow{line-height:1.35;white-space:normal}
+.card-head{gap:16px}
+.card-head>div{min-width:0}
+.card-head b,.metric-top>span,.property-body,.deal-info,.activity-main{overflow-wrap:break-word}
+.primary,.outline,.segmented button,.nav,.logout,.theme-toggle,.link{white-space:nowrap}
+input,select,textarea{line-height:1.35}
+.modal{z-index:100;isolation:isolate}
+.modal-card{position:relative;z-index:101;max-height:min(88vh,760px);overflow:auto}
+.modal-card h2,.modal-card h3{line-height:1.2;letter-spacing:-.025em}
+.modal-card label{line-height:1.35}
+.modal-card .field,.modal-card .form-field{min-width:0}
+.modal-card input,.modal-card select,.modal-card textarea{width:100%;min-width:0}
+/* Role selector: make both choices visually and interactively reliable. */
+.modal-card button{position:relative;z-index:2;pointer-events:auto}
+.imobfy-role-choice{cursor:pointer!important;user-select:none}
+.imobfy-role-choice.imobfy-role-selected{outline:2px solid #b28a3f;outline-offset:1px;background:#f3ead5!important;color:#2a291f!important}
+@media (max-width:1100px){.main{padding:30px 24px 48px}.property-grid{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){.main{margin-left:0;padding:76px 16px 34px}.page-head{align-items:flex-start;flex-direction:column;gap:14px}.page-head h1{font-size:26px}.desktop-action{width:100%}.metrics,.property-grid,.dashboard-grid,.dashboard-bottom{grid-template-columns:1fr}.toolbar{align-items:stretch;flex-direction:column}.search{width:100%}.deal-metrics{grid-template-columns:1fr 1fr}.side-bottom{display:none}.mobile-menu{z-index:80}.modal-card{width:min(94vw,560px);max-height:84vh}}
+@media (max-width:460px){.deal-metrics{grid-template-columns:1fr}.page-head h1{font-size:24px}.metric strong{font-size:18px}.big-money{font-size:27px}}

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyApp from "../components/ImobfyApp";
+import ClientOnlyImobfyApp from "../components/ClientOnlyImobfyApp";
 
 export const Route = createFileRoute("/negocios")({
   head: () => ({
@@ -10,5 +10,5 @@ export const Route = createFileRoute("/negocios")({
       { property: "og:description", content: "Pipeline comercial do primeiro contato ao fechamento." },
     ],
   }),
-  component: () => <ImobfyApp module="deals" />,
+  component: () => <ClientOnlyImobfyApp module="deals" />,
 });

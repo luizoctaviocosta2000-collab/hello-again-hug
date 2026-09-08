@@ -1,9 +1,9 @@
 import { CalendarDays, Check, Clock3, MapPin, Phone, Plus, Users, Video, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { AGENDA_TYPES, agendaTypeLabel, type AgendaEvent, type AgendaEventType } from "../lib/imobfy-agenda";
-import { localDateKey } from "../lib/imobfy-agenda-utils";
-import { IMOBFY_STORAGE_KEYS, loadImobfyList, saveImobfyList } from "../lib/imobfy-storage";
+import { AGENDA_TYPES, agendaTypeLabel, type AgendaEvent, type AgendaEventType } from "../../lib/imobfy-agenda";
+import { localDateKey } from "../../lib/imobfy-agenda-utils";
+import { IMOBFY_STORAGE_KEYS, loadImobfyList, saveImobfyList } from "../../lib/imobfy-storage";
 
 const icons: Record<AgendaEventType, typeof MapPin> = { visit: MapPin, meeting: Video, call: Phone, follow_up: Clock3, capture: Plus, presentation: Users, signature: Check, other: CalendarDays };
 

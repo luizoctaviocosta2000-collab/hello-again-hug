@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyApp from "../components/ImobfyApp";
+import ClientOnlyImobfyApp from "../components/ClientOnlyImobfyApp";
 
 export const Route = createFileRoute("/vgv")({
   head: () => ({
@@ -10,5 +10,5 @@ export const Route = createFileRoute("/vgv")({
       { property: "og:description", content: "VGV captado, vendido e em carteira em um só painel." },
     ],
   }),
-  component: () => <ImobfyApp module="vgv" />,
+  component: () => <ClientOnlyImobfyApp module="vgv" />,
 });

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyApp from "../components/ImobfyApp";
+import ClientOnlyImobfyApp from "../components/ClientOnlyImobfyApp";
 
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({
@@ -10,5 +10,5 @@ export const Route = createFileRoute("/configuracoes")({
       { property: "og:description", content: "Percentuais, perfil e preferências do seu Imobfy." },
     ],
   }),
-  component: () => <ImobfyApp module="settings" />,
+  component: () => <ClientOnlyImobfyApp module="settings" />,
 });

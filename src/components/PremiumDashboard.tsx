@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, Building2, CalendarDays, ChevronRight, CircleDollarSign, Home, Moon, Plus, Settings, Sun, TrendingUp, Users, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import ImobfyApp from "./ImobfyApp";
 
 type Property = { id: string; name: string; neighborhood: string; value: number; status: string; type?: string; created_at?: string };
 type Deal = { id: string; property_value: number; user_commission: number; status: string; deal_date: string; property_name: string; neighborhood: string; };
@@ -29,16 +30,23 @@ const nav = [
 ] as const;
 
 export default function PremiumDashboard() {
-  const [data, setData] = useState<Store>(() => readStore());
-  const [dark, setDark] = useState(() => localStorage.getItem("imobfy-theme") === "dark");
+  const [ready, setReady] = useState(false);
+  const [data, setData] = useState<Store>({});
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
+    setReady(true);
+    setData(readStore());
+    setDark(localStorage.getItem("imobfy-theme") === "dark");
     const refresh = () => setData(readStore());
     window.addEventListener("storage", refresh);
     const timer = window.setInterval(refresh, 1500);
     return () => { window.removeEventListener("storage", refresh); window.clearInterval(timer); };
   }, []);
-  useEffect(() => { document.documentElement.classList.toggle("dark", dark); localStorage.setItem("imobfy-theme", dark ? "dark" : "light"); }, [dark]);
+  useEffect(() => { if (ready) { document.documentElement.classList.toggle("dark", dark); localStorage.setItem("imobfy-theme", dark ? "dark" : "light"); } }, [dark, ready]);
+
+  if (!ready) return null;
+  if (!localStorage.getItem("imobfy-session-v1")) return <ImobfyApp module="dashboard" />;
 
   const props = data.properties || [];
   const deals = data.deals || [];
@@ -81,22 +89,18 @@ export default function PremiumDashboard() {
         <nav>{nav.map(([label, href, Icon]) => <Link key={href} to={href} className={href === "/" ? "premium-nav active" : "premium-nav"}><Icon size={17}/><span>{label}</span>{href === "/" && <ChevronRight size={14}/>}</Link>)}</nav>
         <div className="premium-sidebar-bottom"><Link to="/configuracoes" className="premium-nav"><Settings size={17}/><span>Configurações</span></Link><button className="premium-theme" onClick={() => setDark(v => !v)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>{dark ? "Modo claro" : "Modo escuro"}</span></button><div className="premium-user"><span>{firstName(profile.name || "Corretor")[0].toUpperCase()}</span><div><strong>{firstName(profile.name || "Corretor")}</strong><small>{profile.role || "Corretor"}</small></div></div></div>
       </aside>
-
       <main className="premium-main">
         <header className="premium-header"><div><span className="premium-kicker">{profile.city ? profile.city.toUpperCase() : "GESTÃO IMOBILIÁRIA"}</span><h1>{greeting()}, {firstName(profile.name || "Corretor")}.</h1><p>Acompanhe sua operação em uma única visão.</p></div><div className="premium-header-actions"><button className="premium-period">Este mês <ChevronRight size={14}/></button><Link to="/negocios" className="premium-primary"><Plus size={17}/> Novo negócio</Link></div></header>
-
         <section className="premium-kpis">
           <article className="premium-kpi premium-kpi-featured"><span>VGV em carteira</span><strong>{money(vgvWallet)}</strong><small><TrendingUp size={13}/> {wallet.length} imóveis ativos</small></article>
           <article className="premium-kpi"><span>VGV vendido</span><strong>{money(vgvSold)}</strong><small>{sold.length} vendas registradas</small></article>
           <article className="premium-kpi"><span>Comissão a receber</span><strong>{money(Math.max(0, commissionDue - commissionReceived))}</strong><small>líquido das operações</small></article>
           <article className="premium-kpi"><span>Comissão recebida</span><strong>{money(commissionReceived)}</strong><small>{received.length} recebimentos</small></article>
         </section>
-
         <section className="premium-grid-main">
           <article className="premium-panel premium-chart"><div className="premium-panel-head"><div><span>DESEMPENHO</span><h2>VGV da operação</h2></div><div className="premium-legend"><i/> VGV</div></div><div className="premium-chart-value">{money(vgv)}</div><div className="premium-chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chart} margin={{ top: 10, right: 8, left: -20, bottom: 0 }}><defs><linearGradient id="premiumFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="currentColor" stopOpacity={0.18}/><stop offset="100%" stopColor="currentColor" stopOpacity={0}/></linearGradient></defs><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} /><YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${Math.round(v/1000)}k` : `${v}`} /><Tooltip formatter={(v: number) => [money(v), "VGV"]} contentStyle={{ borderRadius: 12, border: "1px solid var(--premium-border)", boxShadow: "0 12px 35px rgba(0,0,0,.08)" }} /><Area type="monotone" dataKey="vgv" stroke="currentColor" fill="url(#premiumFill)" strokeWidth={2.5} /></AreaChart></ResponsiveContainer></div></article>
           <article className="premium-panel premium-goal"><div className="premium-panel-head"><div><span>OBJETIVO</span><h2>Meta de vendas</h2></div><CircleDollarSign size={19}/></div>{goal > 0 ? <><div className="premium-goal-number">{progress}%</div><p>{money(vgvSold)} de {money(goal)}</p><div className="premium-progress"><i style={{ width: `${progress}%` }}/></div><small>{progress >= 100 ? "Meta atingida. Excelente trabalho." : `${money(Math.max(0, goal - vgvSold))} restantes para sua meta.`}</small></> : <div className="premium-empty-goal"><div><CircleDollarSign size={22}/></div><strong>Defina sua meta</strong><span>Tenha um número claro para perseguir todos os meses.</span><Link to="/configuracoes">Configurar meta <ChevronRight size={14}/></Link></div>}</article>
         </section>
-
         <section className="premium-grid-bottom">
           <article className="premium-panel"><div className="premium-panel-head"><div><span>PRÓXIMOS PASSOS</span><h2>O que merece sua atenção</h2></div></div><div className="premium-tasks">{pending.slice(0, 3).map(item => <Link to={item.href} key={item.title} className="premium-task"><span className="premium-task-icon"><Plus size={16}/></span><div><strong>{item.title}</strong><small>{item.text}</small></div><ChevronRight size={16}/></Link>)}</div></article>
           <article className="premium-panel"><div className="premium-panel-head"><div><span>ATIVIDADE</span><h2>Últimas operações</h2></div><Link to="/negocios" className="premium-see">Ver tudo</Link></div>{activities.length ? <div className="premium-activity-list">{activities.map(item => <div className="premium-activity" key={item.id}><span className="premium-activity-icon"><Wallet size={15}/></span><div><strong>{item.property_name || "Negócio imobiliário"}</strong><small>{item.neighborhood || ""}</small></div><b>{money(item.user_commission)}</b></div>)}</div> : <div className="premium-activity-empty">Suas próximas operações aparecerão aqui.</div>}</article>

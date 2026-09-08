@@ -33,13 +33,13 @@ export function buildAnalyticsSnapshot(
   const activeProperties = properties.filter(p => p.status !== "cancelled");
   const sold = properties.filter(p => p.status === "sold");
   const openDeals = deals.filter(d => !["closed", "lost"].includes(d.status));
-  const received = deals.filter(d => d.status === "received" || Boolean(d.receivedDate));
+  const received = deals.filter(d => Boolean(d.receivedDate));
 
   return {
     vgv: activeProperties.reduce((sum, p) => sum + (Number(p.value) || 0), 0),
     soldVgv: sold.reduce((sum, p) => sum + (Number(p.value) || 0), 0),
     pipelineVgv: openDeals.reduce((sum, d) => sum + (Number(d.propertyValue) || 0), 0),
-    commissionToReceive: deals.filter(d => d.status !== "received" && d.status !== "lost").reduce((sum, d) => sum + (Number(d.userCommission) || 0), 0),
+    commissionToReceive: deals.filter(d => d.status !== "lost" && !d.receivedDate).reduce((sum, d) => sum + (Number(d.userCommission) || 0), 0),
     commissionReceived: received.reduce((sum, d) => sum + (Number(d.userCommission) || 0), 0),
     activeClients: clients.filter(c => !["inactive", "converted"].includes(c.status)).length,
     openDeals: openDeals.length,

@@ -25,7 +25,7 @@ export const DEAL_STATUS_LABELS: Record<DealStatus, string> = {
 
 export function nextDealStatus(status: DealStatus): DealStatus | null {
   const index = DEAL_STATUS_ORDER.indexOf(status);
-  return index >= 0 && index < DEAL_STATUS_ORDER.length - 1 ? DEAL_STATUS_ORDER[index + 1] : null;
+  return index >= 0 && index < DEAL_STATUS_ORDER.length - 1 ? DEAL_STATUS_ORDER[index + 1]! : null;
 }
 
 export function dealProgress(status: DealStatus) {

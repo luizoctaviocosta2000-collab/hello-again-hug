@@ -22,7 +22,7 @@ export function calculateCommission(propertyValue: number, brokeragePct: number,
 export function nextDealStatuses(status: DealStatus): DealStatus[] {
   const flow: DealStatus[] = ["new", "qualified", "properties_sent", "visit_scheduled", "visit_done", "proposal", "negotiation", "closed"];
   const index = flow.indexOf(status);
-  return index >= 0 && index < flow.length - 1 ? [flow[index + 1]] : [];
+  return index >= 0 && index < flow.length - 1 ? [flow[index + 1]!] : [];
 }
 
 export function dealStatusLabel(status: DealStatus) {

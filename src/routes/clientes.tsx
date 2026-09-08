@@ -1,30 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ChevronRight, Mail, Phone, Plus, Search, SlidersHorizontal, UserRound } from "lucide-react";
-import { toast } from "sonner";
-import { CLIENT_PROFILE_LABELS, CLIENT_STATUS_LABELS, type Client, type ClientProfile, type ClientStatus, createClientId } from "../lib/imobfy-crm";
-import { IMOBFY_STORAGE_KEYS, loadImobfyList, saveImobfyList } from "../lib/imobfy-storage";
+import ImobfyApp from "../components/ImobfyApp";
 
-export const Route = createFileRoute("/clientes")({ component: Clientes });
-
-function Clientes() {
-  const [clients, setClients] = useState<Client[]>(() => loadImobfyList<Client>(IMOBFY_STORAGE_KEYS.clients));
-  const [query, setQuery] = useState("");
-  const [profile, setProfile] = useState<ClientProfile | "">("");
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [clientProfile, setClientProfile] = useState<ClientProfile>("buyer");
-  const [status, setStatus] = useState<ClientStatus>("lead");
-  const [neighborhood, setNeighborhood] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const filtered = useMemo(() => clients.filter(c => { const q=query.toLowerCase().trim(); const ok=!q || [c.name,c.phone,c.email,...(c.neighborhoods??[])].some(v=>v?.toLowerCase().includes(q)); return ok && (!profile || c.profile===profile); }), [clients,query,profile]);
-  const save = () => { if(!name.trim()) return toast.error("Informe o nome do cliente"); const now=new Date().toISOString(); const item:Client={id:createClientId(),name:name.trim(),phone:phone.trim()||undefined,profile:clientProfile,status,neighborhoods:neighborhood.trim()?[neighborhood.trim()]:[],maxPrice:Number(maxPrice.replace(/[^0-9]/g,""))||undefined,createdAt:now,updatedAt:now}; const next=[item,...clients]; setClients(next); saveImobfyList(IMOBFY_STORAGE_KEYS.clients,next); setShowForm(false); setName("");setPhone("");setNeighborhood("");setMaxPrice("");toast.success("Cliente adicionado à carteira"); };
-  return <div className="main" style={{minHeight:"100vh"}}><header className="page-head"><div><div className="eyebrow">IMOBFY · CRM</div><h1>Clientes</h1></div><button className="primary" onClick={()=>setShowForm(true)}><Plus size={18}/>Novo cliente</button></header>
-    <div className="card" style={{marginBottom:18}}><div style={{display:"flex",gap:10,flexWrap:"wrap"}}><div className="search-box" style={{flex:1,minWidth:240}}><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar nome, bairro ou telefone"/></div><select value={profile} onChange={e=>setProfile(e.target.value as ClientProfile|"")}><option value="">Todos os perfis</option>{Object.entries(CLIENT_PROFILE_LABELS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><button className="ghost"><SlidersHorizontal size={16}/>Filtros</button></div></div>
-    <div className="card"><div className="card-head"><div><h3>Minha carteira</h3><span>Clientes e próximos passos comerciais</span></div><span>{filtered.length} contatos</span></div>{filtered.length===0?<div style={{padding:"38px 10px",textAlign:"center"}}><UserRound size={28}/><h3>Nenhum cliente ainda</h3><span>Comece sua carteira e conecte clientes aos seus negócios.</span></div>:filtered.map(client=><div className="list-row" key={client.id} style={{padding:"17px 0"}}><div className="avatar"><UserRound size={17}/></div><div style={{flex:1}}><b>{client.name}</b><span style={{display:"block",marginTop:4}}>{CLIENT_PROFILE_LABELS[client.profile]} · {(client.neighborhoods??["Sem bairro"])[0]}</span></div><div className="desktop-only" style={{textAlign:"right"}}><b>{client.maxPrice?`Até ${new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(client.maxPrice)}`:"Faixa não definida"}</b><span style={{display:"block",marginTop:4}}>{CLIENT_STATUS_LABELS[client.status]}</span></div><span className="status-badge">{CLIENT_STATUS_LABELS[client.status]}</span><div style={{display:"flex",gap:4}}>{client.phone&&<button className="icon-btn" onClick={()=>window.open(`tel:${client.phone}`)}><Phone size={15}/></button>}{client.email&&<button className="icon-btn" onClick={()=>window.open(`mailto:${client.email}`)}><Mail size={15}/></button>}<button className="icon-btn"><ChevronRight size={17}/></button></div></div>)}</div>
-    <div style={{marginTop:18,display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:18}}><Insight title="Leads" value={String(clients.filter(c=>c.status==="lead").length)} text="Entraram na carteira"/><Insight title="Qualificados" value={String(clients.filter(c=>c.status==="qualified"||c.status==="active").length)} text="Prontos para avançar"/><Insight title="Convertidos" value={String(clients.filter(c=>c.status==="converted").length)} text="Viraram negócio"/></div>
-    {showForm&&<div className="modal-backdrop"><div className="modal"><div className="modal-head"><div><h2>Novo cliente</h2><span>Cadastre o básico agora e complete depois.</span></div><button className="icon-btn" onClick={()=>setShowForm(false)}>×</button></div><div style={{display:"grid",gap:12}}><input value={name} onChange={e=>setName(e.target.value)} placeholder="Nome completo" autoFocus/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Telefone"/><select value={clientProfile} onChange={e=>setClientProfile(e.target.value as ClientProfile)}>{Object.entries(CLIENT_PROFILE_LABELS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><select value={status} onChange={e=>setStatus(e.target.value as ClientStatus)}>{Object.entries(CLIENT_STATUS_LABELS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><input value={neighborhood} onChange={e=>setNeighborhood(e.target.value)} placeholder="Bairro de interesse"/><input value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} placeholder="Orçamento máximo (ex.: 900000)"/></div><div className="modal-actions"><button className="ghost" onClick={()=>setShowForm(false)}>Cancelar</button><button className="primary" onClick={save}>Salvar cliente</button></div></div></div>}
-  </div>;
-}
-function Insight({title,value,text}:{title:string;value:string;text:string}){return <div className="card"><span>{title}</span><strong style={{display:"block",fontSize:28,marginTop:8}}>{value}</strong><small style={{display:"block",marginTop:5}}>{text}</small></div>}
+export const Route = createFileRoute("/clientes")({
+  head: () => ({
+    meta: [
+      { title: "Clientes — Imobfy" },
+      { name: "description", content: "CRM imobiliário: leads, qualificação e follow-up." },
+      { property: "og:title", content: "Clientes — Imobfy" },
+      { property: "og:description", content: "CRM imobiliário: leads, qualificação e follow-up." },
+    ],
+  }),
+  component: () => <ImobfyApp module="clients" />,
+});

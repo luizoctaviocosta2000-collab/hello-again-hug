@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyApp from "../components/ImobfyApp";
+import ClientOnlyImobfyApp from "../components/ClientOnlyImobfyApp";
 
 export const Route = createFileRoute("/comissoes")({
   head: () => ({
@@ -10,5 +10,5 @@ export const Route = createFileRoute("/comissoes")({
       { property: "og:description", content: "Controle de comissões geradas e recebidas." },
     ],
   }),
-  component: () => <ImobfyApp module="commissions" />,
+  component: () => <ClientOnlyImobfyApp module="commissions" />,
 });

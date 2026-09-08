@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyApp from "../components/ImobfyApp";
+import ClientOnlyImobfyApp from "../components/ClientOnlyImobfyApp";
 
 export const Route = createFileRoute("/agenda")({
   head: () => ({
@@ -10,5 +10,5 @@ export const Route = createFileRoute("/agenda")({
       { property: "og:description", content: "Visitas, reuniões, ligações e follow-ups organizados." },
     ],
   }),
-  component: () => <ImobfyApp module="agenda" />,
+  component: () => <ClientOnlyImobfyApp module="agenda" />,
 });

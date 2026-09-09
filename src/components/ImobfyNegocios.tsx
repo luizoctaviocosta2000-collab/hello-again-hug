@@ -3,9 +3,9 @@ import { ChevronRight, CircleDollarSign, Plus, Search, X } from "lucide-react";
 import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
 import { supabase } from "../lib/supabase";
 import { calculateCommission, dealStatusLabel, type DealSide, type DealStatus } from "../lib/imobfy-core";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
-type Client = { id: string; name: string; phone: string | null; budget_max: number | null };
+type Client = { id: string; name: string; phone: string | null; budget_max: number | null; preferred_neighborhoods: string[]; property_types: string[]; bedrooms_min: number | null };
 type Property = { id: string; title: string; neighborhood: string | null; sale_value: number; bedrooms: number | null; property_type: string | null; status: string };
 type Deal = { id: string; client_id: string | null; property_id: string | null; status: DealStatus; property_value: number; brokerage_pct: number; tax_pct: number; participation_pct: number; sides: DealSide[]; notes: string | null };
 
@@ -38,7 +38,7 @@ export default function ImobfyNegocios() {
   async function load(userId: string) {
     if (!supabase) return;
     const [c, p, d] = await Promise.all([
-      supabase.from("clients").select("id,name,phone,budget_max").eq("user_id", userId).order("name"),
+      supabase.from("clients").select("id,name,phone,budget_max,preferred_neighborhoods,property_types,bedrooms_min").eq("user_id", userId).order("name"),
       supabase.from("properties").select("id,title,neighborhood,sale_value,bedrooms,property_type,status").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("deals").select("id,client_id,property_id,status,property_value,brokerage_pct,tax_pct,participation_pct,sides,notes").eq("user_id", userId).order("created_at", { ascending: false }),
     ]);
@@ -54,10 +54,22 @@ export default function ImobfyNegocios() {
   });
   const totalPipeline = deals.filter(d => d.status !== "lost").reduce((s, d) => s + Number(d.property_value || 0), 0);
   const forecast = deals.filter(d => d.status !== "lost").reduce((s, d) => s + calculateCommission(Number(d.property_value || 0), d.brokerage_pct, d.tax_pct, d.sides).userCommission, 0);
-  const match = useMemo(() => { if (!clientId) return []; const c = clients.find(x => x.id === clientId); if (!c) return []; return properties.map(p => { let score = 0; if (c.budget_max && p.sale_value <= c.budget_max) score += 35; if (c.preferred_neighborhoods?.includes(p.neighborhood ?? "")) score += 35; if (c.property_types?.includes(p.property_type ?? "")) score += 20; if (c.bedrooms_min && (p.bedrooms ?? 0) >= c.bedrooms_min) score += 10; return { p, score }; }).sort((a, b) => b.score - a.score).slice(0, 3); }, [clientId, clients, properties]);
+  const match = useMemo(() => {
+    if (!clientId) return [];
+    const c = clients.find(x => x.id === clientId); if (!c) return [];
+    return properties.map(p => { let score = 0; if (c.budget_max && p.sale_value <= c.budget_max) score += 35; if (c.preferred_neighborhoods.includes(p.neighborhood ?? "")) score += 35; if (c.property_types.includes(p.property_type ?? "")) score += 20; if (c.bedrooms_min && (p.bedrooms ?? 0) >= c.bedrooms_min) score += 10; return { p, score }; }).sort((a, b) => b.score - a.score).slice(0, 3);
+  }, [clientId, clients, properties]);
 
   function reset() { setClientId(""); setPropertyId(""); setValue(""); setStatus("new"); setSides(["capture"]); setNotes(""); setOpen(false); }
-  async function save() { if (!user || !supabase || !value) return; setSaving(true); setError(""); try { const pct = sides.reduce((s, x) => s + ({ capture: 20, capture_split: 10, sale: 20, sale_split: 10 } as Record<DealSide, number>)[x], 0); const { error: insertError } = await supabase.from("deals").insert({ user_id: user.id, client_id: clientId || null, property_id: propertyId || null, status, property_value: Number(value), brokerage_pct: 6, tax_pct: 9, participation_pct: pct, sides, notes: notes || null }); if (insertError) throw insertError; await load(user.id); reset(); } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar o negócio."); } finally { setSaving(false); } }
+  async function save() {
+    if (!user || !supabase || !value) return;
+    setSaving(true); setError("");
+    try {
+      const pct = sides.reduce((s, x) => s + ({ capture: 20, capture_split: 10, sale: 20, sale_split: 10 } as Record<DealSide, number>)[x], 0);
+      const { error: insertError } = await supabase.from("deals").insert({ user_id: user.id, client_id: clientId || null, property_id: propertyId || null, status, property_value: Number(value), brokerage_pct: 6, tax_pct: 9, participation_pct: pct, sides, notes: notes || null });
+      if (insertError) throw insertError; await load(user.id); reset();
+    } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar o negócio."); } finally { setSaving(false); }
+  }
   async function move(id: string, next: DealStatus) { if (!supabase || !user) return; const { error: updateError } = await supabase.from("deals").update({ status: next }).eq("id", id).eq("user_id", user.id); if (updateError) setError(updateError.message); else await load(user.id); }
   const selectedValue = Number(value || 0); const preview = calculateCommission(selectedValue, 6, 9, sides);
 

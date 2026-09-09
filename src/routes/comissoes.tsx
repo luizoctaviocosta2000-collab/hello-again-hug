@@ -1,3 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyMvpApp from "../components/ImobfyMvpApp";
-export const Route = createFileRoute("/comissoes")({ component: () => <ImobfyMvpApp module="comissoes" /> });
+import ImobfyFinanceiro from "../components/ImobfyFinanceiro";
+
+export const Route = createFileRoute("/comissoes")({ component: ImobfyFinanceiro });

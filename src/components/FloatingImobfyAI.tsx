@@ -11,7 +11,10 @@ async function readableFunctionError(error: unknown) {
   if (error && typeof error === "object" && "context" in error) {
     const context = (error as { context?: Response }).context;
     if (context instanceof Response) {
-      try { const payload = await context.clone().json(); if (payload?.error) return `${payload.error}${payload.detail ? ` (${payload.detail})` : ""}`; } catch {
+      try {
+        const payload = await context.clone().json();
+        if (payload?.error) return `${payload.error}${payload.detail ? ` (${payload.detail})` : ""}`;
+      } catch {
         try { const text = await context.clone().text(); if (text) return text; } catch {}
       }
     }
@@ -42,8 +45,15 @@ export default function FloatingImobfyAI() {
     try {
       const { data, error } = await supabase.functions.invoke("imobfy-ai", { body: { question: value } });
       if (error) throw error;
-      setMessages(current => [...current, { role: "assistant", text: data?.answer || "Não consegui gerar uma resposta agora." }]);
-      if (Array.isArray(data?.actions)) setActions(data.actions as AIAction[]);
+      if (!data || typeof data !== "object") throw new Error("A IA retornou uma resposta vazia.");
+      if (data.error) throw new Error(`${data.error}${data.detail ? ` (${data.detail})` : ""}`);
+      const answer = typeof data.answer === "string" ? data.answer.trim() : "";
+      if (!answer) {
+        const diagnostic = data.provider_status ? `Status do provedor: ${data.provider_status}.` : "O servidor da IA não retornou o campo de resposta.";
+        throw new Error(diagnostic);
+      }
+      setMessages(current => [...current, { role: "assistant", text: answer }]);
+      if (Array.isArray(data.actions)) setActions(data.actions as AIAction[]);
     } catch (error) {
       const message = await readableFunctionError(error);
       setMessages(current => [...current, { role: "assistant", text: `Não consegui falar com a IA. ${message}` }]);
@@ -70,22 +80,9 @@ export default function FloatingImobfyAI() {
       return;
     }
     setExecuting(index);
-    const { error } = await supabase.from("appointments").insert({
-      user_id: user.id,
-      client_id: action.client_id,
-      property_id: action.property_id || null,
-      deal_id: action.deal_id || null,
-      title: action.label || "Follow-up comercial",
-      starts_at: starts.toISOString(),
-      ends_at: ends.toISOString(),
-      status: "scheduled",
-      notes: action.notes || "Follow-up criado pelo Imobfy AI após confirmação do corretor."
-    });
+    const { error } = await supabase.from("appointments").insert({ user_id: user.id, client_id: action.client_id, property_id: action.property_id || null, deal_id: action.deal_id || null, title: action.label || "Follow-up comercial", starts_at: starts.toISOString(), ends_at: ends.toISOString(), status: "scheduled", notes: action.notes || "Follow-up criado pelo Imobfy AI após confirmação do corretor." });
     if (error) setMessages(current => [...current, { role: "assistant", text: `Não consegui criar o follow-up: ${error.message}` }]);
-    else {
-      setActions(current => current.filter((_, i) => i !== index));
-      setMessages(current => [...current, { role: "assistant", text: `Pronto. Follow-up criado na sua agenda para ${formatActionDate(action.starts_at)}.` }]);
-    }
+    else { setActions(current => current.filter((_, i) => i !== index)); setMessages(current => [...current, { role: "assistant", text: `Pronto. Follow-up criado na sua agenda para ${formatActionDate(action.starts_at)}.` }]); }
     setExecuting(null);
   }
 

@@ -29,21 +29,24 @@ export async function listOwned<T>(table: CoreTable, userId: string): Promise<T[
 
 export async function createOwned<T extends Record<string, unknown>>(table: CoreTable, userId: string, values: T) {
   if (!supabase) throw new Error("Supabase ainda não está configurado.");
-  const { data, error } = await supabase.from(table).insert({ ...values, user_id: userId } as never).select().single();
+  const client = supabase as any;
+  const { data, error } = await client.from(table).insert({ ...values, user_id: userId }).select().single();
   if (error) throw error;
   return data;
 }
 
 export async function updateOwned<T extends Record<string, unknown>>(table: CoreTable, userId: string, id: string, values: T) {
   if (!supabase) throw new Error("Supabase ainda não está configurado.");
-  const { data, error } = await supabase.from(table).update(values as never).eq("id", id).eq("user_id", userId).select().single();
+  const client = supabase as any;
+  const { data, error } = await client.from(table).update(values).eq("id", id).eq("user_id", userId).select().single();
   if (error) throw error;
   return data;
 }
 
 export async function deleteOwned(table: CoreTable, userId: string, id: string) {
   if (!supabase) throw new Error("Supabase ainda não está configurado.");
-  const { error } = await supabase.from(table).delete().eq("id", id).eq("user_id", userId);
+  const client = supabase as any;
+  const { error } = await client.from(table).delete().eq("id", id).eq("user_id", userId);
   if (error) throw error;
 }
 

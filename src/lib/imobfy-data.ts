@@ -9,7 +9,7 @@ function tableFor(module: Exclude<MvpModule, "dashboard" | "configuracoes">): Ta
 function fromDb(module: Exclude<MvpModule, "dashboard" | "configuracoes">, row: Record<string, unknown>): DataRow {
   const base = { id: String(row.id), created_at: row.created_at ? String(row.created_at) : undefined };
   switch (module) {
-    case "imoveis": return { ...base, name: String(row.title ?? "Imóvel"), detail: String(row.neighborhood ?? row.address ?? "Sem detalhes"), status: String(row.status ?? "Ativo"), value: Number(row.sale_value ?? 0) || undefined };
+    case "imoveis": return { ...base, name: String(row.title ?? "Imóvel"), detail: String([row.property_type, row.neighborhood, row.city].filter(Boolean).join(" · ") || row.address || "Sem detalhes"), status: String(row.status ?? "Ativo"), value: Number(row.sale_value ?? 0) || undefined };
     case "clientes": return { ...base, name: String(row.name ?? "Cliente"), detail: String(row.phone ?? row.email ?? "Sem contato"), status: String(row.status ?? "Ativo") };
     case "negocios": return { ...base, name: String(row.notes ?? "Negócio"), detail: String(row.status ?? "Novo"), status: String(row.status ?? "Novo"), value: Number(row.property_value ?? 0) || undefined };
     case "agenda": return { ...base, name: String(row.title ?? "Compromisso"), detail: row.starts_at ? new Date(String(row.starts_at)).toLocaleString("pt-BR") : "Sem horário", status: String(row.status ?? "Agendado") };
@@ -22,7 +22,7 @@ export async function createRemoteRow(userId: string, module: Exclude<MvpModule,
   if (!supabase) throw new Error("Supabase não configurado.");
   const common = { user_id: userId }; let payload: Record<string, unknown>;
   switch (module) {
-    case "imoveis": payload = { ...common, title: input.name, neighborhood: input.detail, sale_value: input.value ?? 0, status: "active" }; break;
+    case "imoveis": payload = { ...common, title: input.name, neighborhood: input.preferred_neighborhoods?.[0] ?? input.detail, city: input.city || null, state: input.state || null, property_type: input.property_types?.[0] || null, sale_value: input.value ?? 0, status: "active" }; break;
     case "clientes": payload = { ...common, name: input.name, phone: input.phone || input.detail || null, email: input.email || null, intent: input.intent || "Comprar", property_types: input.property_types ?? [], state: input.state || null, city: input.city || null, preferred_neighborhoods: input.preferred_neighborhoods ?? [], budget_min: input.budget_min ?? null, budget_max: input.budget_max ?? null, bedrooms_min: input.bedrooms_min ?? null, status: input.status || "active" }; break;
     case "negocios": payload = { ...common, notes: input.name, status: "new", property_value: input.value ?? 0, brokerage_pct: 6, tax_pct: 9, participation_pct: 20 }; break;
     case "agenda": payload = { ...common, title: input.name, notes: input.detail, starts_at: new Date().toISOString(), status: "scheduled" }; break;

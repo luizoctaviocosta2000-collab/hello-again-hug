@@ -6,6 +6,24 @@ import "../imobfy-ai-float.css";
 
 type Message = { role: "user" | "assistant"; text: string };
 
+async function readableFunctionError(error: unknown) {
+  if (error && typeof error === "object" && "context" in error) {
+    const context = (error as { context?: Response }).context;
+    if (context instanceof Response) {
+      try {
+        const payload = await context.clone().json();
+        if (payload?.error) return `${payload.error}${payload.detail ? ` (${payload.detail})` : ""}`;
+      } catch {
+        try {
+          const text = await context.clone().text();
+          if (text) return text;
+        } catch {}
+      }
+    }
+  }
+  return error instanceof Error ? error.message : "Erro ao conectar com a IA.";
+}
+
 export default function FloatingImobfyAI() {
   const [user, setUser] = useState<ImobfyUser | null>(null);
   const [open, setOpen] = useState(false);
@@ -27,8 +45,8 @@ export default function FloatingImobfyAI() {
       if (error) throw error;
       setMessages(current => [...current, { role: "assistant", text: data?.answer || "Não consegui gerar uma resposta agora." }]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro ao conectar com a IA.";
-      setMessages(current => [...current, { role: "assistant", text: `Não consegui falar com a IA agora. ${message}` }]);
+      const message = await readableFunctionError(error);
+      setMessages(current => [...current, { role: "assistant", text: `Não consegui falar com a IA. ${message}` }]);
     } finally { setLoading(false); }
   }
 

@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import ImobfyAI from "../components/ImobfyAI";
+import ImobfyAIChat from "../components/ImobfyAIChat";
 import { restoreSession } from "../lib/imobfy-session";
 
 export const Route = createFileRoute("/ia")({
@@ -13,5 +13,5 @@ export const Route = createFileRoute("/ia")({
 
 function IA() {
   const { user } = Route.useRouteContext();
-  return <ImobfyAI user={user} />;
+  return <ImobfyAIChat user={user} />;
 }

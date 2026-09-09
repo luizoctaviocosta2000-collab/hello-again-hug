@@ -8,7 +8,12 @@ export const COMMISSION_DEFAULTS = { brokeragePct: 6, taxPct: 9 } as const;
 
 export function participationForSides(sides: DealSide[]) { return sides.reduce((total, side) => total + (SIDE_PARTICIPATION[side] ?? 0), 0); }
 
-export function calculateCommission(propertyValue: number, brokeragePct = COMMISSION_DEFAULTS.brokeragePct, taxPct = COMMISSION_DEFAULTS.taxPct, sides: DealSide[] = ["capture"]) {
+export function calculateCommission(
+  propertyValue: number,
+  brokeragePct: number = COMMISSION_DEFAULTS.brokeragePct,
+  taxPct: number = COMMISSION_DEFAULTS.taxPct,
+  sides: DealSide[] = ["capture"],
+) {
   const value = Math.max(0, Number(propertyValue) || 0);
   const gross = value * Number(brokeragePct) / 100;
   const tax = gross * Number(taxPct) / 100;

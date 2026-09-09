@@ -2,34 +2,20 @@ import { supabase } from "./supabase";
 import type { MvpModule } from "../components/ImobfyMvpApp";
 
 export type DataRow = { id: string; name: string; detail: string; status: string; value?: number };
-
 type TableName = "properties" | "clients" | "deals" | "appointments" | "commissions" | "vgv_entries";
 
 function tableFor(module: Exclude<MvpModule, "dashboard" | "configuracoes">): TableName {
-  return ({
-    imoveis: "properties",
-    clientes: "clients",
-    negocios: "deals",
-    agenda: "appointments",
-    comissoes: "commissions",
-    vgv: "vgv_entries",
-  } as const)[module];
+  return ({ imoveis: "properties", clientes: "clients", negocios: "deals", agenda: "appointments", comissoes: "commissions", vgv: "vgv_entries" } as const)[module];
 }
 
 function fromDb(module: Exclude<MvpModule, "dashboard" | "configuracoes">, row: Record<string, unknown>): DataRow {
   switch (module) {
-    case "imoveis":
-      return { id: String(row.id), name: String(row.title ?? "Imóvel"), detail: String(row.neighborhood ?? row.address ?? "Sem detalhes"), status: String(row.status ?? "Ativo"), value: Number(row.sale_value ?? 0) || undefined };
-    case "clientes":
-      return { id: String(row.id), name: String(row.name ?? "Cliente"), detail: String(row.phone ?? row.email ?? "Sem contato"), status: String(row.status ?? "Ativo") };
-    case "negocios":
-      return { id: String(row.id), name: String(row.notes ?? "Negócio"), detail: String(row.status ?? "Novo"), status: String(row.status ?? "Novo"), value: Number(row.property_value ?? 0) || undefined };
-    case "agenda":
-      return { id: String(row.id), name: String(row.title ?? "Compromisso"), detail: row.starts_at ? new Date(String(row.starts_at)).toLocaleString("pt-BR") : "Sem horário", status: String(row.status ?? "Agendado") };
-    case "comissoes":
-      return { id: String(row.id), name: "Comissão", detail: String(row.status ?? "Previsão"), status: String(row.status ?? "Previsão"), value: Number(row.user_amount ?? 0) || undefined };
-    case "vgv":
-      return { id: String(row.id), name: "VGV", detail: String(row.month ?? ""), status: "Realizado", value: Number(row.property_value ?? 0) || undefined };
+    case "imoveis": return { id: String(row.id), name: String(row.title ?? "Imóvel"), detail: String(row.neighborhood ?? row.address ?? "Sem detalhes"), status: String(row.status ?? "Ativo"), value: Number(row.sale_value ?? 0) || undefined };
+    case "clientes": return { id: String(row.id), name: String(row.name ?? "Cliente"), detail: String(row.phone ?? row.email ?? "Sem contato"), status: String(row.status ?? "Ativo") };
+    case "negocios": return { id: String(row.id), name: String(row.notes ?? "Negócio"), detail: String(row.status ?? "Novo"), status: String(row.status ?? "Novo"), value: Number(row.property_value ?? 0) || undefined };
+    case "agenda": return { id: String(row.id), name: String(row.title ?? "Compromisso"), detail: row.starts_at ? new Date(String(row.starts_at)).toLocaleString("pt-BR") : "Sem horário", status: String(row.status ?? "Agendado") };
+    case "comissoes": return { id: String(row.id), name: "Comissão", detail: String(row.status ?? "Previsão"), status: String(row.status ?? "Previsão"), value: Number(row.user_amount ?? 0) || undefined };
+    case "vgv": return { id: String(row.id), name: "VGV", detail: String(row.month ?? ""), status: String(row.status ?? "Realizado"), value: Number(row.property_value ?? 0) || undefined };
   }
 }
 
@@ -49,8 +35,8 @@ export async function createRemoteRow(userId: string, module: Exclude<MvpModule,
     case "clientes": payload = { ...common, name: input.name, phone: input.detail, status: "active" }; break;
     case "negocios": payload = { ...common, notes: input.name, status: "new", property_value: input.value ?? 0, brokerage_pct: 6, tax_pct: 9, participation_pct: 20 }; break;
     case "agenda": payload = { ...common, title: input.name, notes: input.detail, starts_at: new Date().toISOString(), status: "scheduled" }; break;
-    case "comissoes": payload = { ...common, property_value: input.value ?? 0, gross_amount: (input.value ?? 0) * 0.06, tax_pct: 9, tax_amount: (input.value ?? 0) * 0.06 * 0.09, net_brokerage: (input.value ?? 0) * 0.06 * 0.91, participation_pct: 20, user_amount: (input.value ?? 0) * 0.06 * 0.91 * 0.2, status: "forecast" }; break;
-    case "vgv": payload = { ...common, property_value: input.value ?? 0, month: new Date().toISOString().slice(0, 10) }; break;
+    case "comissoes": { const propertyValue=input.value ?? 0; const gross=propertyValue*0.06; const tax=gross*0.09; const net=gross-tax; payload={...common,property_value:propertyValue,gross_amount:gross,tax_pct:9,tax_amount:tax,net_brokerage:net,participation_pct:20,user_amount:net*0.2,status:"forecast"}; break; }
+    case "vgv": payload = { ...common, property_value: input.value ?? 0, month: new Date().toISOString().slice(0, 10), status: "realized" }; break;
   }
   const { data, error } = await supabase.from(tableFor(module)).insert(payload).select("*").single();
   if (error) throw error;

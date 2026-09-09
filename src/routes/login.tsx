@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import ImobfyAuth from "../components/ImobfyAuth";
-import { useEffect as useReactEffect } from "react";
 import { restoreSession } from "../lib/imobfy-session";
 import { supabase } from "../lib/supabase";
 

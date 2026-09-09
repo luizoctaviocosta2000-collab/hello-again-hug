@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import ImobfyAuth from "../components/ImobfyAuth";
+import { useEffect as useReactEffect } from "react";
 import { restoreSession } from "../lib/imobfy-session";
 import { supabase } from "../lib/supabase";
 
@@ -22,6 +23,10 @@ function LoginPage() {
       const code = url.searchParams.get("code");
       const tokenHash = url.searchParams.get("token_hash");
       const type = url.searchParams.get("type");
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const accessToken = hash.get("access_token");
+      const refreshToken = hash.get("refresh_token");
+      const hashType = hash.get("type");
 
       try {
         if (code) {
@@ -38,6 +43,15 @@ function LoginPage() {
           url.searchParams.delete("token_hash");
           url.searchParams.delete("type");
           window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
+        } else if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) throw error;
+          window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
+        } else if (hashType === "signup") {
+          throw new Error("O link confirmou o e-mail, mas a sessão de acesso não foi criada. Tente abrir o link novamente em uma aba anônima.");
         }
 
         const session = await restoreSession();

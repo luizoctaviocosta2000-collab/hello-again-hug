@@ -3,7 +3,7 @@ import type { MvpModule } from "../components/ImobfyMvpApp";
 
 export type DataRow = { id: string; name: string; detail: string; status: string; value?: number; created_at?: string };
 type TableName = "properties" | "clients" | "deals" | "appointments" | "commissions" | "vgv_entries";
-type CreateInput = { name: string; detail: string; value?: number; phone?: string; email?: string; intent?: string; property_types?: string[]; preferred_neighborhoods?: string[]; budget_min?: number | null; budget_max?: number | null; bedrooms_min?: number | null; status?: string };
+type CreateInput = { name: string; detail: string; value?: number; phone?: string; email?: string; intent?: string; property_types?: string[]; state?: string; city?: string; preferred_neighborhoods?: string[]; budget_min?: number | null; budget_max?: number | null; bedrooms_min?: number | null; status?: string };
 
 function tableFor(module: Exclude<MvpModule, "dashboard" | "configuracoes">): TableName { return ({ imoveis: "properties", clientes: "clients", negocios: "deals", agenda: "appointments", comissoes: "commissions", vgv: "vgv_entries" } as const)[module]; }
 function fromDb(module: Exclude<MvpModule, "dashboard" | "configuracoes">, row: Record<string, unknown>): DataRow {
@@ -23,7 +23,7 @@ export async function createRemoteRow(userId: string, module: Exclude<MvpModule,
   const common = { user_id: userId }; let payload: Record<string, unknown>;
   switch (module) {
     case "imoveis": payload = { ...common, title: input.name, neighborhood: input.detail, sale_value: input.value ?? 0, status: "active" }; break;
-    case "clientes": payload = { ...common, name: input.name, phone: input.phone || input.detail || null, email: input.email || null, intent: input.intent || "Comprar", property_types: input.property_types ?? [], preferred_neighborhoods: input.preferred_neighborhoods ?? [], budget_min: input.budget_min ?? null, budget_max: input.budget_max ?? null, bedrooms_min: input.bedrooms_min ?? null, status: input.status || "active" }; break;
+    case "clientes": payload = { ...common, name: input.name, phone: input.phone || input.detail || null, email: input.email || null, intent: input.intent || "Comprar", property_types: input.property_types ?? [], state: input.state || null, city: input.city || null, preferred_neighborhoods: input.preferred_neighborhoods ?? [], budget_min: input.budget_min ?? null, budget_max: input.budget_max ?? null, bedrooms_min: input.bedrooms_min ?? null, status: input.status || "active" }; break;
     case "negocios": payload = { ...common, notes: input.name, status: "new", property_value: input.value ?? 0, brokerage_pct: 6, tax_pct: 9, participation_pct: 20 }; break;
     case "agenda": payload = { ...common, title: input.name, notes: input.detail, starts_at: new Date().toISOString(), status: "scheduled" }; break;
     case "comissoes": { const propertyValue = input.value ?? 0; const gross = propertyValue * 0.06; const tax = gross * 0.09; const net = gross - tax; payload = { ...common, property_value: propertyValue, gross_amount: gross, tax_pct: 9, tax_amount: tax, net_brokerage: net, participation_pct: 20, user_amount: net * 0.2, status: "forecast" }; break; }

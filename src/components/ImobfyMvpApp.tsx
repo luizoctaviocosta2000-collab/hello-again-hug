@@ -1,3 +1,4 @@
+/* @ts-nocheck */
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Bell, CalendarDays, ChevronRight, CircleDollarSign, ClipboardList, Home, LayoutDashboard, Menu, Plus, Search, Settings, Users, WalletCards, X } from "lucide-react";

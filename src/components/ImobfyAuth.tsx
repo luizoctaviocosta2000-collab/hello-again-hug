@@ -3,6 +3,8 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import { clearDemoData, setSession } from "../lib/imobfy-session";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 
+const APP_URL = "https://hello-there-buddy-172.lovable.app";
+
 export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () => void }) {
   const [mode, setMode] = useState<"login" | "signup">("signup");
   const [name, setName] = useState("");
@@ -29,7 +31,10 @@ export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () =>
           const { data, error: authError } = await supabase.auth.signUp({
             email: email.trim(),
             password,
-            options: { data: { full_name: name.trim() } },
+            options: {
+              data: { full_name: name.trim() },
+              emailRedirectTo: APP_URL,
+            },
           });
           if (authError) throw authError;
           if (!data.session || !data.user) {
@@ -46,7 +51,6 @@ export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () =>
           setSession({ id: data.user.id, name: displayName, email: data.user.email ?? email.trim() });
         }
       } else {
-        // Prototype fallback keeps the UI usable until Supabase credentials are configured.
         clearDemoData();
         const displayName = mode === "signup" ? name.trim() : email.split("@")[0] || "Corretor";
         setSession({ id: crypto.randomUUID(), name: displayName, email: email.trim() });

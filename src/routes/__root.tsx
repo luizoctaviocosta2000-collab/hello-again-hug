@@ -3,6 +3,7 @@ import { Outlet, createRootRouteWithContext, HeadContent, Scripts } from "@tanst
 import type { ReactNode } from "react";
 import appCss from "../styles.css?url";
 import "../imobfy-clean.css";
+import FloatingImobfyAI from "../components/FloatingImobfyAI";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -25,5 +26,5 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  return <QueryClientProvider client={queryClient}><Outlet /></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><Outlet /><FloatingImobfyAI /></QueryClientProvider>;
 }

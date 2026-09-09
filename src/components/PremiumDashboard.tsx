@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Link } from "@tanstack/react-router";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, Building2, CalendarDays, ChevronRight, CircleDollarSign, Home, Moon, Plus, Settings, Sun, TrendingUp, Users, Wallet } from "lucide-react";

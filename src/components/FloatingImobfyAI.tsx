@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
+import { getSession, restoreSession, type ImobfyUser } from "../lib/imobfy-session";
 import "../imobfy-ai-float.css";
 
 type Message = { role: "user" | "assistant"; text: string };
@@ -25,18 +25,24 @@ async function readableFunctionError(error: unknown) {
 }
 
 export default function FloatingImobfyAI() {
-  const [user, setUser] = useState<ImobfyUser | null>(null);
+  const [user, setUser] = useState<ImobfyUser | null>(() => getSession());
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { void restoreSession().then(setUser); }, []);
-  if (!user) return null;
+  useEffect(() => {
+    void restoreSession().then(setUser);
+  }, []);
 
   async function ask(text = question) {
     const value = text.trim();
     if (!value || loading) return;
+    if (!user) {
+      setMessages(current => [...current, { role: "assistant", text: "Sua sessão não foi encontrada. Faça login novamente para usar o Imobfy AI." }]);
+      setOpen(true);
+      return;
+    }
     setQuestion("");
     setMessages(current => [...current, { role: "user", text: value }]);
     setLoading(true);
@@ -47,14 +53,16 @@ export default function FloatingImobfyAI() {
     } catch (error) {
       const message = await readableFunctionError(error);
       setMessages(current => [...current, { role: "assistant", text: `Não consegui falar com a IA. ${message}` }]);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return <>
     {open && <section className="imobfy-ai-window" aria-label="Assistente Imobfy AI">
       <header className="imobfy-ai-header"><div className="imobfy-ai-brand"><div className="imobfy-ai-mini-logo"><Sparkles size={16}/></div><div><strong>Imobfy AI</strong><span>Seu assistente comercial</span></div></div><button className="imobfy-ai-close" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18}/></button></header>
       <div className="imobfy-ai-messages">
-        {!messages.length && <div className="imobfy-ai-welcome"><div className="imobfy-ai-welcome-icon"><Bot size={25}/></div><strong>Fala, {user.name.split(" ")[0]}.</strong><p>Eu consigo analisar seus clientes, imóveis, negócios, agenda, VGV e comissões.</p><div className="imobfy-ai-suggestions"><button onClick={() => void ask("Quais são as melhores oportunidades que tenho hoje?")}>Melhores oportunidades</button><button onClick={() => void ask("Quais negócios estão parados e merecem follow-up?")}>Negócios parados</button><button onClick={() => void ask("Como está meu VGV e minhas comissões?")}>Meu VGV e comissões</button></div></div>}
+        {!messages.length && <div className="imobfy-ai-welcome"><div className="imobfy-ai-welcome-icon"><Bot size={25}/></div><strong>{user ? `Fala, ${user.name.split(" ")[0]}.` : "Imobfy AI"}</strong><p>Eu consigo analisar seus clientes, imóveis, negócios, agenda, VGV e comissões.</p><div className="imobfy-ai-suggestions"><button onClick={() => void ask("Quais são as melhores oportunidades que tenho hoje?")}>Melhores oportunidades</button><button onClick={() => void ask("Quais negócios estão parados e merecem follow-up?")}>Negócios parados</button><button onClick={() => void ask("Como está meu VGV e minhas comissões?")}>Meu VGV e comissões</button></div></div>}
         {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`imobfy-ai-message ${message.role}`}><span>{message.text}</span></div>)}
         {loading && <div className="imobfy-ai-message assistant"><span className="imobfy-ai-typing">Analisando seus dados...</span></div>}
       </div>

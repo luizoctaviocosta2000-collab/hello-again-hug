@@ -1,0 +1,1 @@
+Authentication is currently a prototype local session. Supabase Auth should replace this before production. Legacy demo keys are intentionally ignored/removed so a new workspace starts empty.

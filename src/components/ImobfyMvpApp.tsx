@@ -1,4 +1,4 @@
-/* @ts-nocheck */
+// @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { Bell, CalendarDays, ChevronRight, CircleDollarSign, ClipboardList, Home, LayoutDashboard, Menu, Plus, Search, Settings, Users, WalletCards, X } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";

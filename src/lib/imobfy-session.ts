@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export type ImobfyUser = {
   id: string;
   name: string;
@@ -17,8 +19,32 @@ export function getSession(): ImobfyUser | null {
   }
 }
 
+export async function restoreSession(): Promise<ImobfyUser | null> {
+  if (typeof window === "undefined") return null;
+  if (!supabase) return getSession();
+
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) {
+    clearSession();
+    return null;
+  }
+
+  const user: ImobfyUser = {
+    id: data.user.id,
+    name: (data.user.user_metadata?.full_name as string | undefined) || data.user.email?.split("@")[0] || "Corretor",
+    email: data.user.email || "",
+  };
+  setSession(user);
+  return user;
+}
+
 export function setSession(user: ImobfyUser) {
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
+
+export async function signOut() {
+  if (supabase) await supabase.auth.signOut();
+  clearSession();
 }
 
 export function clearSession() {

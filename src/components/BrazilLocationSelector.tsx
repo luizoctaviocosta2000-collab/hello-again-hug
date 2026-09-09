@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BRAZIL_STATES, PAMPULHA_BH_NEIGHBORHOODS } from "../lib/brazil-locations";
+import "../imobfy-fixes.css";
 
 type City = { id: number; nome: string };
 
@@ -13,23 +14,65 @@ type Props = {
   className?: string;
 };
 
-export default function BrazilLocationSelector({ state, city, neighborhood, onStateChange, onCityChange, onNeighborhoodChange, className = "" }: Props) {
+const IBGE_BASE = "https://servicodados.ibge.gov.br/api/v1/localidades";
+
+export default function BrazilLocationSelector({
+  state,
+  city,
+  neighborhood,
+  onStateChange,
+  onCityChange,
+  onNeighborhoodChange,
+  className = "",
+}: Props) {
   const [cities, setCities] = useState<City[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [cityError, setCityError] = useState("");
 
-  const selectedUf = useMemo(() => BRAZIL_STATES.find(s => s.name === state)?.uf ?? "", [state]);
+  const selectedUf = useMemo(
+    () => BRAZIL_STATES.find((item) => item.name === state)?.uf ?? "",
+    [state],
+  );
   const isBh = selectedUf === "MG" && city === "Belo Horizonte";
 
   useEffect(() => {
-    if (!selectedUf) { setCities([]); return; }
-    let cancelled = false;
+    if (!selectedUf) {
+      setCities([]);
+      setLoadingCities(false);
+      setCityError("");
+      return;
+    }
+
+    const controller = new AbortController();
+    setCities([]);
     setLoadingCities(true);
-    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios`)
-      .then(response => response.ok ? response.json() : Promise.reject(new Error("Não foi possível carregar as cidades.")))
-      .then((data: City[]) => { if (!cancelled) setCities(data.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))); })
-      .catch(() => { if (!cancelled) setCities([]); })
-      .finally(() => { if (!cancelled) setLoadingCities(false); });
-    return () => { cancelled = true; };
+    setCityError("");
+
+    fetch(`${IBGE_BASE}/estados/${selectedUf}/municipios`, {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Falha ao carregar cidades");
+        return response.json() as Promise<City[]>;
+      })
+      .then((data) => {
+        const ordered = Array.isArray(data)
+          ? [...data].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+          : [];
+        setCities(ordered);
+        if (!ordered.length) setCityError("Não foi possível encontrar as cidades deste estado.");
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") return;
+        setCities([]);
+        setCityError("Não foi possível carregar as cidades agora. Tente novamente.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingCities(false);
+      });
+
+    return () => controller.abort();
   }, [selectedUf]);
 
   function handleState(value: string) {
@@ -43,9 +86,60 @@ export default function BrazilLocationSelector({ state, city, neighborhood, onSt
     onNeighborhoodChange("");
   }
 
-  return <div className={`location-selector ${className}`}>
-    <label>Estado<select value={state} onChange={e => handleState(e.target.value)}><option value="">Selecione o estado</option>{BRAZIL_STATES.map(s => <option key={s.uf} value={s.name}>{s.name}</option>)}</select></label>
-    <label>Cidade<select value={city} disabled={!selectedUf || loadingCities} onChange={e => handleCity(e.target.value)}><option value="">{loadingCities ? "Carregando cidades..." : selectedUf ? "Selecione a cidade" : "Selecione primeiro o estado"}</option>{cities.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}</select></label>
-    <label className="full">Bairro{isBh ? <select value={neighborhood} onChange={e => onNeighborhoodChange(e.target.value)} disabled={!city}><option value="">Selecione o bairro</option>{PAMPULHA_BH_NEIGHBORHOODS.map(b => <option key={b} value={b}>{b}</option>)}</select> : <input value={neighborhood} onChange={e => onNeighborhoodChange(e.target.value)} disabled={!city} placeholder={city ? "Digite o bairro" : "Selecione primeiro a cidade"} />}</label>
-  </div>;
+  return (
+    <div className={`location-selector ${className}`}>
+      <div className="location-field">
+        <label htmlFor="imobfy-state">Estado</label>
+        <select id="imobfy-state" value={state} onChange={(e) => handleState(e.target.value)}>
+          <option value="">Selecione o estado</option>
+          {BRAZIL_STATES.map((item) => (
+            <option key={item.uf} value={item.name}>{item.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="location-field">
+        <label htmlFor="imobfy-city">Cidade</label>
+        <select
+          id="imobfy-city"
+          value={city}
+          disabled={!selectedUf || loadingCities}
+          onChange={(e) => handleCity(e.target.value)}
+        >
+          <option value="">
+            {loadingCities ? "Carregando cidades..." : selectedUf ? "Selecione a cidade" : "Selecione primeiro o estado"}
+          </option>
+          {cities.map((item) => (
+            <option key={item.id} value={item.nome}>{item.nome}</option>
+          ))}
+        </select>
+        {cityError && <small className="location-error">{cityError}</small>}
+      </div>
+
+      <div className="location-field location-field-full">
+        <label htmlFor="imobfy-neighborhood">Bairro</label>
+        {isBh ? (
+          <select
+            id="imobfy-neighborhood"
+            value={neighborhood}
+            disabled={!city}
+            onChange={(e) => onNeighborhoodChange(e.target.value)}
+          >
+            <option value="">Selecione o bairro</option>
+            {PAMPULHA_BH_NEIGHBORHOODS.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            id="imobfy-neighborhood"
+            value={neighborhood}
+            disabled={!city}
+            onChange={(e) => onNeighborhoodChange(e.target.value)}
+            placeholder={city ? "Digite o bairro" : "Selecione primeiro a cidade"}
+          />
+        )}
+      </div>
+    </div>
+  );
 }

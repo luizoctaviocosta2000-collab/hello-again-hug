@@ -16,48 +16,18 @@ import { Route as ComissoesRouteImport } from './routes/comissoes'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ImoveisRouteImport } from './routes/imoveis'
 import { Route as NegociosRouteImport } from './routes/negocios'
+import { Route as OportunidadesRouteImport } from './routes/oportunidades'
 import { Route as VgvRouteImport } from './routes/vgv'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgendaRoute = AgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientesRoute = ClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComissoesRoute = ComissoesRouteImport.update({
-  id: '/comissoes',
-  path: '/comissoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ImoveisRoute = ImoveisRouteImport.update({
-  id: '/imoveis',
-  path: '/imoveis',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NegociosRoute = NegociosRouteImport.update({
-  id: '/negocios',
-  path: '/negocios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VgvRoute = VgvRouteImport.update({
-  id: '/vgv',
-  path: '/vgv',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
+const AgendaRoute = AgendaRouteImport.update({ id: '/agenda', path: '/agenda', getParentRoute: () => rootRouteImport } as any)
+const ClientesRoute = ClientesRouteImport.update({ id: '/clientes', path: '/clientes', getParentRoute: () => rootRouteImport } as any)
+const ComissoesRoute = ComissoesRouteImport.update({ id: '/comissoes', path: '/comissoes', getParentRoute: () => rootRouteImport } as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({ id: '/configuracoes', path: '/configuracoes', getParentRoute: () => rootRouteImport } as any)
+const ImoveisRoute = ImoveisRouteImport.update({ id: '/imoveis', path: '/imoveis', getParentRoute: () => rootRouteImport } as any)
+const NegociosRoute = NegociosRouteImport.update({ id: '/negocios', path: '/negocios', getParentRoute: () => rootRouteImport } as any)
+const OportunidadesRoute = OportunidadesRouteImport.update({ id: '/oportunidades', path: '/oportunidades', getParentRoute: () => rootRouteImport } as any)
+const VgvRoute = VgvRouteImport.update({ id: '/vgv', path: '/vgv', getParentRoute: () => rootRouteImport } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +37,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/imoveis': typeof ImoveisRoute
   '/negocios': typeof NegociosRoute
+  '/oportunidades': typeof OportunidadesRoute
   '/vgv': typeof VgvRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +48,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/imoveis': typeof ImoveisRoute
   '/negocios': typeof NegociosRoute
+  '/oportunidades': typeof OportunidadesRoute
   '/vgv': typeof VgvRoute
 }
 export interface FileRoutesById {
@@ -88,39 +60,15 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/imoveis': typeof ImoveisRoute
   '/negocios': typeof NegociosRoute
+  '/oportunidades': typeof OportunidadesRoute
   '/vgv': typeof VgvRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/agenda'
-    | '/clientes'
-    | '/comissoes'
-    | '/configuracoes'
-    | '/imoveis'
-    | '/negocios'
-    | '/vgv'
+  fullPaths: '/' | '/agenda' | '/clientes' | '/comissoes' | '/configuracoes' | '/imoveis' | '/negocios' | '/oportunidades' | '/vgv'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/agenda'
-    | '/clientes'
-    | '/comissoes'
-    | '/configuracoes'
-    | '/imoveis'
-    | '/negocios'
-    | '/vgv'
-  id:
-    | '__root__'
-    | '/'
-    | '/agenda'
-    | '/clientes'
-    | '/comissoes'
-    | '/configuracoes'
-    | '/imoveis'
-    | '/negocios'
-    | '/vgv'
+  to: '/' | '/agenda' | '/clientes' | '/comissoes' | '/configuracoes' | '/imoveis' | '/negocios' | '/oportunidades' | '/vgv'
+  id: '__root__' | '/' | '/agenda' | '/clientes' | '/comissoes' | '/configuracoes' | '/imoveis' | '/negocios' | '/oportunidades' | '/vgv'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,83 +79,36 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ImoveisRoute: typeof ImoveisRoute
   NegociosRoute: typeof NegociosRoute
+  OportunidadesRoute: typeof OportunidadesRoute
   VgvRoute: typeof VgvRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agenda': {
-      id: '/agenda'
-      path: '/agenda'
-      fullPath: '/agenda'
-      preLoaderRoute: typeof AgendaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clientes': {
-      id: '/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof ClientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/comissoes': {
-      id: '/comissoes'
-      path: '/comissoes'
-      fullPath: '/comissoes'
-      preLoaderRoute: typeof ComissoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/imoveis': {
-      id: '/imoveis'
-      path: '/imoveis'
-      fullPath: '/imoveis'
-      preLoaderRoute: typeof ImoveisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/negocios': {
-      id: '/negocios'
-      path: '/negocios'
-      fullPath: '/negocios'
-      preLoaderRoute: typeof NegociosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vgv': {
-      id: '/vgv'
-      path: '/vgv'
-      fullPath: '/vgv'
-      preLoaderRoute: typeof VgvRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof IndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/agenda': { id: '/agenda'; path: '/agenda'; fullPath: '/agenda'; preLoaderRoute: typeof AgendaRouteImport; parentRoute: typeof rootRouteImport }
+    '/clientes': { id: '/clientes'; path: '/clientes'; fullPath: '/clientes'; preLoaderRoute: typeof ClientesRouteImport; parentRoute: typeof rootRouteImport }
+    '/comissoes': { id: '/comissoes'; path: '/comissoes'; fullPath: '/comissoes'; preLoaderRoute: typeof ComissoesRouteImport; parentRoute: typeof rootRouteImport }
+    '/configuracoes': { id: '/configuracoes'; path: '/configuracoes'; fullPath: '/configuracoes'; preLoaderRoute: typeof ConfiguracoesRouteImport; parentRoute: typeof rootRouteImport }
+    '/imoveis': { id: '/imoveis'; path: '/imoveis'; fullPath: '/imoveis'; preLoaderRoute: typeof ImoveisRouteImport; parentRoute: typeof rootRouteImport }
+    '/negocios': { id: '/negocios'; path: '/negocios'; fullPath: '/negocios'; preLoaderRoute: typeof NegociosRouteImport; parentRoute: typeof rootRouteImport }
+    '/oportunidades': { id: '/oportunidades'; path: '/oportunidades'; fullPath: '/oportunidades'; preLoaderRoute: typeof OportunidadesRouteImport; parentRoute: typeof rootRouteImport }
+    '/vgv': { id: '/vgv'; path: '/vgv'; fullPath: '/vgv'; preLoaderRoute: typeof VgvRouteImport; parentRoute: typeof rootRouteImport }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AgendaRoute: AgendaRoute,
-  ClientesRoute: ClientesRoute,
-  ComissoesRoute: ComissoesRoute,
-  ConfiguracoesRoute: ConfiguracoesRoute,
-  ImoveisRoute: ImoveisRoute,
-  NegociosRoute: NegociosRoute,
-  VgvRoute: VgvRoute,
+  IndexRoute,
+  AgendaRoute,
+  ClientesRoute,
+  ComissoesRoute,
+  ConfiguracoesRoute,
+  ImoveisRoute,
+  NegociosRoute,
+  OportunidadesRoute,
+  VgvRoute,
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.ts'

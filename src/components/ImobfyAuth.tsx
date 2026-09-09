@@ -3,17 +3,23 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import { clearDemoData, setSession } from "../lib/imobfy-session";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 
-const APP_URL = "https://hello-there-buddy-172.lovable.app";
+const APP_URL = "https://imobfyy.lovable.app";
 
 export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () => void }) {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [mode, setMode] = useState<"login" | "signup">(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("confirmed") === "1") return "login";
+    return "login";
+  });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("confirmed") === "1") return "E-mail confirmado. Agora entre com seu e-mail e senha para acessar o Imobfy.";
+    return "";
+  });
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -33,12 +39,12 @@ export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () =>
             password,
             options: {
               data: { full_name: name.trim() },
-              emailRedirectTo: APP_URL,
+              emailRedirectTo: `${APP_URL}/login?confirmed=1`,
             },
           });
           if (authError) throw authError;
           if (!data.session || !data.user) {
-            setMessage("Conta criada. Confira seu e-mail para confirmar o acesso e depois entre no Imobfy.");
+            setMessage("Conta criada. Confira seu e-mail para confirmar o acesso. Depois, entre com seu e-mail e senha.");
             setMode("login");
             return;
           }

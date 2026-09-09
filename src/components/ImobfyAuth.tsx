@@ -5,21 +5,21 @@ import { supabase, supabaseConfigured } from "../lib/supabase";
 
 const APP_URL = "https://imobfyy.lovable.app";
 
-export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () => void }) {
-  const [mode, setMode] = useState<"login" | "signup">(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("confirmed") === "1") return "login";
-    return "login";
-  });
+type ImobfyAuthProps = {
+  onAuthenticated: () => void;
+  initialMessage?: string;
+};
+
+export default function ImobfyAuth({ onAuthenticated, initialMessage }: ImobfyAuthProps) {
+  const confirmed = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("confirmed") === "1";
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("confirmed") === "1") return "E-mail confirmado. Agora entre com seu e-mail e senha para acessar o Imobfy.";
-    return "";
-  });
+  const [message, setMessage] = useState(initialMessage || (confirmed ? "E-mail confirmado. Agora entre com seu e-mail e senha para acessar o Imobfy." : ""));
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -43,7 +43,8 @@ export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () =>
             },
           });
           if (authError) throw authError;
-          if (!data.session || !data.user) {
+          if (!data.user) throw new Error("Não foi possível criar sua conta.");
+          if (!data.session) {
             setMessage("Conta criada. Confira seu e-mail para confirmar o acesso. Depois, entre com seu e-mail e senha.");
             setMode("login");
             return;
@@ -53,7 +54,7 @@ export default function ImobfyAuth({ onAuthenticated }: { onAuthenticated: () =>
           const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
           if (authError) throw authError;
           if (!data.user) throw new Error("Não foi possível iniciar sua sessão.");
-          const displayName = (data.user.user_metadata?.full_name as string | undefined) || data.user.email?.split("@")[0] || "Corretor";
+          const displayName = (data.user.user_metadata?.["full_name"] as string | undefined) || data.user.email?.split("@")[0] || "Corretor";
           setSession({ id: data.user.id, name: displayName, email: data.user.email ?? email.trim() });
         }
       } else {

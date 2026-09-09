@@ -15,6 +15,7 @@ type Props = {
 };
 
 const IBGE_BASE = "https://servicodados.ibge.gov.br/api/v1/localidades";
+const BH_CITY: City = { id: 3106200, nome: "Belo Horizonte" };
 
 export default function BrazilLocationSelector({
   state,
@@ -33,11 +34,21 @@ export default function BrazilLocationSelector({
     () => BRAZIL_STATES.find((item) => item.name === state)?.uf ?? "",
     [state],
   );
-  const isBh = selectedUf === "MG" && city === "Belo Horizonte";
+  const isMinasGerais = selectedUf === "MG";
+  const isBh = isMinasGerais && city === "Belo Horizonte";
 
   useEffect(() => {
     if (!selectedUf) {
       setCities([]);
+      setLoadingCities(false);
+      setCityError("");
+      return;
+    }
+
+    // Belo Horizonte é o principal fluxo do Imobfy e fica disponível
+    // imediatamente, sem depender de uma chamada externa.
+    if (selectedUf === "MG") {
+      setCities([BH_CITY]);
       setLoadingCities(false);
       setCityError("");
       return;

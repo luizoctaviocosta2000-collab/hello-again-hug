@@ -3,6 +3,7 @@ import ImobfyNegociosCore from "../components/ImobfyNegociosCore";
 import { restoreSession } from "../lib/imobfy-session";
 import { useEffect, useState } from "react";
 import type { ImobfyUser } from "../lib/imobfy-session";
+import "../imobfy-negocios-core.css";
 
 export const Route = createFileRoute("/negocios")({
   component: NegociosRoute,

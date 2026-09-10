@@ -9,8 +9,8 @@ const cors = {
 type Body = { question?: string; conversation_id?: string | null };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
-function getOpenAIKey() {
-  const names = ["OPENAI_API_KEY", "OPENAI_KEY", "AI_API_KEY"];
+function getGeminiKey() {
+  const names = ["GEMINI_API_KEY", "GOOGLE_API_KEY"];
   for (const name of names) {
     const value = Deno.env.get(name)?.trim();
     if (value) return value;
@@ -22,8 +22,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Método não permitido." }, 405);
 
-  const openaiKey = getOpenAIKey();
-  if (!openaiKey) return json({ error: "A chave da IA não está disponível para esta função no servidor. Verifique as Secrets da Edge Function e confirme que existe OPENAI_API_KEY." }, 503);
+  const geminiKey = getGeminiKey();
+  if (!geminiKey) return json({ error: "A chave Gemini não está disponível para esta função. Crie a Secret GEMINI_API_KEY no Supabase Edge Functions." }, 503);
 
   const auth = req.headers.get("Authorization");
   if (!auth) return json({ error: "Não autenticado." }, 401);
@@ -67,16 +67,9 @@ Deno.serve(async (req) => {
   ]);
 
   const datasets = [clients, properties, deals, commissions, vgv, dealProperties, visits, visitProperties, proposals, sales, activities, history];
-  if (datasets.some((result) => result.error)) {
-    console.error("CRM context error", datasets.filter((result) => result.error).map((result) => result.error));
-    return json({ error: "Não consegui ler todos os dados do CRM." }, 500);
-  }
+  if (datasets.some((result) => result.error)) return json({ error: "Não consegui ler todos os dados do CRM." }, 500);
 
-  const context = {
-    clients: clients.data || [], properties: properties.data || [], deals: deals.data || [], commissions: commissions.data || [], vgv: vgv.data || [],
-    deal_properties: dealProperties.data || [], visits: visits.data || [], visit_properties: visitProperties.data || [], proposals: proposals.data || [],
-    sales: sales.data || [], activities: activities.data || [],
-  };
+  const context = { clients: clients.data || [], properties: properties.data || [], deals: deals.data || [], commissions: commissions.data || [], vgv: vgv.data || [], deal_properties: dealProperties.data || [], visits: visits.data || [], visit_properties: visitProperties.data || [], proposals: proposals.data || [], sales: sales.data || [], activities: activities.data || [] };
   const previousMessages = (history.data || []).reverse().filter((message) => message.role === "user" || message.role === "assistant").map((message) => ({ role: message.role, content: message.content }));
 
   const system = `Você é o Imobfy AI, o cérebro comercial de um CRM imobiliário. Responda sempre em português do Brasil, de forma objetiva, clara e acionável. Você atende somente o corretor autenticado e recebeu dados reais da operação dele.
@@ -84,7 +77,7 @@ Deno.serve(async (req) => {
 REGRAS:
 - Nunca invente clientes, imóveis, negócios, visitas, propostas, vendas, VGV ou comissões.
 - Use somente os dados fornecidos e relacione entidades pelos IDs internos, sem expor esses IDs ao usuário.
-- A fonte oficial de visitas é visits + visit_properties. Não existe mais uma agenda paralela a ser considerada.
+- A fonte oficial de visitas é visits + visit_properties.
 - Para valores financeiros, use os números do CRM e mostre a conta quando ajudar.
 - Se os dados estiverem incompletos, diga exatamente o que falta.
 - Priorize ações comerciais concretas.
@@ -92,22 +85,24 @@ REGRAS:
 DADOS ATUAIS DO CRM:
 ${JSON.stringify(context)}`;
 
-  const model = Deno.env.get("AI_MODEL")?.trim() || "gpt-4.1-mini";
-  const aiResponse = await fetch("https://api.openai.com/v1/responses", {
+  const model = Deno.env.get("GEMINI_MODEL")?.trim() || "gemini-3.1-pro";
+  const contents = [...previousMessages, { role: "user", content: question }].map((message) => ({ role: message.role === "assistant" ? "model" : "user", parts: [{ text: message.content }] }));
+
+  const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${openaiKey}` },
-    body: JSON.stringify({ model, input: [{ role: "system", content: system }, ...previousMessages], max_output_tokens: 1200 }),
+    headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 1600, temperature: 0.4 } }),
   });
 
   if (!aiResponse.ok) {
     const providerError = await aiResponse.text();
-    console.error("OpenAI error", providerError);
-    return json({ error: `A chave foi encontrada, mas o provedor recusou a solicitação. Verifique o modelo configurado (${model}) e a validade da chave.` }, 502);
+    console.error("Gemini error", providerError);
+    return json({ error: `A chave Gemini foi encontrada, mas o Gemini recusou a solicitação. Verifique a chave, as restrições da API e o modelo ${model}.` }, 502);
   }
 
   const result = await aiResponse.json();
-  const answer = (result.output || []).flatMap((item: any) => item.content || []).filter((part: any) => part.type === "output_text").map((part: any) => part.text).join("\n").trim();
-  if (!answer) return json({ error: "Não consegui gerar uma resposta agora." }, 502);
+  const answer = result?.candidates?.[0]?.content?.parts?.map((part: any) => part.text || "").join("\n").trim() || "";
+  if (!answer) return json({ error: "O Gemini não retornou uma resposta." }, 502);
 
   const { error: assistantMessageError } = await supabase.from("ai_messages").insert({ user_id: user.id, conversation_id: conversationId, role: "assistant", content: answer });
   if (assistantMessageError) console.error("AI history error", assistantMessageError);

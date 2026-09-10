@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, ChevronRight, Home, Loader2, Plus, Send, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { type ImobfyUser } from "../lib/imobfy-session";
+import type { ImobfyUser } from "../lib/imobfy-session";
 import "../imobfy-fixes.css";
 
 type Client = { id: string; name: string; phone: string | null };
@@ -10,97 +10,145 @@ type Deal = { id: string; client_id: string | null; title: string; stage: string
 type DealProperty = { id: string; deal_id: string; property_id: string; visit_status: string; visited_at: string | null; proposal_made: boolean; sold: boolean };
 type Proposal = { id: string; deal_id: string; property_id: string; amount: number; status: string; financing: boolean; down_payment: number | null; proposed_at: string };
 type Visit = { id: string; deal_id: string; starts_at: string; ends_at: string | null; status: string; location: string | null };
+
 const stages = [["novo", "Novo"], ["contato", "Contato"], ["visita", "Visita"], ["proposta", "Proposta"], ["negociacao", "Negociação"], ["fechado_ganho", "Fechado"]] as const;
-const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const money = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const validProposal = (status: string) => ["sent", "accepted", "aceita", "accepted_final"].includes(status);
 
 export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
-  const [deals, setDeals] = useState<Deal[]>([]), [clients, setClients] = useState<Client[]>([]), [properties, setProperties] = useState<Property[]>([]);
-  const [selected, setSelected] = useState<Deal | null>(null), [dealProperties, setDealProperties] = useState<DealProperty[]>([]), [proposals, setProposals] = useState<Proposal[]>([]), [visits, setVisits] = useState<Visit[]>([]);
-  const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [notice, setNotice] = useState("");
-  const [showNew, setShowNew] = useState(false), [showVisit, setShowVisit] = useState(false), [showProposal, setShowProposal] = useState(false), [showClose, setShowClose] = useState(false);
-  const [newClient, setNewClient] = useState(""), [newTitle, setNewTitle] = useState("Novo atendimento"), [visitIds, setVisitIds] = useState<string[]>([]), [visitDate, setVisitDate] = useState(""), [visitTime, setVisitTime] = useState("10:00"), [proposalProperty, setProposalProperty] = useState(""), [proposalAmount, setProposalAmount] = useState(""), [saleProperty, setSaleProperty] = useState(""), [saleAmount, setSaleAmount] = useState("");
-  const clientMap = useMemo(() => new Map(clients.map(c => [c.id, c])), [clients]);
-  const propertyMap = useMemo(() => new Map(properties.map(p => [p.id, p])), [properties]);
-  const visitedDealProperties = useMemo(() => dealProperties.filter(dp => dp.visit_status === "visited" || dp.proposal_made || dp.sold), [dealProperties]);
-  const proposedProperties = useMemo(() => proposals.filter(pr => ["sent", "accepted", "aceita", "accepted_final"].includes(pr.status)), [proposals]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selected, setSelected] = useState<Deal | null>(null);
+  const [dealProperties, setDealProperties] = useState<DealProperty[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [modal, setModal] = useState<"new" | "visit" | "proposal" | "sale" | null>(null);
+  const [newClient, setNewClient] = useState("");
+  const [newTitle, setNewTitle] = useState("Novo atendimento");
+  const [visitIds, setVisitIds] = useState<string[]>([]);
+  const [visitDate, setVisitDate] = useState("");
+  const [visitTime, setVisitTime] = useState("10:00");
+  const [proposalProperty, setProposalProperty] = useState("");
+  const [proposalAmount, setProposalAmount] = useState("");
+  const [saleProperty, setSaleProperty] = useState("");
+  const [saleAmount, setSaleAmount] = useState("");
+
+  const clientMap = useMemo(() => new Map(clients.map((client) => [client.id, client])), [clients]);
+  const propertyMap = useMemo(() => new Map(properties.map((property) => [property.id, property])), [properties]);
+  const visitedProperties = useMemo(() => dealProperties.filter((item) => item.visit_status === "visited" || item.proposal_made || item.sold), [dealProperties]);
+  const proposedProperties = useMemo(() => proposals.filter((proposal) => validProposal(proposal.status)), [proposals]);
 
   async function load() {
     setLoading(true);
-    const [d, c, p] = await Promise.all([
-      supabase.from("deals").select("id,client_id,title,stage,operation_value,expected_close_at,notes").order("updated_at", { ascending: false }),
-      supabase.from("clients").select("id,name,phone").order("name"),
-      supabase.from("properties").select("id,title,neighborhood,city,sale_value,status").order("created_at", { ascending: false }),
+    const [dealResult, clientResult, propertyResult] = await Promise.all([
+      supabase.from("deals").select("id,client_id,title,stage,operation_value,expected_close_at,notes").eq("user_id", user.id).order("updated_at", { ascending: false }),
+      supabase.from("clients").select("id,name,phone").eq("user_id", user.id).order("name"),
+      supabase.from("properties").select("id,title,neighborhood,city,sale_value,status").eq("user_id", user.id).order("created_at", { ascending: false }),
     ]);
-    if (d.error || c.error || p.error) setNotice("Não consegui carregar todos os dados do pipeline.");
-    setDeals((d.data || []) as Deal[]); setClients((c.data || []) as Client[]); setProperties((p.data || []) as Property[]); setLoading(false);
+    if (dealResult.error || clientResult.error || propertyResult.error) setNotice("Não consegui carregar todos os dados do pipeline.");
+    setDeals((dealResult.data ?? []) as Deal[]);
+    setClients((clientResult.data ?? []) as Client[]);
+    setProperties((propertyResult.data ?? []) as Property[]);
+    setLoading(false);
   }
+
   async function loadJourney(deal: Deal) {
-    setSelected(deal); setNotice("");
+    setSelected(deal);
+    setNotice("");
     const [dp, pr, vi] = await Promise.all([
-      supabase.from("deal_properties").select("id,deal_id,property_id,visit_status,visited_at,proposal_made,sold").eq("deal_id", deal.id),
-      supabase.from("proposals").select("id,deal_id,property_id,amount,status,financing,down_payment,proposed_at").eq("deal_id", deal.id).order("proposed_at", { ascending: false }),
-      supabase.from("visits").select("id,deal_id,starts_at,ends_at,status,location").eq("deal_id", deal.id).order("starts_at", { ascending: false }),
+      supabase.from("deal_properties").select("id,deal_id,property_id,visit_status,visited_at,proposal_made,sold").eq("user_id", user.id).eq("deal_id", deal.id),
+      supabase.from("proposals").select("id,deal_id,property_id,amount,status,financing,down_payment,proposed_at").eq("user_id", user.id).eq("deal_id", deal.id).order("proposed_at", { ascending: false }),
+      supabase.from("visits").select("id,deal_id,starts_at,ends_at,status,location").eq("user_id", user.id).eq("deal_id", deal.id).order("starts_at", { ascending: false }),
     ]);
-    setDealProperties((dp.data || []) as DealProperty[]); setProposals((pr.data || []) as Proposal[]); setVisits((vi.data || []) as Visit[]);
+    if (dp.error || pr.error || vi.error) setNotice("Não consegui carregar toda a jornada deste negócio.");
+    setDealProperties((dp.data ?? []) as DealProperty[]);
+    setProposals((pr.data ?? []) as Proposal[]);
+    setVisits((vi.data ?? []) as Visit[]);
   }
+
   useEffect(() => { void load(); }, [user.id]);
+
   async function createDeal() {
-    if (!newTitle.trim() || !newClient) { setNotice("Selecione um cliente e informe o atendimento."); return; } setBusy(true);
-    const { data, error } = await supabase.from("deals").insert({ user_id: user.id, client_id: newClient, title: newTitle.trim(), stage: "novo" }).select("id,client_id,title,stage,operation_value,expected_close_at,notes").single();
-    if (error) setNotice(error.message); else { setShowNew(false); setNewTitle("Novo atendimento"); setNewClient(""); await load(); if (data) await loadJourney(data as Deal); } setBusy(false);
+    if (!newClient || !newTitle.trim()) { setNotice("Selecione um cliente e informe o atendimento."); return; }
+    setBusy(true);
+    const { data, error } = await supabase.from("deals").insert({ user_id: user.id, client_id: newClient, title: newTitle.trim(), stage: "novo", operation_value: 0 }).select("id,client_id,title,stage,operation_value,expected_close_at,notes").single();
+    if (error) setNotice(error.message);
+    else { setModal(null); setNewClient(""); setNewTitle("Novo atendimento"); await load(); if (data) await loadJourney(data as Deal); }
+    setBusy(false);
   }
-  async function addProperties(ids = visitIds) {
-    if (!selected || !ids.length) return true; setBusy(true);
-    const rows = ids.map(property_id => ({ user_id: user.id, deal_id: selected.id, property_id, visit_status: "scheduled" }));
-    const { error } = await supabase.from("deal_properties").upsert(rows, { onConflict: "deal_id,property_id" });
-    if (error) { setNotice(error.message); setBusy(false); return false; } setBusy(false); return true;
-  }
+
   async function scheduleVisit() {
     if (!selected || !visitDate || !visitIds.length) { setNotice("Selecione a data e pelo menos um imóvel."); return; }
     setBusy(true);
-    const linked = await addProperties(visitIds); if (!linked) { setBusy(false); return; }
-    const starts_at = new Date(`${visitDate}T${visitTime}:00`).toISOString();
-    const { data: visit, error } = await supabase.from("visits").insert({ user_id: user.id, deal_id: selected.id, client_id: selected.client_id, starts_at, status: "scheduled" }).select("id").single();
-    if (error) setNotice(error.message); else {
-      const visitPropertyRows = visitIds.map(property_id => ({ user_id: user.id, visit_id: visit.id, property_id }));
-      const { error: linkError } = await supabase.from("visit_properties").insert(visitPropertyRows);
-      if (linkError) setNotice(linkError.message); else { setShowVisit(false); setVisitIds([]); setVisitDate(""); await loadJourney(selected); }
+    const rows = visitIds.map((propertyId) => ({ user_id: user.id, deal_id: selected.id, property_id: propertyId, visit_status: "scheduled" }));
+    const { error: linkError } = await supabase.from("deal_properties").upsert(rows, { onConflict: "deal_id,property_id" });
+    if (linkError) { setNotice(linkError.message); setBusy(false); return; }
+    const starts = new Date(`${visitDate}T${visitTime}:00`);
+    const { data: visit, error } = await supabase.from("visits").insert({ user_id: user.id, deal_id: selected.id, client_id: selected.client_id, starts_at: starts.toISOString(), ends_at: new Date(starts.getTime() + 3600000).toISOString(), status: "scheduled" }).select("id").single();
+    if (error) setNotice(error.message);
+    else {
+      const { error: visitLinkError } = await supabase.from("visit_properties").insert(visitIds.map((propertyId, index) => ({ user_id: user.id, visit_id: visit.id, property_id: propertyId, sequence: index + 1, visited: false, notes: null })));
+      if (visitLinkError) setNotice(visitLinkError.message);
+      else { setModal(null); setVisitIds([]); setVisitDate(""); await loadJourney(selected); }
     }
     setBusy(false);
   }
+
   async function createProposal() {
-    if (!selected || !proposalProperty || !proposalAmount || Number(proposalAmount) <= 0) { setNotice("Selecione um imóvel visitado e informe o valor da proposta."); return; }
-    const eligible = dealProperties.some(dp => dp.property_id === proposalProperty && (dp.visit_status === "visited" || dp.proposal_made || dp.sold));
-    if (!eligible) { setNotice("Uma proposta só pode ser registrada para um imóvel que tenha sido visitado pelo cliente."); return; }
-    setBusy(true); const amount = Number(proposalAmount);
-    const { error } = await supabase.from("proposals").insert({ user_id: user.id, deal_id: selected.id, property_id: proposalProperty, amount, status: "sent" });
-    if (error) setNotice(error.message); else { await supabase.from("deal_properties").update({ proposal_made: true, visit_status: "visited", visited_at: new Date().toISOString() }).eq("deal_id", selected.id).eq("property_id", proposalProperty); setShowProposal(false); setProposalAmount(""); setProposalProperty(""); await loadJourney(selected); await load(); } setBusy(false);
+    const amount = Number(proposalAmount);
+    if (!selected || !proposalProperty || amount <= 0) { setNotice("Selecione um imóvel visitado e informe o valor da proposta."); return; }
+    if (!visitedProperties.some((item) => item.property_id === proposalProperty)) { setNotice("Uma proposta só pode ser registrada para um imóvel visitado."); return; }
+    setBusy(true);
+    const { error } = await supabase.from("proposals").insert({ user_id: user.id, deal_id: selected.id, property_id: proposalProperty, amount, status: "sent", financing: false });
+    if (error) setNotice(error.message);
+    else { await supabase.from("deal_properties").update({ proposal_made: true, visit_status: "visited", visited_at: new Date().toISOString() }).eq("user_id", user.id).eq("deal_id", selected.id).eq("property_id", proposalProperty); setModal(null); setProposalProperty(""); setProposalAmount(""); await loadJourney(selected); }
+    setBusy(false);
   }
+
   async function closeSale() {
-    if (!selected || !saleProperty || !saleAmount || Number(saleAmount) <= 0) { setNotice("Selecione uma proposta e informe o valor final da venda."); return; }
-    const eligible = proposedProperties.some(pr => pr.property_id === saleProperty);
-    if (!eligible) { setNotice("A venda só pode ser fechada para um imóvel com proposta válida."); return; }
-    setBusy(true); const { data: sale, error } = await supabase.from("sales").insert({ user_id: user.id, deal_id: selected.id, property_id: saleProperty, sale_value: Number(saleAmount) }).select("id").single();
-    if (error) setNotice(error.message); else { setShowClose(false); setSaleProperty(""); setSaleAmount(""); await load(); await loadJourney(selected); setNotice(sale ? "Venda registrada. Negócio, imóvel, VGV e comissão foram sincronizados." : "Venda registrada."); } setBusy(false);
+    const amount = Number(saleAmount);
+    const proposal = proposedProperties.find((item) => item.property_id === saleProperty);
+    if (!selected || !proposal || amount <= 0) { setNotice("Selecione uma proposta válida e informe o valor final da venda."); return; }
+    setBusy(true);
+    const { error } = await supabase.from("sales").insert({ user_id: user.id, deal_id: selected.id, property_id: saleProperty, proposal_id: proposal.id, sale_value: amount });
+    if (error) setNotice(error.message);
+    else { setModal(null); setSaleProperty(""); setSaleAmount(""); await load(); await loadJourney(selected); setNotice("Venda registrada. O banco sincronizará fechamento, VGV e comissão."); }
+    setBusy(false);
   }
-  async function moveStage(stage: string) { if (!selected) return; setBusy(true); const { error } = await supabase.from("deals").update({ stage }).eq("id", selected.id); if (error) setNotice(error.message); else { const next = { ...selected, stage }; setSelected(next); setDeals(ds => ds.map(d => d.id === next.id ? next : d)); } setBusy(false); }
+
+  async function moveStage(stage: string) {
+    if (!selected) return;
+    setBusy(true);
+    const { error } = await supabase.from("deals").update({ stage }).eq("user_id", user.id).eq("id", selected.id);
+    if (error) setNotice(error.message);
+    else { const next = { ...selected, stage }; setSelected(next); setDeals((items) => items.map((item) => item.id === next.id ? next : item)); }
+    setBusy(false);
+  }
+
   if (loading) return <div className="empty"><Loader2 className="spin"/> Carregando pipeline...</div>;
-  return <div className="negocios-core">
-    <div className="module-actions"><div><span className="label">PIPELINE COMERCIAL</span><h2>Do lead ao fechamento</h2><p className="muted">Cada cliente mantém seus imóveis visitados, propostas e venda no mesmo histórico.</p></div><button className="clean-button primary" onClick={() => setShowNew(true)}><Plus size={16}/> Novo negócio</button></div>
-    {notice && <div className="notice"><strong>Imobfy:</strong> {notice}</div>}
-    <div className="pipeline-grid">{stages.map(([key, label]) => <section className="pipeline-column" key={key}><div className="pipeline-column-head"><strong>{label}</strong><span>{deals.filter(d => d.stage === key).length}</span></div>{deals.filter(d => d.stage === key).map(deal => <button key={deal.id} className={`pipeline-card ${selected?.id === deal.id ? "selected" : ""}`} onClick={() => void loadJourney(deal)}><strong>{clientMap.get(deal.client_id || "")?.name || deal.title}</strong><span>{deal.title}</span>{deal.operation_value > 0 && <small>{money(deal.operation_value)}</small>}<ChevronRight size={15}/></button>)}{!deals.some(d => d.stage === key) && <div className="pipeline-empty">Sem negócios</div>}</section>)}</div>
-    {selected && <div className="journey-panel"><div className="journey-header"><div><span className="label">JORNADA DO LEAD</span><h3>{clientMap.get(selected.client_id || "")?.name || selected.title}</h3><p>{selected.title} · {selected.client_id ? clientMap.get(selected.client_id)?.phone || "sem telefone" : "sem cliente"}</p></div><button className="icon-button" onClick={() => setSelected(null)}><X size={18}/></button></div>
-      <div className="journey-actions"><button className="clean-button secondary" onClick={() => setShowVisit(true)}><CalendarDays size={15}/> Agendar visita</button><button className="clean-button secondary" onClick={() => { if (!visitedDealProperties.length) { setNotice("Registre pelo menos uma visita antes de criar uma proposta."); return; } setShowProposal(true); }}><Send size={15}/> Registrar proposta</button><button className="clean-button primary" onClick={() => { if (!proposedProperties.length) { setNotice("Registre uma proposta antes de fechar a venda."); return; } setShowClose(true); }}><Check size={15}/> Fechar venda</button></div>
-      <div className="journey-stage">{stages.map(([key,label]) => <button key={key} className={selected.stage===key?"current":""} onClick={() => void moveStage(key)}>{label}</button>)}</div>
-      <div className="journey-sections"><article className="clean-card"><div className="card-title"><div><span className="label">IMÓVEIS DA JORNADA</span><h3>{dealProperties.length} imóveis</h3></div><Home size={17}/></div>{dealProperties.length ? dealProperties.map(dp => {const p=propertyMap.get(dp.property_id); return <div className="journey-row" key={dp.id}><div><strong>{p?.title || "Imóvel"}</strong><small>{p?.neighborhood || ""} {p?.sale_value ? `· ${money(p.sale_value)}` : ""}</small></div><em>{dp.sold?"Vendido":dp.proposal_made?"Com proposta":dp.visit_status==="visited"?"Visitado":"Agendado"}</em></div>}) : <div className="empty"><span>Nenhum imóvel vinculado ainda.</span><button className="text-link" onClick={() => setShowVisit(true)}>Adicionar imóveis</button></div>}</article>
-      <article className="clean-card"><div className="card-title"><div><span className="label">PROPOSTAS</span><h3>{proposals.length} propostas</h3></div><Send size={17}/></div>{proposals.length ? proposals.map(pr => <div className="journey-row" key={pr.id}><div><strong>{propertyMap.get(pr.property_id)?.title || "Imóvel"}</strong><small>{money(pr.amount)} · {new Date(pr.proposed_at).toLocaleDateString("pt-BR")}</small></div><em>{pr.status}</em></div>) : <div className="empty"><span>As propostas aparecerão aqui.</span></div>}</article>
-      <article className="clean-card"><div className="card-title"><div><span className="label">VISITAS</span><h3>{visits.length} visitas</h3></div><CalendarDays size={17}/></div>{visits.length ? visits.map(v => <div className="journey-row" key={v.id}><div><strong>{new Date(v.starts_at).toLocaleString("pt-BR")}</strong><small>{v.location || "Visita imobiliária"}</small></div><em>{v.status}</em></div>) : <div className="empty"><span>Nenhuma visita agendada.</span></div>}</article></div>
-    </div>}
-    {showNew && <Modal title="Novo negócio" close={() => setShowNew(false)}><label>Cliente<select value={newClient} onChange={e=>setNewClient(e.target.value)}><option value="">Selecione o cliente</option>{clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Nome do atendimento<input value={newTitle} onChange={e=>setNewTitle(e.target.value)} placeholder="Ex.: Compra do primeiro imóvel"/></label><Actions close={()=>setShowNew(false)} save={createDeal} busy={busy}/></Modal>}
-    {showVisit && <Modal title="Agendar visita" close={() => setShowVisit(false)}><label>Data<input type="date" value={visitDate} onChange={e=>setVisitDate(e.target.value)}/></label><label>Horário<input type="time" value={visitTime} onChange={e=>setVisitTime(e.target.value)}/></label><label>Imóveis desta visita<select multiple value={visitIds} onChange={e=>setVisitIds(Array.from(e.target.selectedOptions).map(o=>o.value))}>{properties.filter(p=>p.status!=="sold"&&p.status!=="vendido").map(p=><option key={p.id} value={p.id}>{p.title} · {p.neighborhood || ""}</option>)}</select><small>Selecione todos os imóveis que serão visitados com este cliente.</small></label><Actions close={()=>setShowVisit(false)} save={scheduleVisit} busy={busy}/></Modal>}
-    {showProposal && <Modal title="Registrar proposta" close={() => setShowProposal(false)}><label>Imóvel visitado<select value={proposalProperty} onChange={e=>{const id=e.target.value;setProposalProperty(id);const p=propertyMap.get(id);if(p?.sale_value)setProposalAmount(String(p.sale_value)}}><option value="">Selecione o imóvel</option>{visitedDealProperties.map(dp=><option key={dp.property_id} value={dp.property_id}>{propertyMap.get(dp.property_id)?.title || "Imóvel"}{propertyMap.get(dp.property_id)?.sale_value ? ` · ${money(propertyMap.get(dp.property_id)!.sale_value!)}` : ""}</option>)}</select><small>Somente imóveis que constam como visitados aparecem aqui.</small></label><label>Valor da proposta<input type="number" min="1" value={proposalAmount} onChange={e=>setProposalAmount(e.target.value)} placeholder="0"/></label><Actions close={()=>setShowProposal(false)} save={createProposal} busy={busy}/></Modal>}
-    {showClose && <Modal title="Fechar venda" close={() => setShowClose(false)}><label>Imóvel vendido<select value={saleProperty} onChange={e=>{const id=e.target.value;setSaleProperty(id);const pr=proposedProperties.find(x=>x.property_id===id);if(pr)setSaleAmount(String(pr.amount))}}><option value="">Selecione o imóvel</option>{proposedProperties.map(pr=><option key={pr.property_id} value={pr.property_id}>{propertyMap.get(pr.property_id)?.title || "Imóvel"} · proposta {money(pr.amount)}</option>)}</select><small>Somente imóveis com proposta válida podem ser fechados.</small></label><label>Valor final da venda<input type="number" min="1" value={saleAmount} onChange={e=>setSaleAmount(e.target.value)} placeholder="0"/></label><Actions close={()=>setShowClose(false)} save={closeSale} busy={busy}/></Modal>}
-  </div>;
+
+  return (
+    <div className="negocios-core">
+      <div className="module-actions"><div><span className="label">PIPELINE COMERCIAL</span><h2>Do lead ao fechamento</h2><p className="muted">Cliente, imóveis visitados, propostas e venda no mesmo histórico.</p></div><button className="clean-button primary" onClick={() => setModal("new")}><Plus size={16}/> Novo negócio</button></div>
+      {notice && <div className="notice"><strong>Imobfy:</strong> {notice}</div>}
+      <div className="pipeline-grid">{stages.map(([key, label]) => <section className="pipeline-column" key={key}><div className="pipeline-column-head"><strong>{label}</strong><span>{deals.filter((deal) => deal.stage === key).length}</span></div>{deals.filter((deal) => deal.stage === key).map((deal) => <button key={deal.id} className={`pipeline-card ${selected?.id === deal.id ? "selected" : ""}`} onClick={() => void loadJourney(deal)}><strong>{clientMap.get(deal.client_id ?? "")?.name ?? deal.title}</strong><span>{deal.title}</span>{deal.operation_value > 0 && <small>{money(deal.operation_value)}</small>}<ChevronRight size={15}/></button>)}{!deals.some((deal) => deal.stage === key) && <div className="pipeline-empty">Sem negócios</div>}</section>)}</div>
+      {selected && <div className="journey-panel"><div className="journey-header"><div><span className="label">JORNADA DO LEAD</span><h3>{clientMap.get(selected.client_id ?? "")?.name ?? selected.title}</h3><p>{selected.title} · {selected.client_id ? clientMap.get(selected.client_id)?.phone ?? "sem telefone" : "sem cliente"}</p></div><button className="icon-button" onClick={() => setSelected(null)}><X size={18}/></button></div>
+        <div className="journey-actions"><button className="clean-button secondary" onClick={() => setModal("visit")}><CalendarDays size={15}/> Agendar visita</button><button className="clean-button secondary" onClick={() => visitedProperties.length ? setModal("proposal") : setNotice("Registre uma visita antes de criar uma proposta.")}><Send size={15}/> Registrar proposta</button><button className="clean-button primary" onClick={() => proposedProperties.length ? setModal("sale") : setNotice("Registre uma proposta antes de fechar a venda.")}><Check size={15}/> Fechar venda</button></div>
+        <div className="journey-stage">{stages.map(([key, label]) => <button key={key} className={selected.stage === key ? "current" : ""} onClick={() => void moveStage(key)}>{label}</button>)}</div>
+        <div className="journey-sections"><article className="clean-card"><div className="card-title"><div><span className="label">IMÓVEIS DA JORNADA</span><h3>{dealProperties.length} imóveis</h3></div><Home size={17}/></div>{dealProperties.length ? dealProperties.map((item) => { const property = propertyMap.get(item.property_id); return <div className="journey-row" key={item.id}><div><strong>{property?.title ?? "Imóvel"}</strong><small>{property?.neighborhood ?? ""}{property?.sale_value ? ` · ${money(property.sale_value)}` : ""}</small></div><em>{item.sold ? "Vendido" : item.proposal_made ? "Com proposta" : item.visit_status === "visited" ? "Visitado" : "Agendado"}</em></div>; }) : <div className="empty"><span>Nenhum imóvel vinculado.</span></div>}</article>
+          <article className="clean-card"><div className="card-title"><div><span className="label">PROPOSTAS</span><h3>{proposals.length} propostas</h3></div><Send size={17}/></div>{proposals.length ? proposals.map((proposal) => <div className="journey-row" key={proposal.id}><div><strong>{propertyMap.get(proposal.property_id)?.title ?? "Imóvel"}</strong><small>{money(proposal.amount)} · {new Date(proposal.proposed_at).toLocaleDateString("pt-BR")}</small></div><em>{proposal.status}</em></div>) : <div className="empty"><span>As propostas aparecerão aqui.</span></div>}</article>
+          <article className="clean-card"><div className="card-title"><div><span className="label">VISITAS</span><h3>{visits.length} visitas</h3></div><CalendarDays size={17}/></div>{visits.length ? visits.map((visit) => <div className="journey-row" key={visit.id}><div><strong>{new Date(visit.starts_at).toLocaleString("pt-BR")}</strong><small>{visit.location ?? "Visita imobiliária"}</small></div><em>{visit.status}</em></div>) : <div className="empty"><span>Nenhuma visita registrada.</span></div>}</article></div>
+      </div>}
+
+      {modal && <div className="mvp-overlay"><div className="mvp-modal"><button className="mvp-close" onClick={() => setModal(null)}><X size={18}/></button>{modal === "new" && <><span className="label">NOVO NEGÓCIO</span><h2>Criar atendimento</h2><label>Cliente<select value={newClient} onChange={(e) => setNewClient(e.target.value)}><option value="">Selecione o cliente</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label><label>Nome do atendimento<input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Ex.: Compra do primeiro imóvel"/></label><div className="mvp-actions"><button className="clean-button secondary" onClick={() => setModal(null)}>Cancelar</button><button className="clean-button primary" disabled={busy} onClick={() => void createDeal()}>{busy ? "Salvando..." : "Criar negócio"}</button></div></>}
+        {modal === "visit" && <><span className="label">NOVA VISITA</span><h2>Agendar visita</h2><div className="form-grid"><label>Data<input type="date" value={visitDate} onChange={(e) => setVisitDate(e.target.value)}/></label><label>Hora<input type="time" value={visitTime} onChange={(e) => setVisitTime(e.target.value)}/></label></div><label>Imóveis da visita<div style={{ display: "grid", gap: 7, maxHeight: 190, overflowY: "auto" }}>{properties.filter((property) => !["sold", "vendido"].includes(property.status)).map((property) => <button key={property.id} type="button" onClick={() => setVisitIds((ids) => ids.includes(property.id) ? ids.filter((id) => id !== property.id) : [...ids, property.id])} style={{ textAlign: "left", padding: "10px 12px", border: "1px solid var(--border,#e7e2d8)", borderRadius: 10, background: visitIds.includes(property.id) ? "#f5f0e5" : "#fff" }}><strong>{visitIds.includes(property.id) ? "✓ " : ""}{property.title}</strong><small style={{ display: "block" }}>{property.neighborhood ?? ""}</small></button>)}</div></label><div className="mvp-actions"><button className="clean-button secondary" onClick={() => setModal(null)}>Cancelar</button><button className="clean-button primary" disabled={busy} onClick={() => void scheduleVisit()}>{busy ? "Agendando..." : "Agendar visita"}</button></div></>}
+        {modal === "proposal" && <><span className="label">NOVA PROPOSTA</span><h2>Registrar proposta</h2><label>Imóvel visitado<select value={proposalProperty} onChange={(e) => { const id = e.target.value; setProposalProperty(id); const property = propertyMap.get(id); if (property?.sale_value) setProposalAmount(String(property.sale_value)); }}><option value="">Selecione o imóvel</option>{visitedProperties.map((item) => <option key={item.property_id} value={item.property_id}>{propertyMap.get(item.property_id)?.title ?? "Imóvel"}</option>)}</select></label><label>Valor da proposta<input type="number" min="1" value={proposalAmount} onChange={(e) => setProposalAmount(e.target.value)} placeholder="0"/></label><div className="mvp-actions"><button className="clean-button secondary" onClick={() => setModal(null)}>Cancelar</button><button className="clean-button primary" disabled={busy} onClick={() => void createProposal()}>{busy ? "Salvando..." : "Registrar proposta"}</button></div></>}
+        {modal === "sale" && <><span className="label">FECHAMENTO</span><h2>Registrar venda</h2><label>Imóvel com proposta<select value={saleProperty} onChange={(e) => { const id = e.target.value; setSaleProperty(id); const proposal = proposedProperties.find((item) => item.property_id === id); if (proposal) setSaleAmount(String(proposal.amount)); }}><option value="">Selecione o imóvel</option>{proposedProperties.map((item) => <option key={item.property_id} value={item.property_id}>{propertyMap.get(item.property_id)?.title ?? "Imóvel"} · {money(item.amount)}</option>)}</select></label><label>Valor final da venda<input type="number" min="1" value={saleAmount} onChange={(e) => setSaleAmount(e.target.value)} placeholder="0"/></label><div className="mvp-actions"><button className="clean-button secondary" onClick={() => setModal(null)}>Cancelar</button><button className="clean-button primary" disabled={busy} onClick={() => void closeSale()}>{busy ? "Fechando..." : "Registrar venda"}</button></div></>}
+      </div></div>}
+    </div>
+  );
 }
-function Modal({title,close,children}:{title:string;close:()=>void;children:ReactNode}) { return <div className="modal-backdrop"><div className="clean-modal"><div className="modal-head"><strong>{title}</strong><button className="icon-button" onClick={close}><X size={17}/></button></div>{children}</div></div>; }
-function Actions({close,save,busy}:{close:()=>void;save:()=>void;busy:boolean}) { return <div className="modal-actions"><button className="clean-button secondary" onClick={close}>Cancelar</button><button className="clean-button primary" onClick={save} disabled={busy}>{busy?<Loader2 className="spin" size={15}/>:"Salvar"}</button></div>; }

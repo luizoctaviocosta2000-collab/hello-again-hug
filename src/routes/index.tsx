@@ -1,3 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyMvpApp from "../components/ImobfyMvpApp";
-export const Route = createFileRoute("/")({ component: () => <ImobfyMvpApp module="dashboard" /> });
+import { useEffect, useState } from "react";
+import ImobfyDashboardCore from "../components/ImobfyDashboardCore";
+import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
+import "../imobfy-negocios-core.css";
+import "../imobfy-dashboard-core.css";
+
+export const Route = createFileRoute("/")({ component: DashboardRoute });
+
+function DashboardRoute(){
+ const [user,setUser]=useState<ImobfyUser|null>(null);
+ useEffect(()=>{void restoreSession().then(setUser)},[]);
+ if(!user)return <div className="empty"><span>Carregando sessão...</span></div>;
+ return <ImobfyDashboardCore user={user}/>;
+}

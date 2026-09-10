@@ -1,4 +1,17 @@
-import "../imobfy-phase2.css";
 import { createFileRoute } from "@tanstack/react-router";
-import ImobfyNegocios from "../components/ImobfyNegocios";
-export const Route = createFileRoute("/negocios")({ component: ImobfyNegocios });
+import ImobfyNegociosCore from "../components/ImobfyNegociosCore";
+import { restoreSession } from "../lib/imobfy-session";
+import { useEffect, useState } from "react";
+import type { ImobfyUser } from "../lib/imobfy-session";
+import "../imobfy-negocios-core.css";
+
+export const Route = createFileRoute("/negocios")({
+  component: NegociosRoute,
+});
+
+function NegociosRoute() {
+  const [user, setUser] = useState<ImobfyUser | null>(null);
+  useEffect(() => { void restoreSession().then(setUser); }, []);
+  if (!user) return null;
+  return <ImobfyNegociosCore user={user} />;
+}

@@ -1,17 +1,15 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import ImobfyAIChat from "../components/ImobfyAIChat";
-import { restoreSession } from "../lib/imobfy-session";
+import ImobfyAIProactive from "../components/ImobfyAIProactive";
+import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
+import "../imobfy-fixes.css";
 
-export const Route = createFileRoute("/ia")({
-  beforeLoad: async () => {
-    const user = await restoreSession();
-    if (!user) throw redirect({ to: "/login" });
-    return { user };
-  },
-  component: IA,
-});
+export const Route = createFileRoute("/ia")({ component: IARoute });
 
-function IA() {
-  const { user } = Route.useRouteContext();
-  return <ImobfyAIChat user={user} />;
+function IARoute() {
+  const [user, setUser] = useState<ImobfyUser | null>(null);
+  useEffect(() => { void restoreSession().then(setUser); }, []);
+  if (!user) return <div className="empty"><span>Carregando sessão...</span></div>;
+  return <div className="ai-page"><ImobfyAIProactive user={user} /><ImobfyAIChat user={user} /></div>;
 }

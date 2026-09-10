@@ -1,0 +1,61 @@
+import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, BriefcaseBusiness, CalendarDays, Home, Loader2, Target, Users, WalletCards } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { type ImobfyUser } from "../lib/imobfy-session";
+
+ type Deal={id:string;stage:string;sale_value:number;created_at:string};
+ type Vgv={id:string;reference_month:string;vgv:number};
+ type Commission={id:string;user_amount:number;status:string};
+ type Capture={id:string;status:string};
+ const money=(v:number)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+ const monthName=(date:string)=>new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR",{month:"short"}).replace(".","");
+ const stageLabels:Record<string,string>={novo:"Novo",contato:"Contato",visita:"Visita",proposta:"Proposta",negociacao:"Negociação",fechado_ganho:"Fechado",fechado_perdido:"Perdido"};
+
+ export default function ImobfyDashboardCore({user}:{user:ImobfyUser}){
+  const [deals,setDeals]=useState<Deal[]>([]); const [vgv,setVgv]=useState<Vgv[]>([]); const [commissions,setCommissions]=useState<Commission[]>([]); const [captures,setCaptures]=useState<Capture[]>([]); const [clients,setClients]=useState<number>(0); const [loading,setLoading]=useState(true); const [notice,setNotice]=useState("");
+  async function load(){
+   setLoading(true);
+   const [d,v,c,cap,cli]=await Promise.all([
+    supabase.from("deals").select("id,stage,sale_value,created_at"),
+    supabase.from("vgv_entries").select("id,reference_month,vgv").order("reference_month",{ascending:true}),
+    supabase.from("commissions").select("id,user_amount,status"),
+    supabase.from("captures").select("id,status"),
+    supabase.from("clients").select("id",{count:"exact",head:true}),
+   ]);
+   if(d.error||v.error||c.error||cap.error||cli.error)setNotice("Alguns indicadores não puderam ser carregados.");
+   setDeals((d.data||[]) as Deal[]); setVgv((v.data||[]) as Vgv[]); setCommissions((c.data||[]) as Commission[]); setCaptures((cap.data||[]) as Capture[]); setClients(cli.count||0); setLoading(false);
+  }
+  useEffect(()=>{void load()},[user.id]);
+
+  const stats=useMemo(()=>{
+   const closed=deals.filter(x=>x.stage==="fechado_ganho");
+   const pipeline=deals.filter(x=>!['fechado_ganho','fechado_perdido'].includes(x.stage));
+   const received=commissions.filter(x=>x.status==="recebida").reduce((s,x)=>s+Number(x.user_amount||0),0);
+   const receivable=commissions.filter(x=>x.status==="a_receber"||x.status==="prevista").reduce((s,x)=>s+Number(x.user_amount||0),0);
+   const conversion=deals.length?closed.length/deals.length*100:0;
+   return {closed,pipeline,realized:vgv.reduce((s,x)=>s+Number(x.vgv||0),0),pipelineValue:pipeline.reduce((s,x)=>s+Number(x.sale_value||0),0),received,receivable,conversion};
+  },[deals,vgv,commissions]);
+
+  const chart=useMemo(()=>{const byMonth=new Map<string,number>();vgv.forEach(x=>byMonth.set(x.reference_month,Number(x.vgv||0)));const now=new Date();return Array.from({length:6},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth()-5+i,1);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-01`;return {label:monthName(key),value:byMonth.get(key)||0};});},[vgv]);
+  const maxChart=Math.max(...chart.map(x=>x.value),1);
+
+  if(loading)return <div className="empty"><Loader2 className="spin"/> Carregando visão geral...</div>;
+  return <div className="negocios-core dashboard-core">
+   <div className="module-actions"><div><span className="label">VISÃO EXECUTIVA</span><h2>Bom dia, {user.name.split(" ")[0]}.</h2><p className="muted">Aqui está o que merece sua atenção na operação.</p></div><a className="clean-button primary" href="/negocios"><BriefcaseBusiness size={16}/> Abrir negócios</a></div>
+   {notice&&<div className="notice"><strong>Imobfy:</strong> {notice}</div>}
+   <section className="metrics-grid">
+    <article className="metric-card"><span>VGV realizado</span><strong>{money(stats.realized)}</strong><small className="positive">Fechamentos confirmados</small></article>
+    <article className="metric-card"><span>VGV em negociação</span><strong>{money(stats.pipelineValue)}</strong><small className="neutral">{stats.pipeline.length} negócios ativos</small></article>
+    <article className="metric-card"><span>Comissões a receber</span><strong>{money(stats.receivable)}</strong><small className="neutral">Mais {money(stats.received)} já recebidos</small></article>
+    <article className="metric-card"><span>Conversão</span><strong>{stats.conversion.toFixed(1)}%</strong><small className="neutral">{stats.closed.length} fechados de {deals.length} negócios</small></article>
+   </section>
+   <div className="clean-grid two">
+    <article className="clean-card chart-card"><div className="card-title"><div><span className="label">PERFORMANCE</span><h3>Evolução do VGV</h3></div><span className="muted">Últimos 6 meses</span></div><div className="dashboard-bars">{chart.map(x=><div className="dashboard-bar" key={x.label}><div className="bar-track"><i style={{height:`${Math.max(x.value/maxChart*100,x.value?8:2)}%`}} title={money(x.value)}/></div><small>{x.label}</small><span>{x.value?money(x.value):"—"}</span></div>)}</div></article>
+    <article className="clean-card"><div className="card-title"><div><span className="label">OPERAÇÃO</span><h3>Resumo comercial</h3></div></div><div className="dashboard-list"><div><Users size={17}/><span>Clientes cadastrados</span><b>{clients}</b></div><div><Home size={17}/><span>Captações ativas</span><b>{captures.filter(x=>x.status==="active").length}</b></div><div><CalendarDays size={17}/><span>Negócios no pipeline</span><b>{stats.pipeline.length}</b></div><div><WalletCards size={17}/><span>Recebido</span><b>{money(stats.received)}</b></div></div><a className="text-link" href="/comissoes">Ver financeiro <ArrowUpRight size={14}/></a></article>
+   </div>
+   <div className="clean-grid two">
+    <article className="clean-card"><div className="card-title"><div><span className="label">FUNIL</span><h3>Negócios por etapa</h3></div></div><div className="dashboard-list">{Object.entries(stageLabels).map(([stage,label])=>{const count=deals.filter(d=>d.stage===stage).length;return <div key={stage}><span>{label}</span><b>{count}</b></div>})}</div></article>
+    <article className="clean-card goal-card"><span className="label">META</span><div className="goal-placeholder"><Target size={22}/><div><strong>Meta personalizada</strong><p>Configure sua meta de VGV em Configurações para acompanhar o progresso aqui.</p></div></div><a className="text-link" href="/configuracoes">Configurar meta <ArrowUpRight size={14}/></a></article>
+   </div>
+  </div>;
+ }

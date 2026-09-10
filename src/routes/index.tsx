@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import ImobfyDashboardCore from "../components/ImobfyDashboardCore";
 import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
+import "../imobfy-negocios-core.css";
+import "../imobfy-dashboard-core.css";
 
 export const Route = createFileRoute("/")({ component: DashboardRoute });
 

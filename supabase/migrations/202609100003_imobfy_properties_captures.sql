@@ -21,34 +21,11 @@ create unique index if not exists properties_user_code_idx
 
 create index if not exists properties_user_status_idx on public.properties(user_id, status);
 create index if not exists properties_user_neighborhood_idx on public.properties(user_id, neighborhood);
-
--- A capture is the commercial relationship that explains how the property entered the broker's inventory.
-create unique index if not exists captures_active_property_idx
+create index if not exists captures_active_property_idx
   on public.captures(user_id, property_id)
   where status = 'active';
-
 create index if not exists captures_owner_id_idx on public.captures(owner_id);
 create index if not exists captures_status_idx on public.captures(user_id, status);
-
-create or replace function public.sync_capture_owner_fields()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  if new.owner_id is not null then
-    select o.name, o.phone
-      into new_owner_name, new_owner_phone
-      from public.owners o
-     where o.id = new.owner_id
-       and o.user_id = new.user_id;
-  end if;
-  return new;
-end;
-$$;
-
--- The legacy property owner columns are kept synchronized by the application for compatibility.
--- Do not add a trigger here because the existing schema may be upgraded in-place.
 
 comment on table public.owners is 'Proprietários dos imóveis captados pelo corretor.';
 comment on table public.captures is 'Registro da captação, exclusividade, origem e participação comercial do imóvel.';

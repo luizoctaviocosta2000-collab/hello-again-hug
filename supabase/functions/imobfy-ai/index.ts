@@ -9,12 +9,22 @@ const cors = {
 type Body = { question?: string; conversation_id?: string | null };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
+function getOpenAIKey() {
+  const names = ["OPENAI_API_KEY", "OPENAI_KEY", "AI_API_KEY"];
+  for (const name of names) {
+    const value = Deno.env.get(name)?.trim();
+    if (value) return value;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Método não permitido." }, 405);
 
-  const openaiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!openaiKey) return json({ error: "A chave da IA ainda não foi configurada no servidor." }, 503);
+  const openaiKey = getOpenAIKey();
+  if (!openaiKey) return json({ error: "A chave da IA não está disponível para esta função no servidor. Verifique as Secrets da Edge Function e confirme que existe OPENAI_API_KEY." }, 503);
+
   const auth = req.headers.get("Authorization");
   if (!auth) return json({ error: "Não autenticado." }, 401);
 
@@ -82,12 +92,18 @@ REGRAS:
 DADOS ATUAIS DO CRM:
 ${JSON.stringify(context)}`;
 
+  const model = Deno.env.get("AI_MODEL")?.trim() || "gpt-4.1-mini";
   const aiResponse = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${openaiKey}` },
-    body: JSON.stringify({ model: Deno.env.get("AI_MODEL") || "gpt-5.6-luna", input: [{ role: "system", content: system }, ...previousMessages], max_output_tokens: 1200 }),
+    body: JSON.stringify({ model, input: [{ role: "system", content: system }, ...previousMessages], max_output_tokens: 1200 }),
   });
-  if (!aiResponse.ok) { console.error("OpenAI error", await aiResponse.text()); return json({ error: "O modelo de IA não respondeu. Verifique a configuração da chave do provedor." }, 502); }
+
+  if (!aiResponse.ok) {
+    const providerError = await aiResponse.text();
+    console.error("OpenAI error", providerError);
+    return json({ error: `A chave foi encontrada, mas o provedor recusou a solicitação. Verifique o modelo configurado (${model}) e a validade da chave.` }, 502);
+  }
 
   const result = await aiResponse.json();
   const answer = (result.output || []).flatMap((item: any) => item.content || []).filter((part: any) => part.type === "output_text").map((part: any) => part.text).join("\n").trim();

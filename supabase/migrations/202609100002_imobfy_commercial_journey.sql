@@ -1,79 +1,98 @@
--- Imobfy Phase 2: commercial journey constraints + automatic closing foundation.
+-- Imobfy Phase 2: commercial journey + closing + commission foundation.
 
-create unique index if not exists sales_one_per_deal_idx
-  on public.sales(deal_id);
+create unique index if not exists sales_one_per_deal_idx on public.sales(deal_id);
 
+alter table public.commissions add column if not exists commission_type text not null default 'venda';
+alter table public.commissions add column if not exists capture_id uuid references public.captures(id) on delete set null;
+alter table public.commissions add column if not exists sale_id uuid references public.sales(id) on delete set null;
+
+drop trigger if exists proposals_validate_property on public.proposals;
 create or replace function public.validate_proposal_property()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  if not exists (
-    select 1 from public.deal_properties dp
-    where dp.deal_id = new.deal_id and dp.property_id = new.property_id and dp.user_id = auth.uid()
-  ) then
+  if not exists (select 1 from public.deal_properties dp where dp.deal_id = new.deal_id and dp.property_id = new.property_id and dp.user_id = auth.uid()) then
     raise exception 'O imóvel da proposta precisa estar vinculado ao negócio.';
   end if;
   return new;
 end;
 $$;
-
-drop trigger if exists proposals_validate_property on public.proposals;
 create trigger proposals_validate_property before insert or update on public.proposals
 for each row execute procedure public.validate_proposal_property();
 
+drop trigger if exists proposals_sync_accepted on public.proposals;
 create or replace function public.sync_accepted_proposal()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.status = 'accepted' then
-    update public.deals
-       set stage = 'negociacao', property_id = new.property_id,
-           operation_value = new.amount, updated_at = now()
-     where id = new.deal_id and user_id = new.user_id;
-
-    update public.deal_properties
-       set proposal_made = true, updated_at = now()
-     where deal_id = new.deal_id and property_id = new.property_id and user_id = new.user_id;
+    update public.deals set stage='negociacao', property_id=new.property_id, operation_value=new.amount, updated_at=now()
+    where id=new.deal_id and user_id=new.user_id;
+    update public.deal_properties set proposal_made=true, updated_at=now()
+    where deal_id=new.deal_id and property_id=new.property_id and user_id=new.user_id;
   end if;
   return new;
 end;
 $$;
-
-drop trigger if exists proposals_sync_accepted on public.proposals;
 create trigger proposals_sync_accepted after insert or update on public.proposals
 for each row execute procedure public.sync_accepted_proposal();
 
+drop trigger if exists sales_sync_closing on public.sales;
 create or replace function public.sync_sale_closing()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  update public.deals
-     set stage = 'fechado_ganho', property_id = new.property_id,
-         operation_value = new.sale_value, updated_at = now()
-   where id = new.deal_id and user_id = new.user_id;
-
-  update public.deal_properties
-     set sold = (property_id = new.property_id), updated_at = now()
-   where deal_id = new.deal_id and user_id = new.user_id;
-
-  update public.properties
-     set status = 'sold', updated_at = now()
-   where id = new.property_id and user_id = new.user_id;
-
+  update public.deals set stage='fechado_ganho', property_id=new.property_id, operation_value=new.sale_value, updated_at=now()
+  where id=new.deal_id and user_id=new.user_id;
+  update public.deal_properties set sold=(property_id=new.property_id), updated_at=now()
+  where deal_id=new.deal_id and user_id=new.user_id;
+  update public.properties set status='sold', updated_at=now()
+  where id=new.property_id and user_id=new.user_id;
   return new;
 end;
 $$;
-
-drop trigger if exists sales_sync_closing on public.sales;
 create trigger sales_sync_closing after insert or update on public.sales
 for each row execute procedure public.sync_sale_closing();
 
-create or replace function public.log_sale_activity()
+-- Generate the user's commission automatically when a sale closes.
+drop trigger if exists sales_generate_commission on public.sales;
+create or replace function public.generate_sale_commission()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  p public.properties%rowtype;
+  c public.captures%rowtype;
+  gross numeric(14,2);
+  tax numeric(14,2);
+  net numeric(14,2);
+  participation numeric(5,2);
 begin
-  insert into public.activities(user_id, deal_id, property_id, activity_type, title, description, occurred_at)
-  values (new.user_id, new.deal_id, new.property_id, 'sale', 'Negócio fechado', 'Venda registrada no Imobfy.', new.sold_at);
+  select * into p from public.properties where id=new.property_id and user_id=new.user_id;
+  gross := round(new.sale_value * coalesce((select commission_percent from public.profiles where id=new.user_id),6) / 100, 2);
+  tax := round(gross * coalesce((select tax_percent from public.profiles where id=new.user_id),9) / 100, 2);
+  net := gross - tax;
+  participation := coalesce((select participation_percent from public.profiles where id=new.user_id),20);
+
+  -- Sale-side commission.
+  insert into public.commissions(user_id, deal_id, operation_value, commission_percent, tax_percent, participation_percent, gross_commission, tax_amount, net_commission, user_commission, role_pct, status, commission_type, sale_id)
+  values(new.user_id,new.deal_id,new.sale_value,coalesce((select commission_percent from public.profiles where id=new.user_id),6),coalesce((select tax_percent from public.profiles where id=new.user_id),9),participation,gross,tax,net,round(net*participation/100,2),100,'projected','venda',new.id);
+
+  -- Capture-side commission, when this property has an active capture owned by the user.
+  select * into c from public.captures where property_id=new.property_id and user_id=new.user_id and status='active' order by captured_at desc limit 1;
+  if c.id is not null then
+    insert into public.commissions(user_id, deal_id, operation_value, commission_percent, tax_percent, participation_percent, gross_commission, tax_amount, net_commission, user_commission, role_pct, status, commission_type, capture_id, sale_id)
+    values(new.user_id,new.deal_id,new.sale_value,coalesce((select commission_percent from public.profiles where id=new.user_id),6),coalesce((select tax_percent from public.profiles where id=new.user_id),9),coalesce(c.commission_pct,20),gross,tax,net,round(net*coalesce(c.commission_pct,20)/100 * case when c.capture_type='shared' then .5 else 1 end,2),100,'projected','captacao',c.id,new.id);
+  end if;
   return new;
 end;
 $$;
+create trigger sales_generate_commission after insert on public.sales
+for each row execute procedure public.generate_sale_commission();
 
 drop trigger if exists sales_log_activity on public.sales;
+create or replace function public.log_sale_activity()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.activities(user_id,deal_id,property_id,activity_type,title,description,occurred_at)
+  values(new.user_id,new.deal_id,new.property_id,'sale','Negócio fechado','Venda registrada no Imobfy.',new.sold_at);
+  return new;
+end;
+$$;
 create trigger sales_log_activity after insert on public.sales
 for each row execute procedure public.log_sale_activity();

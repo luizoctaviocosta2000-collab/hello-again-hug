@@ -25,7 +25,7 @@ create or replace function public.sync_accepted_proposal()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.status = 'accepted' then
-    update public.deals set stage='negociacao', property_id=new.property_id, operation_value=new.amount, updated_at=now()
+    update public.deals set stage='negociacao', property_id=new.property_id, sale_value=new.amount, updated_at=now()
     where id=new.deal_id and user_id=new.user_id;
     update public.deal_properties set proposal_made=true, updated_at=now()
     where deal_id=new.deal_id and property_id=new.property_id and user_id=new.user_id;
@@ -40,11 +40,11 @@ drop trigger if exists sales_sync_closing on public.sales;
 create or replace function public.sync_sale_closing()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  update public.deals set stage='fechado_ganho', property_id=new.property_id, operation_value=new.sale_value, updated_at=now()
+  update public.deals set stage='fechado_ganho', property_id=new.property_id, sale_value=new.sale_value, updated_at=now()
   where id=new.deal_id and user_id=new.user_id;
   update public.deal_properties set sold=(property_id=new.property_id), updated_at=now()
   where deal_id=new.deal_id and user_id=new.user_id;
-  update public.properties set status='sold', updated_at=now()
+  update public.properties set status='vendido', updated_at=now()
   where id=new.property_id and user_id=new.user_id;
   return new;
 end;
@@ -52,36 +52,9 @@ $$;
 create trigger sales_sync_closing after insert or update on public.sales
 for each row execute procedure public.sync_sale_closing();
 
+-- Commission generation is finalized by Phase 4 migration 202609100004.
 drop trigger if exists sales_generate_commission on public.sales;
-create or replace function public.generate_sale_commission()
-returns trigger language plpgsql security definer set search_path = public as $$
-declare
-  c public.captures%rowtype;
-  gross numeric(14,2);
-  tax numeric(14,2);
-  net numeric(14,2);
-  base_pct numeric(5,2);
-  capture_pct numeric(5,2);
-begin
-  base_pct := coalesce((select commission_percent from public.profiles where id=new.user_id),6);
-  gross := round(new.sale_value * base_pct / 100, 2);
-  tax := round(gross * coalesce((select tax_percent from public.profiles where id=new.user_id),9) / 100, 2);
-  net := gross - tax;
-
-  insert into public.commissions(user_id,deal_id,operation_value,commission_percent,tax_percent,participation_percent,gross_commission,tax_amount,net_commission,user_commission,role_pct,status,commission_type,sale_id)
-  values(new.user_id,new.deal_id,new.sale_value,base_pct,coalesce((select tax_percent from public.profiles where id=new.user_id),9),coalesce((select participation_percent from public.profiles where id=new.user_id),20),gross,tax,net,round(net*coalesce((select participation_percent from public.profiles where id=new.user_id),20)/100,2),100,'projected','venda',new.id);
-
-  select * into c from public.captures where property_id=new.property_id and user_id=new.user_id and status='active' order by captured_at desc limit 1;
-  if c.id is not null then
-    capture_pct := coalesce(c.commission_pct,20) * case when c.capture_type='shared' then .5 else 1 end;
-    insert into public.commissions(user_id,deal_id,operation_value,commission_percent,tax_percent,participation_percent,gross_commission,tax_amount,net_commission,user_commission,role_pct,status,commission_type,capture_id,sale_id)
-    values(new.user_id,new.deal_id,new.sale_value,base_pct,coalesce((select tax_percent from public.profiles where id=new.user_id),9),capture_pct,gross,tax,net,round(net*capture_pct/100,2),100,'projected','captacao',c.id,new.id);
-  end if;
-  return new;
-end;
-$$;
-create trigger sales_generate_commission after insert on public.sales
-for each row execute procedure public.generate_sale_commission();
+drop function if exists public.generate_sale_commission();
 
 drop trigger if exists sales_log_activity on public.sales;
 create or replace function public.log_sale_activity()

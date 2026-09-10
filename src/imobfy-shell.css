@@ -1,0 +1,24 @@
+.imobfy-app-shell{min-height:100vh;background:var(--paper,#f5f3ee)}
+.imobfy-main{min-height:100vh}
+.imobfy-header{padding-left:44px;padding-right:44px}
+.imobfy-content{padding-top:30px;padding-bottom:64px}
+.imobfy-sidebar .nav-section{margin-top:2px}
+.imobfy-sidebar .nav-section:first-child{padding-top:4px}
+.imobfy-sidebar nav a{position:relative}
+.imobfy-sidebar nav a .nav-chevron{margin-left:auto;opacity:.72}
+.imobfy-sidebar-overlay{display:none}
+@media(max-width:900px){
+ .imobfy-sidebar{width:280px;padding:22px 16px 18px;box-shadow:20px 0 60px rgba(0,0,0,.18)}
+ .imobfy-sidebar-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);border:0;z-index:20}
+ .imobfy-header{min-height:112px;padding:22px 20px 18px}
+ .imobfy-content{padding:24px 20px 52px}
+ .imobfy-header-copy{min-width:0}
+ .imobfy-header h1{margin-top:8px;font-size:23px}
+ .imobfy-header p{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media(max-width:560px){
+ .imobfy-header{padding:20px 16px 16px}
+ .imobfy-content{padding:22px 16px 48px}
+ .imobfy-header h1{font-size:22px}
+ .imobfy-sidebar{width:min(300px,88vw)}
+}

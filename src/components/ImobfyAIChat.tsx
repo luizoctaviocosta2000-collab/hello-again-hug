@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Bot, Loader2, Send, Sparkles } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { ImobfyUser } from "../lib/imobfy-session";
@@ -47,6 +47,15 @@ export default function ImobfyAIChat({ user }: Props) {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    const handleOpen = (event: Event) => {
+      const prompt = (event as CustomEvent<{ prompt?: string }>).detail?.prompt;
+      if (prompt) void ask(prompt);
+    };
+    window.addEventListener("imobfy-ai-open", handleOpen);
+    return () => window.removeEventListener("imobfy-ai-open", handleOpen);
+  });
 
   function submit(e: FormEvent) {
     e.preventDefault();

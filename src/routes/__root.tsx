@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Outlet, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, createRootRouteWithContext, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import appCss from "../styles.css?url";
 import "../imobfy-clean.css";
+import "../imobfy-fixes.css";
 import FloatingImobfyAI from "../components/FloatingImobfyAI";
+import ImobfyAppShell from "../components/ImobfyAppShell";
+import { getSession } from "../lib/imobfy-session";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -26,5 +29,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  return <QueryClientProvider client={queryClient}><Outlet /><FloatingImobfyAI /></QueryClientProvider>;
+  const location = useLocation();
+  const user = getSession();
+  const isAuth = location.pathname === "/login" || location.pathname.startsWith("/recuperar");
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {isAuth || !user ? <Outlet /> : <ImobfyAppShell user={user}><Outlet /></ImobfyAppShell>}
+      <FloatingImobfyAI />
+    </QueryClientProvider>
+  );
 }

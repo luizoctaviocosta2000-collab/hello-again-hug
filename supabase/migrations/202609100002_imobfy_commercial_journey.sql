@@ -2,6 +2,7 @@
 
 create unique index if not exists sales_one_per_deal_idx on public.sales(deal_id);
 
+alter table public.commissions add column if not exists role_pct numeric(5,2) not null default 100;
 alter table public.commissions add column if not exists commission_type text not null default 'venda';
 alter table public.commissions add column if not exists capture_id uuid references public.captures(id) on delete set null;
 alter table public.commissions add column if not exists sale_id uuid references public.sales(id) on delete set null;
@@ -51,33 +52,30 @@ $$;
 create trigger sales_sync_closing after insert or update on public.sales
 for each row execute procedure public.sync_sale_closing();
 
--- Generate the user's commission automatically when a sale closes.
 drop trigger if exists sales_generate_commission on public.sales;
 create or replace function public.generate_sale_commission()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
-  p public.properties%rowtype;
   c public.captures%rowtype;
   gross numeric(14,2);
   tax numeric(14,2);
   net numeric(14,2);
-  participation numeric(5,2);
+  base_pct numeric(5,2);
+  capture_pct numeric(5,2);
 begin
-  select * into p from public.properties where id=new.property_id and user_id=new.user_id;
-  gross := round(new.sale_value * coalesce((select commission_percent from public.profiles where id=new.user_id),6) / 100, 2);
+  base_pct := coalesce((select commission_percent from public.profiles where id=new.user_id),6);
+  gross := round(new.sale_value * base_pct / 100, 2);
   tax := round(gross * coalesce((select tax_percent from public.profiles where id=new.user_id),9) / 100, 2);
   net := gross - tax;
-  participation := coalesce((select participation_percent from public.profiles where id=new.user_id),20);
 
-  -- Sale-side commission.
-  insert into public.commissions(user_id, deal_id, operation_value, commission_percent, tax_percent, participation_percent, gross_commission, tax_amount, net_commission, user_commission, role_pct, status, commission_type, sale_id)
-  values(new.user_id,new.deal_id,new.sale_value,coalesce((select commission_percent from public.profiles where id=new.user_id),6),coalesce((select tax_percent from public.profiles where id=new.user_id),9),participation,gross,tax,net,round(net*participation/100,2),100,'projected','venda',new.id);
+  insert into public.commissions(user_id,deal_id,operation_value,commission_percent,tax_percent,participation_percent,gross_commission,tax_amount,net_commission,user_commission,role_pct,status,commission_type,sale_id)
+  values(new.user_id,new.deal_id,new.sale_value,base_pct,coalesce((select tax_percent from public.profiles where id=new.user_id),9),coalesce((select participation_percent from public.profiles where id=new.user_id),20),gross,tax,net,round(net*coalesce((select participation_percent from public.profiles where id=new.user_id),20)/100,2),100,'projected','venda',new.id);
 
-  -- Capture-side commission, when this property has an active capture owned by the user.
   select * into c from public.captures where property_id=new.property_id and user_id=new.user_id and status='active' order by captured_at desc limit 1;
   if c.id is not null then
-    insert into public.commissions(user_id, deal_id, operation_value, commission_percent, tax_percent, participation_percent, gross_commission, tax_amount, net_commission, user_commission, role_pct, status, commission_type, capture_id, sale_id)
-    values(new.user_id,new.deal_id,new.sale_value,coalesce((select commission_percent from public.profiles where id=new.user_id),6),coalesce((select tax_percent from public.profiles where id=new.user_id),9),coalesce(c.commission_pct,20),gross,tax,net,round(net*coalesce(c.commission_pct,20)/100 * case when c.capture_type='shared' then .5 else 1 end,2),100,'projected','captacao',c.id,new.id);
+    capture_pct := coalesce(c.commission_pct,20) * case when c.capture_type='shared' then .5 else 1 end;
+    insert into public.commissions(user_id,deal_id,operation_value,commission_percent,tax_percent,participation_percent,gross_commission,tax_amount,net_commission,user_commission,role_pct,status,commission_type,capture_id,sale_id)
+    values(new.user_id,new.deal_id,new.sale_value,base_pct,coalesce((select tax_percent from public.profiles where id=new.user_id),9),capture_pct,gross,tax,net,round(net*capture_pct/100,2),100,'projected','captacao',c.id,new.id);
   end if;
   return new;
 end;

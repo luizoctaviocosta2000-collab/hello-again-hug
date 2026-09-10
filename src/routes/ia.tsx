@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import ImobfyAIChat from "../components/ImobfyAIChat";
 import ImobfyAIProactive from "../components/ImobfyAIProactive";
 import ImobfyAIPriorities from "../components/ImobfyAIPriorities";
@@ -43,7 +42,8 @@ function buildPriorities(deals: Deal[], proposals: Proposal[], visits: Visit[], 
     if (age >= 7) result.push({ kind: "lead_followup", score: Math.min(92, 60 + age), title: "Cliente sem acompanhamento", reason: `${age} dias desde a última atualização do cadastro.`, suggested_action: "Retomar o contato e registrar a interação.", entity_id: client.id });
   }
   const pending = commissions.filter(c => ["a_receber", "receivable", "prevista", "pending", "partially_received"].includes(String(c.status || "").toLowerCase()));
-  if (pending.length) result.push({ kind: "commission", score: 58, title: "Comissões pendentes", reason: `${pending.length} comissão(ões) ainda não foram recebidas integralmente.`, suggested_action: "Acompanhar o recebimento e os respectivos negócios.", entity_id: pending[0].id });
+  const firstPending = pending[0];
+  if (firstPending) result.push({ kind: "commission", score: 58, title: "Comissões pendentes", reason: `${pending.length} comissão(ões) ainda não foram recebidas integralmente.`, suggested_action: "Acompanhar o recebimento e os respectivos negócios.", entity_id: firstPending.id });
   return result.sort((a, b) => b.score - a.score).slice(0, 8);
 }
 

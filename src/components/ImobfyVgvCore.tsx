@@ -128,7 +128,7 @@ export default function ImobfyVgvCore({ user }: { user: ImobfyUser }) {
       </> : <>
         <div className="form-grid"><label>Mês da venda<input autoFocus type="month" value={month} onChange={e => setMonth(e.target.value)} /></label><label>Valor da venda / VGV<input type="number" min="0" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="Ex.: 550000" /></label></div>
         <div className="form-grid"><label>Atuação na venda<select value={commissionType} onChange={e => setCommissionType(e.target.value as typeof commissionType)}><option value="captacao">Captação</option><option value="venda">Venda</option><option value="ambos">Captação + venda</option></select></label><label style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 28 }}><input type="checkbox" checked={split} onChange={e => setSplit(e.target.checked)} /> Comissão meiada</label></div>
-        <div className="notice"><strong>Agora sim:</strong> esse VGV também gera a comissão a receber, usando suas configurações atuais de corretagem, imposto e participação.</div>
+        <div className="notice"><strong>Agora sim:</strong> esse VGV também gera a comissão a receber, usando suas configurações atuais de corretagem, imposto e participação. Nenhum imóvel é necessário para este lançamento.</div>
       </>}
       <div className="mvp-actions"><button className="clean-button secondary" onClick={reset}>Cancelar</button><button className="clean-button primary" disabled={saving} onClick={() => void (open === "sale" ? addDirectSale() : addHistorical())}>{saving ? "Calculando..." : open === "sale" ? "Lançar venda" : "Lançar VGV + comissão"}</button></div>
     </div></div>}

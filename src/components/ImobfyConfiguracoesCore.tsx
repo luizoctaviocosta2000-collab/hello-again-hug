@@ -1,41 +1,118 @@
 import { useEffect, useState } from "react";
 import { Save, ShieldCheck, Target, UserRound, WalletCards } from "lucide-react";
 import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
+import { supabase } from "../lib/supabase";
 import "../imobfy-settings.css";
+
+const DEFAULTS = { brokerage: "6", tax: "9", participation: "20", vgvGoal: "0" };
+
+function normalizePercentage(value: string) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.min(100, Math.max(0, parsed));
+}
+
+function normalizeMoney(value: string) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, parsed);
+}
 
 export default function ImobfyConfiguracoesCore() {
   const [user, setUser] = useState<ImobfyUser | null>(null);
   const [name, setName] = useState("");
   const [vgvGoal, setVgvGoal] = useState("");
-  const [participation, setParticipation] = useState("20");
-  const [tax, setTax] = useState("9");
-  const [brokerage, setBrokerage] = useState("6");
+  const [participation, setParticipation] = useState(DEFAULTS.participation);
+  const [tax, setTax] = useState(DEFAULTS.tax);
+  const [brokerage, setBrokerage] = useState(DEFAULTS.brokerage);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => { void restoreSession().then((session) => { setUser(session); setName(session?.name ?? ""); }); }, []);
+  useEffect(() => {
+    void restoreSession().then((session) => {
+      setUser(session);
+      setName(session?.name ?? "");
+    });
+  }, []);
+
   useEffect(() => {
     if (!user) return;
-    const stored = localStorage.getItem(`imobfy-settings-${user.id}`);
-    if (!stored) return;
-    try {
-      const settings = JSON.parse(stored) as Record<string, string>;
-      setName(settings.name ?? user.name ?? ""); setVgvGoal(settings.vgvGoal ?? "");
-      setParticipation(settings.participation ?? "20"); setTax(settings.tax ?? "9"); setBrokerage(settings.brokerage ?? "6");
-    } catch { /* keep safe defaults */ }
+    let active = true;
+    setLoading(true);
+    setError("");
+
+    void supabase
+      .from("profiles")
+      .select("full_name, default_commission_pct, tax_pct, participation_pct, vgv_goal")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data, error: profileError }) => {
+        if (!active) return;
+        if (profileError) {
+          setError("Não foi possível carregar suas configurações. Os padrões foram mantidos.");
+          setLoading(false);
+          return;
+        }
+        if (data) {
+          setName(data.full_name ?? user.name ?? "");
+          setBrokerage(String(data.default_commission_pct ?? DEFAULTS.brokerage));
+          setTax(String(data.tax_pct ?? DEFAULTS.tax));
+          setParticipation(String(data.participation_pct ?? DEFAULTS.participation));
+          setVgvGoal(String(data.vgv_goal ?? 0));
+        }
+        setLoading(false);
+      });
+
+    return () => { active = false; };
   }, [user]);
-  function save() {
-    if (!user) return;
-    localStorage.setItem(`imobfy-settings-${user.id}`, JSON.stringify({ name: name.trim(), vgvGoal, participation, tax, brokerage }));
-    setSaved(true); window.setTimeout(() => setSaved(false), 2200);
+
+  async function save() {
+    if (!user || saving) return;
+    setSaving(true);
+    setError("");
+
+    const cleanName = name.trim() || user.name || "Corretor";
+    const cleanBrokerage = normalizePercentage(brokerage);
+    const cleanTax = normalizePercentage(tax);
+    const cleanParticipation = normalizePercentage(participation);
+    const cleanVgvGoal = normalizeMoney(vgvGoal);
+
+    const { error: saveError } = await supabase
+      .from("profiles")
+      .update({
+        full_name: cleanName,
+        default_commission_pct: cleanBrokerage,
+        tax_pct: cleanTax,
+        participation_pct: cleanParticipation,
+        vgv_goal: cleanVgvGoal,
+      })
+      .eq("id", user.id);
+
+    setSaving(false);
+    if (saveError) {
+      setError("Não foi possível salvar. Verifique sua conexão e tente novamente.");
+      return;
+    }
+
+    setName(cleanName);
+    setBrokerage(String(cleanBrokerage));
+    setTax(String(cleanTax));
+    setParticipation(String(cleanParticipation));
+    setVgvGoal(String(cleanVgvGoal));
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2200);
   }
+
   return <div className="settings-core">
     <section className="clean-card settings-hero"><span className="label">CONTA & OPERAÇÃO</span><h2>Deixe o IMOBFY trabalhar do seu jeito.</h2><p>Perfil, meta e regras comerciais em um único lugar.</p></section>
     <div className="clean-grid two settings-grid">
-      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFIL</span><h3>Identidade profissional</h3></div><UserRound size={20}/></div><label>Seu nome<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome"/></label><p className="settings-help">Usado para personalizar saudações e sua operação.</p></section>
-      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFORMANCE</span><h3>Meta de VGV</h3></div><Target size={20}/></div><label>Meta mensal<input type="number" min="0" value={vgvGoal} onChange={(e) => setVgvGoal(e.target.value)} placeholder="Ex.: 1500000"/></label><p className="settings-help">A meta será usada pelos indicadores de performance do IMOBFY.</p></section>
-      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">COMISSIONAMENTO</span><h3>Regras padrão</h3></div><WalletCards size={20}/></div><div className="settings-form-grid"><label>Corretagem imobiliária (%)<input type="number" min="0" step="0.1" value={brokerage} onChange={(e) => setBrokerage(e.target.value)}/></label><label>Imposto sobre corretagem (%)<input type="number" min="0" step="0.1" value={tax} onChange={(e) => setTax(e.target.value)}/></label><label>Participação do corretor (%)<input type="number" min="0" step="0.1" value={participation} onChange={(e) => setParticipation(e.target.value)}/></label></div><div className="settings-rule"><ShieldCheck size={16}/><span>O padrão atual do IMOBFY é 6% de corretagem, 9% de imposto e 20% de participação.</span></div></section>
-      <section className="clean-card settings-card settings-preview"><span className="label">COMO FICA</span><strong>{name || user?.name || "Seu nome"}</strong><span>Meta mensal: {vgvGoal ? `R$ ${Number(vgvGoal).toLocaleString("pt-BR")}` : "não definida"}</span><span>Participação: {participation}%</span><span>Corretagem: {brokerage}% · Imposto: {tax}%</span></section>
+      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFIL</span><h3>Identidade profissional</h3></div><UserRound size={20}/></div><label>Seu nome<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" disabled={loading}/></label><p className="settings-help">Usado para personalizar saudações e sua operação.</p></section>
+      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFORMANCE</span><h3>Meta de VGV</h3></div><Target size={20}/></div><label>Meta mensal<input type="number" min="0" value={vgvGoal} onChange={(e) => setVgvGoal(e.target.value)} placeholder="Ex.: 1500000" disabled={loading}/></label><p className="settings-help">A meta fica vinculada ao seu perfil e pode alimentar os indicadores de performance.</p></section>
+      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">COMISSIONAMENTO</span><h3>Regras padrão</h3></div><WalletCards size={20}/></div><div className="settings-form-grid"><label>Corretagem imobiliária (%)<input type="number" min="0" max="100" step="0.1" value={brokerage} onChange={(e) => setBrokerage(e.target.value)} disabled={loading}/></label><label>Imposto sobre corretagem (%)<input type="number" min="0" max="100" step="0.1" value={tax} onChange={(e) => setTax(e.target.value)} disabled={loading}/></label><label>Participação do corretor (%)<input type="number" min="0" max="100" step="0.1" value={participation} onChange={(e) => setParticipation(e.target.value)} disabled={loading}/></label></div><div className="settings-rule"><ShieldCheck size={16}/><span>Essas regras ficam salvas no seu perfil e são usadas no cálculo de novas vendas. Cada comissão guarda a regra aplicada no momento do fechamento.</span></div></section>
+      <section className="clean-card settings-card settings-preview"><span className="label">COMO FICA</span><strong>{name || user?.name || "Seu nome"}</strong><span>Meta mensal: {vgvGoal && Number(vgvGoal) > 0 ? `R$ ${Number(vgvGoal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "não definida"}</span><span>Participação: {participation}%</span><span>Corretagem: {brokerage}% · Imposto: {tax}%</span></section>
     </div>
-    <div className="settings-actions">{saved && <span className="settings-saved">Configurações salvas.</span>}<button className="clean-button primary" onClick={save}><Save size={16}/> Salvar configurações</button></div>
+    <div className="settings-actions">{error && <span className="settings-saved">{error}</span>}{saved && <span className="settings-saved">Configurações salvas.</span>}<button className="clean-button primary" onClick={() => void save()} disabled={loading || saving}><Save size={16}/> {saving ? "Salvando..." : "Salvar configurações"}</button></div>
   </div>;
 }

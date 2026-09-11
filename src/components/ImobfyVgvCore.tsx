@@ -44,7 +44,16 @@ export default function ImobfyVgvCore({ user }: { user: ImobfyUser }) {
     if (!month || !Number.isFinite(numericValue) || numericValue <= 0) { setNotice("Informe o mês e um VGV válido."); return; }
     setSaving(true); setNotice("");
     const referenceMonth = `${month}-01`;
-    const { error } = await supabase.from("vgv_entries").insert({ user_id: user.id, deal_id: null, reference_month: referenceMonth, vgv: numericValue });
+    // vgv_entries ainda mantém as colunas legadas month/property_value como NOT NULL.
+    // Preenchemos as quatro colunas para manter compatibilidade com o schema atual e com o histórico consolidado.
+    const { error } = await supabase.from("vgv_entries").insert({
+      user_id: user.id,
+      deal_id: null,
+      month: referenceMonth,
+      reference_month: referenceMonth,
+      property_value: numericValue,
+      vgv: numericValue,
+    });
     if (error) setNotice(error.message);
     else { reset(); setNotice("VGV histórico lançado com sucesso."); await load(); }
     setSaving(false);

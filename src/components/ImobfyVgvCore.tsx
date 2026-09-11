@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, CheckCircle2, CircleDollarSign, Loader2, Plus, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { restoreSession, type ImobfyUser } from "../lib/imobfy-session";
+import { type ImobfyUser } from "../lib/imobfy-session";
 
 type VgvEntry = { id: string; deal_id: string | null; reference_month: string; vgv: number; created_at?: string };
 const money = (v: number) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -30,7 +30,7 @@ export default function ImobfyVgvCore({ user }: { user: ImobfyUser }) {
   const yearTotal = useMemo(() => entries.filter(e => new Date(e.reference_month + "T12:00:00").getFullYear() === currentYear).reduce((sum, e) => sum + Number(e.vgv || 0), 0), [entries, currentYear]);
   const monthly = useMemo(() => {
     const grouped = new Map<string, number>();
-    entries.forEach(entry => grouped.set(entry.reference_month.slice(0, 7), (grouped.get(entry.reference_month.slice(0, 7)) || 0) + Number(entry.vgv || 0)));
+    entries.forEach(entry => grouped.set(entry.reference_month.slice(0, 7), (grouped.get(entry.reference_month.slice(0, 7)) || 0) + Number(entry.vgv || 0));
     return [...grouped.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
   }, [entries]);
 

@@ -33,11 +33,12 @@ function RootComponent() {
   const location = useLocation();
   const user = getSession();
   const isAuth = location.pathname === "/login" || location.pathname.startsWith("/recuperar");
+  const authenticated = Boolean(user) && !isAuth;
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAuth || !user ? <Outlet /> : <ImobfyAppShell user={user}><Outlet /></ImobfyAppShell>}
-      <FloatingImobfyAI />
+      {authenticated ? <ImobfyAppShell user={user!}><Outlet /></ImobfyAppShell> : <Outlet />}
+      {authenticated && <FloatingImobfyAI />}
     </QueryClientProvider>
   );
 }

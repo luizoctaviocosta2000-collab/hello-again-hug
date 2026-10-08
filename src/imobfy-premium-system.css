@@ -492,3 +492,201 @@ input:focus,select:focus,textarea:focus{border-color:var(--im-brand)!important;b
 }
 .vgv-hero .overline,.vgv-mark{color:hsl(158 65% 55%)!important}
 .vgv-hero .progress i{background:var(--im-brand)!important}
+
+
+/* IMOBFY — FINAL COLOR HIERARCHY
+   Premium rule: canvas != surface != elevated != control.
+   No white-on-white controls; green is reserved for action/positive emphasis. */
+:root{
+  --im-canvas:hsl(42 18% 95%);
+  --im-surface:hsl(0 0% 100%);
+  --im-surface-raised:hsl(0 0% 100%);
+  --im-surface-soft:hsl(42 15% 92%);
+  --im-surface-strong:hsl(42 12% 88%);
+  --im-border:hsl(42 10% 84%);
+  --im-border-strong:hsl(42 9% 72%);
+  --im-ink:hsl(222 18% 14%);
+  --im-muted:hsl(220 9% 42%);
+  --im-subtle:hsl(220 7% 57%);
+  --im-primary:hsl(158 55% 34%);
+  --im-primary-hover:hsl(158 55% 28%);
+  --im-primary-soft:hsl(158 36% 91%);
+  --im-primary-line:hsl(158 26% 72%);
+  --im-dark:hsl(222 18% 13%);
+  --im-dark-raised:hsl(222 16% 18%);
+}
+
+/* Global canvas and type */
+html,body,.imobfy-app-shell,.clean-app,.app-shell{background:var(--im-canvas)!important;color:var(--im-ink)!important}
+p,.muted,.module-sub,.clean-header p{color:var(--im-muted)}
+small{color:var(--im-subtle)}
+
+/* Main shell */
+.clean-header,.imobfy-header{
+  background:rgba(255,255,255,.96)!important;
+  border-bottom:1px solid var(--im-border)!important;
+}
+.clean-sidebar,.imobfy-sidebar,.sidebar{
+  background:var(--im-dark)!important;
+  color:#fff!important;
+  border-right:1px solid hsl(222 12% 22%)!important;
+}
+.clean-sidebar nav a,.imobfy-sidebar nav a{
+  color:hsl(220 8% 70%)!important;
+  background:transparent!important;
+}
+.clean-sidebar nav a:hover,.imobfy-sidebar nav a:hover{
+  color:#fff!important;
+  background:var(--im-dark-raised)!important;
+}
+.clean-sidebar nav a.active,.imobfy-sidebar nav a.active,.nav.active{
+  color:#fff!important;
+  background:hsl(158 35% 23%)!important;
+  box-shadow:inset 3px 0 0 var(--im-primary)!important;
+}
+.nav-section,.side-label{
+  color:hsl(220 8% 52%)!important;
+}
+
+/* Brand */
+.brand-symbol,.clean-brand .brand-symbol,.auth-brand .brand-symbol,.auth-mobile-brand .brand-symbol{
+  background:var(--im-primary)!important;
+  color:#fff!important;
+}
+
+/* Buttons: dark secondary, green primary, never white text on white */
+.clean-button.primary,.primary,.auth-submit{
+  background:var(--im-primary)!important;
+  border-color:var(--im-primary)!important;
+  color:#fff!important;
+}
+.clean-button.primary:hover,.primary:hover,.auth-submit:hover{
+  background:var(--im-primary-hover)!important;
+  border-color:var(--im-primary-hover)!important;
+}
+.clean-button.secondary,.ghost,.outline{
+  background:var(--im-surface)!important;
+  border:1px solid var(--im-border-strong)!important;
+  color:var(--im-ink)!important;
+}
+.clean-button.secondary:hover,.ghost:hover,.outline:hover{
+  background:var(--im-surface-soft)!important;
+  border-color:var(--im-primary-line)!important;
+  color:var(--im-primary-hover)!important;
+}
+
+/* Periods / filters: explicit selected vs unselected states */
+.dashboard-periods,.segmented,.period-selector{
+  background:var(--im-surface-soft)!important;
+  border:1px solid var(--im-border)!important;
+}
+.dashboard-periods .clean-button.secondary,.segmented button{
+  background:transparent!important;
+  color:var(--im-muted)!important;
+}
+.dashboard-periods .clean-button.primary,.segmented button.active,.period-selector button.active{
+  background:var(--im-dark)!important;
+  color:#fff!important;
+  border-color:var(--im-dark)!important;
+}
+
+/* Cards: canvas and card must visibly separate */
+.clean-card,.metric-card,.metric,.card,.property-card,.deal-card,.inventory-card,.list-row,
+.ai-metrics article,.ai-main-card,.ai-chat-card{
+  background:var(--im-surface)!important;
+  border:1px solid var(--im-border)!important;
+  color:var(--im-ink)!important;
+  box-shadow:var(--im-shadow-sm)!important;
+}
+.clean-card:hover,.metric-card:hover,.property-card:hover,.deal-card:hover{
+  border-color:var(--im-border-strong)!important;
+  box-shadow:var(--im-shadow-md)!important;
+}
+
+/* Inner controls / sub-surfaces */
+.finance-line div,.quick-item>span,.metric-icon,.card-icon,.activity-icon,.type-pill,.empty-icon,.ai-action-icon{
+  background:var(--im-surface-soft)!important;
+  color:var(--im-primary)!important;
+  border:1px solid var(--im-border)!important;
+}
+.notice{
+  background:var(--im-primary-soft)!important;
+  border-color:var(--im-primary-line)!important;
+  color:var(--im-ink)!important;
+}
+.search,.search-box,.input,.client-form-grid input,.client-form-grid select,.client-form-grid textarea,
+.location-field input,.location-field select{
+  background:var(--im-surface)!important;
+  color:var(--im-ink)!important;
+  border-color:var(--im-border-strong)!important;
+}
+.search input{background:transparent!important;color:var(--im-ink)!important}
+.search:focus-within,.input:focus,.location-field input:focus,.location-field select:focus,
+.client-form-grid input:focus,.client-form-grid select:focus,.client-form-grid textarea:focus{
+  border-color:var(--im-primary)!important;
+  box-shadow:0 0 0 3px hsl(158 55% 34% / .12)!important;
+}
+
+/* Tables */
+table{color:var(--im-ink)!important}
+th{
+  background:var(--im-surface-soft)!important;
+  color:var(--im-muted)!important;
+  border-color:var(--im-border)!important;
+}
+td{background:var(--im-surface)!important;border-color:var(--im-border)!important;color:var(--im-ink)!important}
+td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div:first-child b{
+  color:var(--im-ink)!important;
+}
+
+/* Status colors are semantic only */
+.badge.green{background:var(--im-primary-soft)!important;color:var(--im-primary-hover)!important}
+.badge.yellow{background:hsl(38 85% 91%)!important;color:hsl(32 70% 31%)!important}
+.badge.red{background:hsl(4 70% 93%)!important;color:hsl(4 60% 38%)!important}
+.badge.blue{background:hsl(211 65% 92%)!important;color:hsl(211 55% 35%)!important}
+.progress{background:var(--im-surface-strong)!important}
+.progress i,.dashboard-bars .bar-track i{background:var(--im-primary)!important}
+.money-accent,.property-footer b,.text-link,.overline,.eyebrow,.header-kicker,.label{
+  color:var(--im-primary)!important;
+}
+
+/* Property visuals: neutral, no gold decoration */
+.property-cover{
+  background:linear-gradient(145deg,hsl(222 18% 16%),hsl(222 14% 24%))!important;
+}
+.property-symbol{color:hsl(158 55% 58%)!important}
+
+/* AI: premium dark + green, not beige/gold */
+.ai-hero{
+  background:linear-gradient(135deg,var(--im-dark),hsl(222 15% 19%))!important;
+  border-color:hsl(222 12% 27%)!important;
+  color:#fff!important;
+}
+.ai-hero h1,.ai-hero p{color:inherit!important}
+.ai-orb{background:var(--im-primary)!important;color:#fff!important}
+.ai-live{background:var(--im-primary-soft)!important;color:var(--im-primary-hover)!important}
+
+/* VGV: same dark language, green accent */
+.vgv-hero{
+  background:linear-gradient(145deg,var(--im-dark),hsl(222 15% 19%))!important;
+  border:1px solid hsl(222 12% 27%)!important;
+}
+.vgv-hero .overline,.vgv-mark{color:hsl(158 55% 60%)!important}
+.vgv-mark{border-color:hsl(158 25% 35%)!important}
+.vgv-hero .progress i{background:var(--im-primary)!important}
+
+/* Auth: same identity as the product */
+.auth-page{background:var(--im-canvas)!important}
+.auth-brand-panel{
+  background:linear-gradient(145deg,var(--im-dark),hsl(222 15% 19%))!important;
+}
+.auth-form-panel{background:var(--im-surface)!important}
+.auth-pitch .label,.auth-heading .label{color:hsl(158 55% 60%)!important}
+.auth-pitch h1 em{color:hsl(158 55% 60%)!important}
+.auth-form-wrap input{background:var(--im-surface)!important;color:var(--im-ink)!important;border-color:var(--im-border-strong)!important}
+.auth-switch button{color:var(--im-primary)!important}
+
+/* Kill legacy gold accents that remain in old selectors */
+.overline,.eyebrow,.money-accent,.property-footer b{color:var(--im-primary)!important}
+.dashboard-chart .chart-area{fill:hsl(158 55% 34% / .10)!important}
+.dashboard-chart .chart-path,.dashboard-chart .chart-dot{stroke:var(--im-primary)!important;fill:var(--im-primary)!important}

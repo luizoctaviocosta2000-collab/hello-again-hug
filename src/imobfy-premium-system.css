@@ -367,3 +367,128 @@ input:focus,select:focus,textarea:focus{border-color:var(--im-primary)!important
     transform: none;
   }
 }
+
+
+/* IMOBFY — Color normalization
+   One visual language across legacy + premium surfaces. Visual only. */
+:root{
+  --im-brand: hsl(158 55% 34%);
+  --im-brand-hover: hsl(158 55% 29%);
+  --im-brand-soft: hsl(158 40% 94%);
+  --im-brand-line: hsl(158 28% 78%);
+  --im-neutral-950: hsl(220 18% 13%);
+  --im-neutral-800: hsl(220 14% 24%);
+  --im-neutral-600: hsl(220 10% 42%);
+  --im-neutral-500: hsl(220 8% 54%);
+  --im-neutral-300: hsl(220 12% 80%);
+  --im-neutral-200: hsl(220 12% 89%);
+  --im-neutral-100: hsl(40 18% 96%);
+  --im-canvas: hsl(40 20% 98%);
+  --im-white: hsl(0 0% 100%);
+}
+html,body{background:var(--im-canvas)!important;color:var(--im-neutral-950)}
+.app-shell,.clean-app,.imobfy-app-shell{background:var(--im-canvas)!important}
+
+/* Legacy shell: remove the old gold palette and connect it to the brand system. */
+.sidebar{
+  background:var(--im-neutral-950)!important;
+  border-right-color:hsl(220 12% 20%)!important;
+}
+.brand-mark,.avatar{
+  background:var(--im-brand)!important;
+  color:#fff!important;
+  box-shadow:0 8px 22px hsl(158 45% 20% / .22)!important;
+}
+.nav.active{
+  background:var(--im-brand)!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px hsl(158 45% 20% / .18)!important;
+}
+.nav:hover{background:hsl(220 14% 19%)!important;color:#fff!important}
+.side-label,.overline,.eyebrow{color:var(--im-brand)!important}
+.page-head h1,.module-title,.card-head b,.card-head h3,.metric strong,.big-money,
+.property-body>div:first-child b,.deal-head b,.activity-main b,.pulse-card>b,.pulse-card>strong{
+  color:var(--im-neutral-950)!important;
+}
+.period,.search,.ghost,.outline{
+  border-color:var(--im-neutral-200)!important;
+  background:var(--im-white)!important;
+  color:var(--im-neutral-600)!important;
+}
+.dot{background:var(--im-brand)!important;box-shadow:0 0 0 3px hsl(158 55% 34% / .12)!important}
+.primary{
+  background:var(--im-brand)!important;
+  border-color:var(--im-brand)!important;
+  color:#fff!important;
+  box-shadow:0 7px 18px hsl(158 45% 25% / .18)!important;
+}
+.primary:hover{background:var(--im-brand-hover)!important;border-color:var(--im-brand-hover)!important}
+.metric,.card,.property-card{
+  background:var(--im-white)!important;
+  border-color:var(--im-neutral-200)!important;
+  box-shadow:var(--im-shadow-sm)!important;
+}
+.metric.accent{
+  background:var(--im-brand-soft)!important;
+  border-color:var(--im-brand-line)!important;
+}
+.metric-icon,.card-icon,.quick-item>span,.type-pill,.empty-icon,.activity-icon{
+  background:var(--im-brand-soft)!important;
+  color:var(--im-brand)!important;
+}
+.finance-line div{
+  background:var(--im-neutral-100)!important;
+  border-color:var(--im-neutral-200)!important;
+}
+.progress{background:hsl(220 12% 92%)!important}
+.progress i{background:var(--im-brand)!important}
+.property-cover{
+  background:var(--im-neutral-950)!important;
+}
+.property-symbol{color:var(--im-brand)!important}
+.property-footer b,.money-accent,.text-link{color:var(--im-brand)!important}
+.badge.green{background:var(--im-brand-soft)!important;color:var(--im-brand-hover)!important}
+.input{
+  border-color:var(--im-neutral-200)!important;
+  background:var(--im-white)!important;
+}
+.input:focus{border-color:var(--im-brand)!important;box-shadow:0 0 0 3px hsl(158 55% 34% / .12)!important}
+.segmented{background:var(--im-neutral-100)!important}
+.segmented button.active{color:var(--im-neutral-950)!important;background:var(--im-white)!important}
+
+/* Auth uses the same brand instead of a second gold identity. */
+.auth-brand-panel{
+  background:var(--im-neutral-950)!important;
+}
+.auth-brand .brand-symbol,.auth-mobile-brand .brand-symbol{
+  background:var(--im-brand)!important;
+  color:#fff!important;
+}
+.auth-pitch .label,.auth-heading .label{color:hsl(158 65% 55%)!important}
+.auth-pitch h1 em{color:hsl(158 65% 55%)!important}
+.auth-form-wrap input:focus{border-color:var(--im-brand)!important;box-shadow:0 0 0 4px hsl(158 55% 34% / .11)!important}
+.auth-submit{
+  background:var(--im-brand)!important;
+  border-color:var(--im-brand)!important;
+}
+.auth-submit:hover{background:var(--im-brand-hover)!important}
+
+/* Premium components: keep semantic colors, but use one brand for neutral UI. */
+.clean-button.primary{background:var(--im-brand)!important;border-color:var(--im-brand)!important}
+.clean-button.primary:hover{background:var(--im-brand-hover)!important;border-color:var(--im-brand-hover)!important}
+.clean-button.secondary:hover{border-color:var(--im-brand-line)!important;background:var(--im-brand-soft)!important;color:var(--im-brand-hover)!important}
+.dashboard-periods .clean-button.primary{background:var(--im-neutral-950)!important}
+.dashboard-list>div svg,.text-link{color:var(--im-brand)!important}
+.dashboard-bars .bar-track i{background:var(--im-brand)!important}
+.notice{background:var(--im-brand-soft)!important;border-color:var(--im-brand-line)!important}
+input:focus,select:focus,textarea:focus{border-color:var(--im-brand)!important;box-shadow:0 0 0 3px hsl(158 55% 34% / .12)!important}
+
+/* Remove decorative gold gradients from old dashboard surfaces. */
+.app-shell{
+  background:var(--im-canvas)!important;
+}
+.vgv-hero{
+  background:var(--im-neutral-950)!important;
+}
+.vgv-hero .overline,.vgv-mark{color:hsl(158 65% 55%)!important}
+.vgv-hero .progress i{background:var(--im-brand)!important}

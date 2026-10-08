@@ -1101,3 +1101,10 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 .signal-core.is-listening .signal-core-inner{box-shadow:0 0 34px rgba(56,196,141,.3),inset 0 0 26px rgba(56,196,141,.08)!important}
 .signal-core.is-listening .signal-core-inner svg{animation:ii-core-icon-pulse 1.1s ease-in-out infinite!important}
 @keyframes ii-core-icon-pulse{50%{transform:scale(1.12);opacity:.7}}
+
+/* IMOBFY IA — voice hint is secondary, AI core is the action */
+.imobfy-intelligence-listen{pointer-events:none!important;cursor:default!important;opacity:.72!important}
+.imobfy-intelligence-listen .listen-arrow{display:none!important}
+.imobfy-intelligence-listen .listen-icon{width:34px!important;height:34px!important}
+.imobfy-intelligence-listen.is-listening{opacity:1!important}
+.signal-core{transform-origin:center!important}

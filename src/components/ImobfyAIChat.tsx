@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, BrainCircuit, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { ImobfyUser } from "../lib/imobfy-session";
@@ -34,6 +35,8 @@ export default function ImobfyAIChat({ user }: Props) {
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
+  const [showSessions, setShowSessions] = useState(false);
+  const navigate = useNavigate();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   async function ask(text: string) {
@@ -101,6 +104,12 @@ export default function ImobfyAIChat({ user }: Props) {
   }, [conversationId, loading]);
 
   const firstName = user.name.split(" ")[0];
+  const sessions = [
+    { label: "Visão geral", to: "/" }, { label: "Imóveis", to: "/imoveis" },
+    { label: "Clientes", to: "/clientes" }, { label: "Negócios", to: "/negocios" },
+    { label: "Agenda", to: "/agenda" }, { label: "Comissões", to: "/comissoes" },
+    { label: "Meu VGV", to: "/vgv" },
+  ];
 
   return (
     <div className={`imobfy-intelligence ${messages.length ? "has-conversation" : ""}`}>
@@ -121,7 +130,7 @@ export default function ImobfyAIChat({ user }: Props) {
 
       {!messages.length ? (
         <main className="imobfy-intelligence-stage">
-          <div className="imobfy-intelligence-grid" aria-hidden="true" />
+          <div className="imobfy-intelligence-grid" aria-hidden="true" />\n          <div className="imobfy-intelligence-noise" aria-hidden="true" />\n          <div className="imobfy-intelligence-particles" aria-hidden="true">{Array.from({ length: 14 }, (_, index) => <i key={index} />)}</div>
           <div className="imobfy-intelligence-copy">
             <span className="imobfy-intelligence-kicker"><Command size={11} /> CENTRAL DE INTELIGÊNCIA COMERCIAL</span>
             <h1>Seu negócio.<br /><em>Uma inteligência a mais.</em></h1>
@@ -139,7 +148,7 @@ export default function ImobfyAIChat({ user }: Props) {
             </div>
             <span className="signal-ring ring-a" /><span className="signal-ring ring-b" /><span className="signal-ring ring-c" />
             <span className="signal-scan" />
-            <div className={`signal-core ${listening ? "is-listening" : ""}`}>
+            <div className="signal-label signal-label-a">LIVE DATA</div>\n            <div className="signal-label signal-label-b">CRM / REAL TIME</div>\n            <div className={`signal-core ${listening ? "is-listening" : ""}`}>
               <div className="signal-core-inner"><BrainCircuit size={29} /></div>
             </div>
             <span className="signal-orbit orbit-a" /><span className="signal-orbit orbit-b" />

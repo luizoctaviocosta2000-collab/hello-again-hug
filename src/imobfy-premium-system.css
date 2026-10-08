@@ -289,3 +289,81 @@ input:focus,select:focus,textarea:focus{border-color:var(--im-primary)!important
   .dashboard-list>div{border-color:var(--im-border)}
   .search-box{background:var(--im-surface)}
 }
+
+
+/* IMOBFY interaction layer — operational, restrained, touch-first */
+.dashboard-core .module-actions {
+  align-items: flex-end;
+  gap: 24px;
+}
+.dashboard-core .module-actions > div {
+  min-width: 0;
+}
+.dashboard-core .module-actions h2 {
+  letter-spacing: -0.035em;
+}
+.dashboard-core .metric-card {
+  transition: transform var(--imobfy-motion-fast) var(--imobfy-ease), box-shadow var(--imobfy-motion-fast) var(--imobfy-ease), border-color var(--imobfy-motion-fast) var(--imobfy-ease);
+}
+.dashboard-core .metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--imobfy-shadow-md);
+  border-color: hsl(158 25% 78%);
+}
+.dashboard-core .clean-card {
+  transition: box-shadow var(--imobfy-motion-fast) var(--imobfy-ease), border-color var(--imobfy-motion-fast) var(--imobfy-ease);
+}
+.dashboard-core .clean-card:hover {
+  border-color: hsl(220 12% 83%);
+  box-shadow: var(--imobfy-shadow-sm);
+}
+.dashboard-core .clean-button {
+  white-space: nowrap;
+}
+.dashboard-core .dashboard-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 24px;
+}
+.dashboard-core .dashboard-periods .clean-button {
+  min-height: 40px;
+}
+.dashboard-core .text-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (max-width: 720px) {
+  .dashboard-core .module-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .dashboard-core .module-actions .clean-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .dashboard-core .dashboard-periods {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .dashboard-core .dashboard-periods::-webkit-scrollbar {
+    display: none;
+  }
+  .dashboard-core .dashboard-periods .clean-button {
+    flex: 0 0 auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-core .metric-card,
+  .dashboard-core .clean-card {
+    transition: none;
+  }
+  .dashboard-core .metric-card:hover {
+    transform: none;
+  }
+}

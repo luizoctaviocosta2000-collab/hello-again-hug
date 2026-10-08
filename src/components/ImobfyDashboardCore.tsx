@@ -23,7 +23,7 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
   const [deals, setDeals] = useState<Deal[]>([]), [vgv, setVgv] = useState<Vgv[]>([]), [commissions, setCommissions] = useState<Commission[]>([]), [receipts, setReceipts] = useState<CommissionReceipt[]>([]), [captures, setCaptures] = useState<Capture[]>([]), [appointments, setAppointments] = useState<Appointment[]>([]), [clients, setClients] = useState(0), [vgvGoal, setVgvGoal] = useState(0), [loading, setLoading] = useState(true), [notice, setNotice] = useState(""), [period, setPeriod] = useState<Period>("current");
   async function load() {
     setLoading(true); setNotice("");
-    const [d, v, c, r, cap, ap, cli] = await Promise.all([
+    const [d, v, c, r, cap, ap, cli, profile] = await Promise.all([
       supabase.from("deals").select("id,status,property_value,created_at,updated_at"),
       supabase.from("vgv_entries").select("id,deal_id,reference_month,vgv").order("reference_month", { ascending: true }),
       supabase.from("commissions").select("id,user_amount,status,created_at,reference_month"),

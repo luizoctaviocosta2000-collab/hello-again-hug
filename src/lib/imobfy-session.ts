@@ -21,21 +21,34 @@ export function getSession(): ImobfyUser | null {
 
 export async function restoreSession(): Promise<ImobfyUser | null> {
   if (typeof window === "undefined") return null;
-  if (!supabase) return getSession();
+  const localSession = getSession();
+  if (!supabase) return localSession;
 
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) {
+  try {
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<never>((_, reject) =>
+        window.setTimeout(() => reject(new Error("TIMEOUT")), 8000),
+      ),
+    ]);
+
+    const { data } = result;
+    if (!data.user) {
+      clearSession();
+      return null;
+    }
+
+    const user: ImobfyUser = {
+      id: data.user.id,
+      name: (data.user.user_metadata?.full_name as string | undefined) || data.user.email?.split("@")[0] || "Corretor",
+      email: data.user.email || "",
+    };
+    setSession(user);
+    return user;
+  } catch {
     clearSession();
     return null;
   }
-
-  const user: ImobfyUser = {
-    id: data.user.id,
-    name: (data.user.user_metadata?.full_name as string | undefined) || data.user.email?.split("@")[0] || "Corretor",
-    email: data.user.email || "",
-  };
-  setSession(user);
-  return user;
 }
 
 export function setSession(user: ImobfyUser) {

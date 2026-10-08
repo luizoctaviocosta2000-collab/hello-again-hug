@@ -1078,3 +1078,16 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 .session-menu-kicker{display:block!important;padding:6px 8px 9px!important;color:rgba(56,196,141,.7)!important;font-size:7px!important;letter-spacing:.17em!important}
 .intelligence-session-menu button{width:100%!important;display:flex!important;align-items:center!important;justify-content:space-between!important;border:0!important;border-radius:7px!important;background:transparent!important;color:rgba(243,247,244,.7)!important;padding:10px 8px!important;font-size:9px!important;cursor:pointer!important;text-align:left!important}
 .intelligence-session-menu button:hover{background:rgba(56,196,141,.1)!important;color:#fff!important}
+
+/* IMOBFY IA — compact animated navigation trigger */
+.intelligence-menu-trigger{width:38px!important;height:38px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;padding:0!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:10px!important;background:rgba(8,15,12,.62)!important;backdrop-filter:blur(12px)!important;cursor:pointer!important;position:relative!important;z-index:100!important;transition:transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease!important}
+.intelligence-menu-trigger span{display:block!important;width:15px!important;height:1.5px!important;border-radius:2px!important;background:rgba(245,248,246,.82)!important;transform-origin:center!important;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .2s ease,width .25s ease!important}
+.intelligence-menu-trigger:hover{transform:translateY(-1px)!important;border-color:rgba(56,196,141,.48)!important;background:rgba(56,196,141,.1)!important;box-shadow:0 8px 28px rgba(0,0,0,.22),0 0 18px rgba(56,196,141,.08)!important}
+.intelligence-menu-trigger:hover span:nth-child(1){width:18px!important}
+.intelligence-menu-trigger:hover span:nth-child(3){width:12px!important}
+.intelligence-menu-trigger.is-open{border-color:rgba(56,196,141,.62)!important;background:rgba(56,196,141,.12)!important;box-shadow:0 0 24px rgba(56,196,141,.12)!important}
+.intelligence-menu-trigger.is-open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)!important}
+.intelligence-menu-trigger.is-open span:nth-child(2){opacity:0!important;transform:scaleX(0)!important}
+.intelligence-menu-trigger.is-open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)!important}
+.imobfy-intelligence-top-left{position:absolute!important;left:clamp(18px,3vw,42px)!important;top:50%!important;transform:translateY(-50%)!important;z-index:100!important}
+.intelligence-session-menu{left:0!important;top:48px!important}

@@ -114,7 +114,7 @@ export default function ImobfyAIChat({ user }: Props) {
   return (
     <div className={`imobfy-intelligence ${messages.length ? "has-conversation" : ""}`}>
       <header className="imobfy-intelligence-top">
-        <div className="imobfy-intelligence-brand">
+        <div className="imobfy-intelligence-top-left">\n          <button type="button" className="intelligence-session-trigger" onClick={() => setShowSessions((value) => !value)} aria-expanded={showSessions}>\n            <Command size={13} /> <span>Navegar</span> <ArrowUpRight size={11} />\n          </button>\n          {showSessions && <div className="intelligence-session-menu">\n            <span className="session-menu-kicker">IR PARA</span>\n            {sessions.map((session) => <button key={session.to} type="button" onClick={() => { setShowSessions(false); void navigate({ to: session.to }); }}>{session.label}<ArrowUpRight size={12} /></button>)}\n          </div>}\n        </div>\n        <div className="imobfy-intelligence-brand">
           <div className="imobfy-intelligence-mark"><Sparkles size={14} /></div>
           <div><span>IMOBFY</span><strong>INTELLIGENCE</strong></div>
         </div>

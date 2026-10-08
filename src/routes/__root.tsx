@@ -5,6 +5,7 @@ import appCss from "../styles.css?url";
 import "../imobfy-clean.css";
 import "../imobfy-fixes.css";
 import "../imobfy-shell.css";
+import "../imobfy-premium-system.css";
 import FloatingImobfyAI from "../components/FloatingImobfyAI";
 import ImobfyAppShell from "../components/ImobfyAppShell";
 import { getSession } from "../lib/imobfy-session";

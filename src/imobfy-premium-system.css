@@ -1068,3 +1068,13 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 @keyframes ii-text-breathe{50%{opacity:.72}}
 @keyframes ii-live-blink{50%{opacity:.25;box-shadow:0 0 2px rgba(56,196,141,.3)}}
 @media(prefers-reduced-motion:reduce){.imobfy-intelligence::after,.signal-core-inner::before,.signal-core-inner::after,.signal-scan,.signal-ring,.command-card::after,.imobfy-intelligence-copy p,.imobfy-intelligence-live i{animation:none!important}}
+
+/* IMOBFY IA — navigation control visibility */
+.imobfy-intelligence-top{z-index:50!important}
+.imobfy-intelligence-top-left{position:relative;display:flex;align-items:center;z-index:60}
+.intelligence-session-trigger{display:inline-flex!important;align-items:center!important;gap:7px!important;min-height:34px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:9px!important;background:rgba(8,15,12,.72)!important;color:rgba(243,247,244,.8)!important;padding:8px 11px!important;cursor:pointer!important;font-size:9px!important;letter-spacing:.08em!important;position:relative!important;z-index:61!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important}
+.intelligence-session-trigger:hover,.intelligence-session-trigger[aria-expanded=true]{border-color:rgba(56,196,141,.55)!important;background:rgba(56,196,141,.12)!important;color:#fff!important}
+.intelligence-session-menu{position:absolute!important;left:0!important;top:42px!important;width:210px!important;padding:8px!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:12px!important;background:rgba(7,13,10,.97)!important;box-shadow:0 24px 70px rgba(0,0,0,.55)!important;backdrop-filter:blur(20px)!important;z-index:100!important}
+.session-menu-kicker{display:block!important;padding:6px 8px 9px!important;color:rgba(56,196,141,.7)!important;font-size:7px!important;letter-spacing:.17em!important}
+.intelligence-session-menu button{width:100%!important;display:flex!important;align-items:center!important;justify-content:space-between!important;border:0!important;border-radius:7px!important;background:transparent!important;color:rgba(243,247,244,.7)!important;padding:10px 8px!important;font-size:9px!important;cursor:pointer!important;text-align:left!important}
+.intelligence-session-menu button:hover{background:rgba(56,196,141,.1)!important;color:#fff!important}

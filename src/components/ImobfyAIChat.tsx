@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowUpRight, BrainCircuit, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { ImobfyUser } from "../lib/imobfy-session";
 import "../imobfy-fixes.css";
@@ -20,10 +20,10 @@ type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 declare global { interface Window { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor; } }
 
 const commands = [
-  "O que merece minha atenção hoje?",
-  "Quais negócios estão parados?",
-  "Quanto tenho para receber?",
-  "Quais clientes devo contatar?",
+  { label: "Minha prioridade", prompt: "O que merece minha atenção hoje?", detail: "Encontre o que pode gerar resultado agora." },
+  { label: "Negócios parados", prompt: "Quais negócios estão parados?", detail: "Identifique oportunidades que precisam de ação." },
+  { label: "Meu financeiro", prompt: "Quanto tenho para receber?", detail: "Veja o que está previsto para entrar." },
+  { label: "Próximo contato", prompt: "Quais clientes devo contatar?", detail: "Escolha os contatos com maior potencial." },
 ];
 
 export default function ImobfyAIChat({ user }: Props) {
@@ -80,6 +80,15 @@ export default function ImobfyAIChat({ user }: Props) {
     setSpeaking(index); window.speechSynthesis.speak(utterance);
   }
 
+  function newConversation() {
+    setMessages([]);
+    setConversationId(null);
+    setQuestion("");
+    setError("");
+    setSpeaking(null);
+    window.speechSynthesis?.cancel();
+  }
+
   useEffect(() => () => { recognitionRef.current?.stop(); window.speechSynthesis?.cancel(); }, []);
 
   useEffect(() => {
@@ -95,50 +104,71 @@ export default function ImobfyAIChat({ user }: Props) {
 
   return (
     <div className={`imobfy-intelligence ${messages.length ? "has-conversation" : ""}`}>
-      <div className="imobfy-intelligence-top">
+      <header className="imobfy-intelligence-top">
         <div className="imobfy-intelligence-brand">
           <div className="imobfy-intelligence-mark"><Sparkles size={14} /></div>
           <div><span>IMOBFY</span><strong>INTELLIGENCE</strong></div>
         </div>
-        <div className="imobfy-intelligence-live"><i /> SISTEMA ONLINE</div>
-      </div>
+        <div className="imobfy-intelligence-top-actions">
+          <div className="imobfy-intelligence-live"><i /> SISTEMA ONLINE</div>
+          {messages.length > 0 && (
+            <button type="button" className="intelligence-new-top" onClick={newConversation}>
+              <Plus size={13} /> Nova conversa
+            </button>
+          )}
+        </div>
+      </header>
 
       {!messages.length ? (
         <main className="imobfy-intelligence-stage">
           <div className="imobfy-intelligence-grid" aria-hidden="true" />
-          <div className="imobfy-intelligence-signal">
+          <div className="imobfy-intelligence-copy">
+            <span className="imobfy-intelligence-kicker"><Command size={11} /> CENTRAL DE INTELIGÊNCIA COMERCIAL</span>
+            <h1>Seu negócio.<br /><em>Uma inteligência a mais.</em></h1>
+            <p>Converse com seus dados, descubra prioridades e transforme informação em próxima ação.</p>
+            <button type="button" className={`imobfy-intelligence-listen ${listening ? "is-listening" : ""}`} onClick={toggleVoice}>
+              <span className="listen-icon">{listening ? <MicOff size={19} /> : <Mic size={19} />}</span>
+              <span className="listen-copy"><strong>{listening ? "Estou ouvindo..." : "Falar com o IMOBFY"}</strong><small>{listening ? "Diga o que precisa" : "Comande sua operação por voz"}</small></span>
+              <ArrowUpRight size={15} className="listen-arrow" />
+            </button>
+          </div>
+
+          <div className="imobfy-intelligence-signal" aria-hidden="true">
+            <div className="signal-hud">
+              <span>AI CORE</span><i /> <small>READY</small>
+            </div>
             <span className="signal-ring ring-a" /><span className="signal-ring ring-b" /><span className="signal-ring ring-c" />
+            <span className="signal-scan" />
             <div className={`signal-core ${listening ? "is-listening" : ""}`}>
-              <div className="signal-core-inner"><Sparkles size={28} /></div>
+              <div className="signal-core-inner"><BrainCircuit size={29} /></div>
             </div>
             <span className="signal-orbit orbit-a" /><span className="signal-orbit orbit-b" />
           </div>
 
-          <div className="imobfy-intelligence-copy">
-            <span className="imobfy-intelligence-kicker">CENTRAL DE INTELIGÊNCIA COMERCIAL</span>
-            <h1>Fale. <em>Eu cuido do resto.</em></h1>
-            <p>Seu pipeline, seus clientes, seu VGV e suas comissões em uma conversa.</p>
-            <button type="button" className={`imobfy-intelligence-listen ${listening ? "is-listening" : ""}`} onClick={toggleVoice}>
-              {listening ? <MicOff size={19} /> : <Mic size={19} />}
-              <span>{listening ? "Estou ouvindo..." : "Falar com o IMOBFY"}</span>
-              <small>{listening ? "Diga o que precisa" : "Toque para comandar por voz"}</small>
-            </button>
-          </div>
-
-          <div className="imobfy-intelligence-commands">
-            <span>OU COMANDE POR TEXTO</span>
-            <div>{commands.map((command) => (
-              <button key={command} type="button" onClick={() => void ask(command)}>
-                {command}<span>↗</span>
-              </button>
-            ))}</div>
-          </div>
+          <section className="imobfy-intelligence-commands">
+            <div className="commands-heading">
+              <div><span>COMANDOS RÁPIDOS</span><strong>Comece por uma pergunta</strong></div>
+              <small>4 atalhos inteligentes</small>
+            </div>
+            <div className="command-deck">
+              {commands.map((command, index) => (
+                <button key={command.prompt} type="button" className="command-card" onClick={() => void ask(command.prompt)}>
+                  <span className="command-index">0{index + 1}</span>
+                  <span className="command-content"><strong>{command.label}</strong><small>{command.detail}</small></span>
+                  <span className="command-go"><ArrowUpRight size={15} /></span>
+                </button>
+              ))}
+            </div>
+          </section>
         </main>
       ) : (
         <main className="imobfy-intelligence-conversation">
           <div className="conversation-header">
-            <div><span>CONVERSA ATIVA</span><strong>Estou com você, {firstName}.</strong></div>
-            <button type="button" onClick={() => setMessages([])} aria-label="Nova conversa"><X size={16} /></button>
+            <div className="conversation-title">
+              <span><i /> CONVERSA ATIVA</span>
+              <strong>Estou com você, {firstName}.</strong>
+            </div>
+            <button type="button" className="conversation-new" onClick={newConversation}><Plus size={14} /> Nova conversa</button>
           </div>
           <div className="conversation-feed">
             {messages.map((message, index) => (
@@ -146,7 +176,7 @@ export default function ImobfyAIChat({ user }: Props) {
                 <span>{message.role === "assistant" ? "IMOBFY AI" : "VOCÊ"}</span>
                 <p>{message.text}</p>
                 {message.role === "assistant" && (
-                  <button type="button" onClick={() => speak(message.text, index)} className="message-speak">
+                  <button type="button" onClick={() => speak(message.text, index)} className="message-speak" aria-label="Ouvir resposta">
                     {speaking === index ? <VolumeX size={13} /> : <Volume2 size={13} />}
                   </button>
                 )}

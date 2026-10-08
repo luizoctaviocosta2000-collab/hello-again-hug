@@ -1044,3 +1044,27 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
  .imobfy-intelligence-copy h1{font-size:38px!important}
  .imobfy-intelligence-signal{width:220px!important;height:220px!important}
 }
+
+
+/* IMOBFY IA — visible motion system */
+.imobfy-intelligence::after{content:"";position:absolute;inset:-35%;pointer-events:none;background:conic-gradient(from 0deg at 68% 44%,transparent 0deg,rgba(56,196,141,.055) 35deg,transparent 70deg,transparent 180deg,rgba(56,196,141,.035) 220deg,transparent 270deg);animation:ii-ambient-rotate 18s linear infinite;z-index:0}
+.imobfy-intelligence-stage>*{z-index:2}
+.signal-core-inner{position:relative;overflow:visible}
+.signal-core-inner::before{content:"";position:absolute;inset:-8px;border:1px dashed rgba(56,196,141,.38);border-radius:50%;animation:ii-inner-spin 7s linear infinite}
+.signal-core-inner::after{content:"";position:absolute;inset:15px;border-radius:50%;border:1px solid rgba(255,255,255,.1);box-shadow:0 0 18px rgba(56,196,141,.12);animation:ii-inner-breathe 2s ease-in-out infinite}
+.signal-scan{height:2px!important;filter:drop-shadow(0 0 6px rgba(56,196,141,.8));animation:ii-scan 2.4s ease-in-out infinite!important}
+.signal-ring.ring-a{animation:ii-ring-pulse 3s ease-in-out infinite!important}
+.signal-ring.ring-b{animation:ii-ring-pulse 3s 1s ease-in-out infinite!important}
+.signal-ring.ring-c{animation:ii-ring-pulse 3s 2s ease-in-out infinite!important}
+.command-card{will-change:transform}.command-card::after{content:"";position:absolute;left:-30%;top:0;width:18%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent);transform:skewX(-18deg);animation:ii-card-sheen 5s ease-in-out infinite;pointer-events:none}
+.command-card:nth-child(2)::after{animation-delay:1.1s}.command-card:nth-child(3)::after{animation-delay:2.2s}.command-card:nth-child(4)::after{animation-delay:3.3s}
+.imobfy-intelligence-copy p{animation:ii-text-breathe 4s ease-in-out infinite}
+.imobfy-intelligence-live i{animation:ii-live-blink 1.8s ease-in-out infinite}
+@keyframes ii-ambient-rotate{to{transform:rotate(360deg)}}
+@keyframes ii-inner-spin{to{transform:rotate(360deg)}}
+@keyframes ii-inner-breathe{50%{transform:scale(.78);opacity:.45}}
+@keyframes ii-ring-pulse{0%,100%{transform:scale(.98);opacity:.2}50%{transform:scale(1.035);opacity:.6}}
+@keyframes ii-card-sheen{0%,62%,100%{left:-30%;opacity:0}72%{opacity:1}88%{left:125%;opacity:0}}
+@keyframes ii-text-breathe{50%{opacity:.72}}
+@keyframes ii-live-blink{50%{opacity:.25;box-shadow:0 0 2px rgba(56,196,141,.3)}}
+@media(prefers-reduced-motion:reduce){.imobfy-intelligence::after,.signal-core-inner::before,.signal-core-inner::after,.signal-scan,.signal-ring,.command-card::after,.imobfy-intelligence-copy p,.imobfy-intelligence-live i{animation:none!important}}

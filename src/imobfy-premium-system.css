@@ -698,3 +698,57 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 .finance-money-summary span{font-size:8px;letter-spacing:.03em;color:var(--im-muted);font-weight:700}
 .finance-money-summary strong{font-size:17px;line-height:1;letter-spacing:-.035em;color:var(--im-ink)}
 @media(max-width:600px){.finance-money-summary{grid-template-columns:1fr 1fr}.finance-money-summary>div{padding:12px 10px}.finance-money-summary strong{font-size:14px}}
+
+
+/* IMOBFY — Próximas ações: interactive command center */
+.dashboard-attention{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:14px;
+  background:linear-gradient(145deg,var(--im-surface),hsl(42 20% 97%))!important;
+}
+.dashboard-attention::before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:var(--im-primary);
+  opacity:.9;
+}
+.dashboard-attention .card-title{margin-bottom:14px;padding-left:2px}
+.dashboard-attention-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dashboard-attention-item{
+  min-width:0;
+  min-height:88px;
+  display:grid;
+  grid-template-columns:34px 1fr 15px;
+  align-items:center;
+  gap:11px;
+  padding:14px;
+  border:1px solid var(--im-border);
+  border-radius:13px;
+  background:var(--im-surface);
+  color:inherit;
+  text-decoration:none;
+  box-shadow:0 4px 14px rgba(25,30,27,.025);
+  transition:transform var(--im-motion) var(--im-ease),border-color var(--im-motion) var(--im-ease),box-shadow var(--im-motion) var(--im-ease),background var(--im-motion) var(--im-ease);
+}
+.dashboard-attention-item:hover{
+  transform:translateY(-2px);
+  border-color:var(--im-primary-line);
+  box-shadow:var(--im-shadow-md);
+  background:var(--im-primary-soft);
+}
+.dashboard-attention-item>svg:first-child{
+  width:34px;height:34px;padding:8px;
+  border-radius:10px;
+  background:var(--im-primary-soft);
+  color:var(--im-primary);
+  border:1px solid var(--im-primary-line);
+}
+.dashboard-attention-item>div{min-width:0;display:flex;flex-direction:column;gap:5px}
+.dashboard-attention-item strong{font-size:10px;line-height:1.35;color:var(--im-ink);font-weight:780}
+.dashboard-attention-item span{font-size:8px;line-height:1.45;color:var(--im-muted)}
+.dashboard-attention-item>svg:last-child{color:var(--im-subtle);transition:transform var(--im-motion) var(--im-ease),color var(--im-motion) var(--im-ease)}
+.dashboard-attention-item:hover>svg:last-child{transform:translate(2px,-2px);color:var(--im-primary)}
+@media(max-width:900px){.dashboard-attention-grid{grid-template-columns:1fr}.dashboard-attention-item{min-height:76px}}
+@media(max-width:600px){.dashboard-attention{padding:17px}.dashboard-attention .card-title{gap:8px;flex-direction:column}.dashboard-attention-item{grid-template-columns:32px 1fr 15px;padding:12px}.dashboard-attention-item>svg:first-child{width:32px;height:32px}}

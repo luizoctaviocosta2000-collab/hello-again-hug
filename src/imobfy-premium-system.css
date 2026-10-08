@@ -985,3 +985,33 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 .imobfy-main-ai .imobfy-content-ai{flex:1;min-height:0;max-width:none;width:100%;padding:0!important;overflow:hidden}
 .imobfy-content-ai>.ai-page{height:100%;min-height:0;margin:0;gap:0}
 @media (max-width:900px){.imobfy-main-ai{height:100dvh}.imobfy-main-ai .imobfy-content-ai{height:100dvh}}
+
+
+/* IMOBFY INTELLIGENCE — signature motion layer */
+.imobfy-intelligence-top-left{position:relative;display:flex;align-items:center}
+.intelligence-session-trigger{display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.035);color:rgba(243,247,244,.58);padding:8px 10px;cursor:pointer;font-size:8px;letter-spacing:.07em;transition:.25s;backdrop-filter:blur(12px)}
+.intelligence-session-trigger:hover,.intelligence-session-trigger[aria-expanded=true]{border-color:rgba(56,196,141,.42);color:#f3f7f4;background:rgba(56,196,141,.08);box-shadow:0 0 26px rgba(56,196,141,.08)}
+.intelligence-session-menu{position:absolute;left:0;top:44px;width:205px;padding:9px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(10,16,13,.94);box-shadow:0 22px 60px rgba(0,0,0,.42);backdrop-filter:blur(20px);animation:ii-menu-in .2s ease both;z-index:20}
+.session-menu-kicker{display:block;padding:5px 8px 8px;color:rgba(56,196,141,.68);font-size:7px;letter-spacing:.16em;font-weight:800}
+.intelligence-session-menu button{width:100%;display:flex;align-items:center;justify-content:space-between;padding:9px 8px;border:0;border-radius:7px;background:transparent;color:rgba(243,247,244,.62);font-size:9px;text-align:left;cursor:pointer;transition:.18s}
+.intelligence-session-menu button:hover{background:rgba(56,196,141,.09);color:#fff;padding-left:11px}
+@keyframes ii-menu-in{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:none}}
+.imobfy-intelligence-noise{position:absolute;inset:0;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");mix-blend-mode:screen}
+.imobfy-intelligence-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.imobfy-intelligence-particles i{position:absolute;width:2px;height:2px;border-radius:50%;background:var(--ii-green);opacity:0;box-shadow:0 0 8px rgba(56,196,141,.7);animation:ii-particle 7s linear infinite}
+.imobfy-intelligence-particles i:nth-child(1){left:8%;top:34%;animation-delay:-1s}.imobfy-intelligence-particles i:nth-child(2){left:17%;top:72%;animation-delay:-4s}.imobfy-intelligence-particles i:nth-child(3){left:29%;top:18%;animation-delay:-2s}.imobfy-intelligence-particles i:nth-child(4){left:41%;top:66%;animation-delay:-5s}.imobfy-intelligence-particles i:nth-child(5){left:53%;top:27%;animation-delay:-3s}.imobfy-intelligence-particles i:nth-child(6){left:64%;top:78%;animation-delay:-6s}.imobfy-intelligence-particles i:nth-child(7){left:76%;top:19%;animation-delay:-2.5s}.imobfy-intelligence-particles i:nth-child(8){left:88%;top:56%;animation-delay:-4.5s}.imobfy-intelligence-particles i:nth-child(9){left:93%;top:28%;animation-delay:-1.5s}.imobfy-intelligence-particles i:nth-child(10){left:4%;top:84%;animation-delay:-5.5s}.imobfy-intelligence-particles i:nth-child(11){left:36%;top:42%;animation-delay:-3.5s}.imobfy-intelligence-particles i:nth-child(12){left:58%;top:48%;animation-delay:-6.5s}.imobfy-intelligence-particles i:nth-child(13){left:71%;top:63%;animation-delay:-.5s}.imobfy-intelligence-particles i:nth-child(14){left:83%;top:82%;animation-delay:-7s}
+@keyframes ii-particle{0%{opacity:0;transform:translate3d(0,18px,0)}18%{opacity:.6}72%{opacity:.2}100%{opacity:0;transform:translate3d(18px,-35px,0)}}
+.signal-label{position:absolute;font-size:6px;letter-spacing:.17em;color:rgba(243,247,244,.28);border:1px solid rgba(255,255,255,.07);padding:5px 7px;border-radius:5px;background:rgba(8,13,11,.45);backdrop-filter:blur(6px);animation:ii-float 4s ease-in-out infinite}
+.signal-label-a{left:2px;bottom:76px}.signal-label-b{right:-10px;bottom:104px;animation-delay:-2s}
+@keyframes ii-float{50%{transform:translateY(-5px);border-color:rgba(56,196,141,.14)}}
+.imobfy-intelligence-stage::after{content:"";position:absolute;left:8%;right:8%;bottom:102px;height:1px;background:linear-gradient(90deg,transparent,rgba(56,196,141,.18),transparent);pointer-events:none}
+.imobfy-intelligence-commands{animation:ii-rise .7s .15s ease both}.imobfy-intelligence-copy{animation:ii-copy-in .8s ease both}.imobfy-intelligence-signal{animation:ii-core-in 1s .1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ii-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes ii-copy-in{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
+@keyframes ii-core-in{from{opacity:0;transform:scale(.82) rotate(-4deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.signal-core::after{content:"";position:absolute;inset:-15px;border:1px solid rgba(56,196,141,.18);border-radius:50%;animation:ii-core-pulse 2.8s ease-out infinite}
+@keyframes ii-core-pulse{0%{transform:scale(.82);opacity:.7}100%{transform:scale(1.25);opacity:0}}
+.command-card{animation:ii-card-in .55s ease both}.command-card:nth-child(2){animation-delay:.06s}.command-card:nth-child(3){animation-delay:.12s}.command-card:nth-child(4){animation-delay:.18s}
+@keyframes ii-card-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(max-width:600px){.intelligence-session-trigger span{display:none}.intelligence-session-menu{left:-2px}.signal-label{display:none}}
+@media(prefers-reduced-motion:reduce){.imobfy-intelligence-particles i,.imobfy-intelligence-copy,.imobfy-intelligence-signal,.imobfy-intelligence-commands,.command-card,.signal-core::after{animation:none!important}}

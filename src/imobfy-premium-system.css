@@ -961,3 +961,106 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
   .dashboard-core .metric-card strong{transition:none}
   .dashboard-core .dashboard-list>div{transition:none}
 }
+
+/* IMOBFY IA — voice cockpit */
+.ai-input{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:5px;
+  border:1px solid var(--im-border);
+  border-radius:15px;
+  background:var(--im-surface);
+  box-shadow:var(--im-shadow-sm);
+  transition:border-color 220ms var(--im-ease),box-shadow 220ms var(--im-ease),transform 220ms var(--im-ease);
+}
+.ai-input:focus-within{
+  border-color:var(--im-primary-line);
+  box-shadow:0 0 0 4px hsl(158 55% 34% / .07),var(--im-shadow-md);
+}
+.ai-input.is-listening{
+  border-color:var(--im-primary);
+  box-shadow:0 0 0 4px hsl(158 55% 34% / .10),0 12px 32px hsl(158 35% 24% / .10);
+}
+.ai-mic-button{
+  position:relative;
+  flex:0 0 40px;
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--im-border);
+  border-radius:11px;
+  background:var(--im-surface-alt);
+  color:var(--im-ink);
+  cursor:pointer;
+  transition:transform 180ms var(--im-ease),background 180ms var(--im-ease),color 180ms var(--im-ease),border-color 180ms var(--im-ease);
+}
+.ai-mic-button:hover{transform:translateY(-1px);border-color:var(--im-primary-line);background:var(--im-primary-soft);color:var(--im-primary)}
+.ai-mic-button.listening{
+  color:#fff;
+  background:var(--im-primary);
+  border-color:var(--im-primary);
+  box-shadow:0 0 0 0 hsl(158 55% 34% / .25);
+  animation:imobfy-mic-pulse 1.45s ease-out infinite;
+}
+.ai-mic-button.listening::after{
+  content:"";
+  position:absolute;
+  inset:-5px;
+  border:1px solid hsl(158 55% 34% / .22);
+  border-radius:14px;
+  animation:imobfy-mic-ring 1.45s ease-out infinite;
+  pointer-events:none;
+}
+@keyframes imobfy-mic-pulse{
+  0%,100%{box-shadow:0 0 0 0 hsl(158 55% 34% / .24)}
+  50%{box-shadow:0 0 0 7px hsl(158 55% 34% / .08)}
+}
+@keyframes imobfy-mic-ring{
+  0%{opacity:.8;transform:scale(.92)}
+  80%,100%{opacity:0;transform:scale(1.2)}
+}
+.ai-input>input{
+  flex:1;
+  min-width:0;
+  height:40px;
+  margin:0;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:var(--im-ink);
+}
+.ai-input>input::placeholder{color:var(--im-subtle)}
+.ai-message-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.ai-voice-action{
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--im-border);
+  border-radius:8px;
+  background:transparent;
+  color:var(--im-muted);
+  cursor:pointer;
+  transition:transform 160ms var(--im-ease),color 160ms var(--im-ease),background 160ms var(--im-ease);
+}
+.ai-voice-action:hover{transform:translateY(-1px);color:var(--im-primary);background:var(--im-primary-soft)}
+@media(max-width:600px){
+  .ai-input{gap:5px;padding:4px}
+  .ai-mic-button{flex-basis:38px;width:38px;height:38px}
+  .ai-input .clean-button{padding:9px 11px}
+  .ai-input .clean-button svg{margin:0}
+  .ai-input .clean-button{font-size:0}
+  .ai-input .clean-button svg{width:17px;height:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  .ai-mic-button.listening,.ai-mic-button.listening::after{animation:none}
+}

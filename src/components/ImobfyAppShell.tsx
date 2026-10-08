@@ -55,13 +55,13 @@ export default function ImobfyAppShell({ user, children }: Props) {
       <nav><div className="nav-section">OPERAÇÃO</div><NavGroup items={primary} pathname={pathname} onNavigate={() => setOpen(false)} /><div className="nav-section">PERFORMANCE</div><NavGroup items={performance} pathname={pathname} onNavigate={() => setOpen(false)} /><div className="nav-section">SISTEMA</div><NavGroup items={settings} pathname={pathname} onNavigate={() => setOpen(false)} /></nav>
       <div className="sidebar-footer"><div className="profile-avatar">{initials || "L"}</div><div><strong>{user.name}</strong><span>{user.creci ? `CRECI ${user.creci}` : "Corretor / Captador"}</span></div><button title="Sair" aria-label="Sair" onClick={handleLogout}><LogOut size={15} /></button></div>
     </aside>
-    <main className="clean-main imobfy-main">
-      <header className="clean-header imobfy-header">
+    <main className={`clean-main imobfy-main ${pathname === "/ia" ? "imobfy-main-ai" : ""}`}>
+      {pathname !== "/ia" && <header className="clean-header imobfy-header">
         <button className="mobile-menu imobfy-mobile-menu" aria-label="Abrir menu" onClick={() => setOpen(true)}><Menu size={21} /></button>
         <div className="imobfy-header-copy"><span className="header-kicker">{kicker}</span><h1>{title}</h1><p>{description}</p></div>
         <div className="header-actions"><div className="header-avatar">{initials || "L"}</div></div>
-      </header>
-      <div className="content imobfy-content">{children}</div>
+      </header>}
+      <div className={`content imobfy-content ${pathname === "/ia" ? "imobfy-content-ai" : ""}`}>{children}</div>
     </main>
   </div>;
 }

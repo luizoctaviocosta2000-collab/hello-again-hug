@@ -20,7 +20,7 @@ const monthName = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateStr
 const stageLabels: Record<string, string> = { new: "Novo", qualified: "Qualificado", properties_sent: "Imóveis enviados", visit_scheduled: "Visita agendada", visit_done: "Visita realizada", proposal: "Proposta", negotiation: "Negociação", closed: "Fechado", lost: "Perdido" };
 
 export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
-  const [deals, setDeals] = useState<Deal[]>([]), [vgv, setVgv] = useState<Vgv[]>([]), [commissions, setCommissions] = useState<Commission[]>([]), [receipts, setReceipts] = useState<CommissionReceipt[]>([]), [captures, setCaptures] = useState<Capture[]>([]), [appointments, setAppointments] = useState<Appointment[]>([]), [clients, setClients] = useState(0), [loading, setLoading] = useState(true), [notice, setNotice] = useState(""), [period, setPeriod] = useState<Period>("current");
+  const [deals, setDeals] = useState<Deal[]>([]), [vgv, setVgv] = useState<Vgv[]>([]), [commissions, setCommissions] = useState<Commission[]>([]), [receipts, setReceipts] = useState<CommissionReceipt[]>([]), [captures, setCaptures] = useState<Capture[]>([]), [appointments, setAppointments] = useState<Appointment[]>([]), [clients, setClients] = useState(0), [vgvGoal, setVgvGoal] = useState(0), [loading, setLoading] = useState(true), [notice, setNotice] = useState(""), [period, setPeriod] = useState<Period>("current");
   async function load() {
     setLoading(true); setNotice("");
     const [d, v, c, r, cap, ap, cli] = await Promise.all([
@@ -31,9 +31,10 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
       supabase.from("captures").select("id,status"),
       supabase.from("appointments").select("id,starts_at,status,client_id").order("starts_at", { ascending: true }),
       supabase.from("clients").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("vgv_goal").eq("id", user.id).maybeSingle(),
     ]);
-    if (d.error || v.error || c.error || r.error || cap.error || ap.error || cli.error) setNotice("Alguns indicadores não puderam ser carregados. Tente novamente.");
-    setDeals((d.data || []) as Deal[]); setVgv((v.data || []) as Vgv[]); setCommissions((c.data || []) as Commission[]); setReceipts((r.data || []) as CommissionReceipt[]); setCaptures((cap.data || []) as Capture[]); setAppointments((ap.data || []) as Appointment[]); setClients(cli.count || 0); setLoading(false);
+    if (d.error || v.error || c.error || r.error || cap.error || ap.error || cli.error || profile.error) setNotice("Alguns indicadores não puderam ser carregados. Tente novamente.");
+    setDeals((d.data || []) as Deal[]); setVgv((v.data || []) as Vgv[]); setCommissions((c.data || []) as Commission[]); setReceipts((r.data || []) as CommissionReceipt[]); setCaptures((cap.data || []) as Capture[]); setAppointments((ap.data || []) as Appointment[]); setClients(cli.count || 0); setVgvGoal(Number(profile.data?.vgv_goal || 0)); setLoading(false);
   }
   useEffect(() => { void load(); }, [user.id]);
   const periodStart = useMemo(() => { const now = new Date(); if (period === "all") return null; const monthsBack = period === "current" ? 0 : period === "6m" ? 5 : 11; return new Date(now.getFullYear(), now.getMonth() - monthsBack, 1); }, [period]);
@@ -72,7 +73,10 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
     });
     return { next24h, stalled };
   }, [appointments, deals]);
-  const maxChart = Math.max(...chart.map((x) => x.value), 1); const periodLabel = period === "current" ? "Mês atual" : period === "6m" ? "Últimos 6 meses" : period === "12m" ? "Últimos 12 meses" : "Tempo todo";
+  const maxChart = Math.max(...chart.map((x) => x.value), 1);
+  const goalProgress = vgvGoal > 0 ? Math.min(100, (stats.realized / vgvGoal) * 100) : 0;
+  const goalGap = Math.max(0, vgvGoal - stats.realized);
+  const periodLabel = period === "current" ? "Mês atual" : period === "6m" ? "Últimos 6 meses" : period === "12m" ? "Últimos 12 meses" : "Tempo todo";
   if (loading) return <div className="empty" aria-live="polite"><Loader2 className="spin" /> Organizando sua operação…</div>;
   return <div className="negocios-core dashboard-core">
     <div className="module-actions"><div><span className="label">MEU DIA</span><h2>{getGreeting()}, {user.name.split(" ")[0]}.</h2><p className="muted">Aqui está o que merece sua atenção na operação.</p></div><a className="clean-button primary" href="/negocios"><BriefcaseBusiness size={16} /> Ver meus negócios</a></div>

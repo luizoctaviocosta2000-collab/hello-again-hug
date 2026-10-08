@@ -34,10 +34,18 @@ export default function ImobfyAppShell({ user, children }: Props) {
   const [open, setOpen] = useState(false);
   const pathname = location.pathname;
   const initials = user.name.split(" ").filter(Boolean).slice(0, 2).map((x) => x[0]).join("").toUpperCase();
-  const pageTitles: Record<string, [string, string]> = {
-    "/": ["VISÃO GERAL", "Dashboard"], "/imoveis": ["OPERAÇÃO", "Imóveis"], "/clientes": ["RELACIONAMENTO", "Clientes"], "/negocios": ["COMERCIAL", "Negócios"], "/agenda": ["ROTINA", "Agenda"], "/comissoes": ["FINANCEIRO", "Comissões"], "/vgv": ["PERFORMANCE", "Meu VGV"], "/ia": ["INTELIGÊNCIA", "Imobfy IA"], "/configuracoes": ["SISTEMA", "Configurações"],
+  const pageTitles: Record<string, [string, string, string]> = {
+    "/": ["VISÃO GERAL", "Dashboard", "Tudo que merece sua atenção, em um só lugar."],
+    "/imoveis": ["OPERAÇÃO", "Imóveis", "Seu estoque, captações e oportunidades de venda."],
+    "/clientes": ["RELACIONAMENTO", "Clientes", "Quem está comprando, o que procura e qual é o próximo passo."],
+    "/negocios": ["COMERCIAL", "Negócios", "Acompanhe cada oportunidade até o fechamento."],
+    "/agenda": ["ROTINA", "Agenda", "Visitas, follow-ups e compromissos que movem sua operação."],
+    "/comissoes": ["FINANCEIRO", "Comissões", "Quanto você gerou, quanto recebeu e quanto ainda falta receber."],
+    "/vgv": ["PERFORMANCE", "Meu VGV", "Sua produção imobiliária organizada por período."],
+    "/ia": ["INTELIGÊNCIA", "Imobfy IA", "Transforme os dados da sua operação em próximas ações."],
+    "/configuracoes": ["SISTEMA", "Configurações", "Seu perfil, metas e regras de comissionamento."],
   };
-  const [kicker, title] = pageTitles[pathname] || ["IMOBFY", "Gestão imobiliária"];
+  const [kicker, title, description] = pageTitles[pathname] || ["IMOBFY", "Gestão imobiliária", "Sua operação imobiliária, organizada em um só lugar."];
   async function handleLogout() { await signOut(); setOpen(false); await navigate({ to: "/login" }); }
 
   return <div className="imobfy-app-shell">
@@ -50,7 +58,7 @@ export default function ImobfyAppShell({ user, children }: Props) {
     <main className="clean-main imobfy-main">
       <header className="clean-header imobfy-header">
         <button className="mobile-menu imobfy-mobile-menu" aria-label="Abrir menu" onClick={() => setOpen(true)}><Menu size={21} /></button>
-        <div className="imobfy-header-copy"><span className="header-kicker">{kicker}</span><h1>{title}</h1><p>Seu negócio imobiliário, organizado em um só lugar.</p></div>
+        <div className="imobfy-header-copy"><span className="header-kicker">{kicker}</span><h1>{title}</h1><p>{description}</p></div>
         <div className="header-actions"><div className="header-avatar">{initials || "L"}</div></div>
       </header>
       <div className="content imobfy-content">{children}</div>

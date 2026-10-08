@@ -57,7 +57,7 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
   const chart = useMemo(() => {
     const byMonth = new Map<string, number>(); periodVgv.forEach((x) => byMonth.set(x.reference_month.slice(0, 7), (byMonth.get(x.reference_month.slice(0, 7)) || 0) + Number(x.vgv || 0)));
     const now = new Date(); const count = period === "current" ? 1 : period === "6m" ? 6 : period === "12m" ? 12 : Math.min(12, Math.max(1, new Set(vgv.map((x) => x.reference_month.slice(0, 7))).size));
-    const start = period === "all" && vgv.length ? new Date(`${vgv[0].reference_month.slice(0, 7)}-01T12:00:00`) : new Date(now.getFullYear(), now.getMonth() - count + 1, 1);
+    const firstReferenceMonth = vgv[0]?.reference_month?.slice(0, 7); const start = period === "all" && firstReferenceMonth ? new Date(`${firstReferenceMonth}-01T12:00:00`) : new Date(now.getFullYear(), now.getMonth() - count + 1, 1);
     return Array.from({ length: count }, (_, i) => { const d = new Date(start.getFullYear(), start.getMonth() + i, 1); const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; return { label: monthName(`${key}-01`), value: byMonth.get(key) || 0 }; });
   }, [periodVgv, period, vgv]);
   const attention = useMemo(() => {

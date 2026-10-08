@@ -3,6 +3,11 @@ import { ArrowUpRight, BriefcaseBusiness, CalendarDays, Home, Loader2, Target, U
 import { supabase } from "../lib/supabase";
 import { type ImobfyUser } from "../lib/imobfy-session";
 
+const getGreeting = (date = new Date()) => {
+  const hour = date.getHours();
+  return hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+};
+
 type Deal = { id: string; status: string; property_value: number; created_at: string };
 type Vgv = { id: string; deal_id: string | null; reference_month: string; vgv: number };
 type Commission = { id: string; user_amount: number; status: string; created_at?: string; reference_month?: string | null };
@@ -25,7 +30,7 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
       supabase.from("captures").select("id,status"),
       supabase.from("clients").select("id", { count: "exact", head: true }),
     ]);
-    if (d.error || v.error || c.error || r.error || cap.error || cli.error) setNotice("Alguns indicadores não puderam ser carregados.");
+    if (d.error || v.error || c.error || r.error || cap.error || cli.error) setNotice("Alguns indicadores não puderam ser carregados. Tente novamente.");
     setDeals((d.data || []) as Deal[]); setVgv((v.data || []) as Vgv[]); setCommissions((c.data || []) as Commission[]); setReceipts((r.data || []) as CommissionReceipt[]); setCaptures((cap.data || []) as Capture[]); setClients(cli.count || 0); setLoading(false);
   }
   useEffect(() => { void load(); }, [user.id]);
@@ -53,9 +58,9 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
     return Array.from({ length: count }, (_, i) => { const d = new Date(start.getFullYear(), start.getMonth() + i, 1); const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; return { label: monthName(`${key}-01`), value: byMonth.get(key) || 0 }; });
   }, [periodVgv, period, vgv]);
   const maxChart = Math.max(...chart.map((x) => x.value), 1); const periodLabel = period === "current" ? "Mês atual" : period === "6m" ? "Últimos 6 meses" : period === "12m" ? "Últimos 12 meses" : "Tempo todo";
-  if (loading) return <div className="empty"><Loader2 className="spin" /> Carregando visão geral...</div>;
+  if (loading) return <div className="empty" aria-live="polite"><Loader2 className="spin" /> Organizando sua operação…</div>;
   return <div className="negocios-core dashboard-core">
-    <div className="module-actions"><div><span className="label">VISÃO EXECUTIVA</span><h2>Bom dia, {user.name.split(" ")[0]}.</h2><p className="muted">Aqui está o que merece sua atenção na operação.</p></div><a className="clean-button primary" href="/negocios"><BriefcaseBusiness size={16} /> Abrir negócios</a></div>
+    <div className="module-actions"><div><span className="label">MEU DIA</span><h2>{getGreeting()}, {user.name.split(" ")[0]}.</h2><p className="muted">Aqui está o que merece sua atenção na operação.</p></div><a className="clean-button primary" href="/negocios"><BriefcaseBusiness size={16} /> Ver meus negócios</a></div>
     {notice && <div className="notice"><strong>Imobfy:</strong> {notice}</div>}
     <div className="dashboard-periods" role="tablist" aria-label="Período do dashboard">{([["current", "Mês atual"], ["6m", "Últimos 6 meses"], ["12m", "Últimos 12 meses"], ["all", "Tempo todo"]] as [Period, string][]).map(([key, label]) => <button key={key} className={`clean-button ${period === key ? "primary" : "secondary"}`} onClick={() => setPeriod(key)}>{label}</button>)}</div>
     <section className="metrics-grid"><article className="metric-card"><span>VGV realizado</span><strong>{money(stats.realized)}</strong><small className="positive">{periodLabel}</small></article><article className="metric-card"><span>VGV em negociação</span><strong>{money(stats.pipelineValue)}</strong><small className="neutral">{stats.pipeline.length} negócios no período</small></article><article className="metric-card"><span>Comissões recebidas</span><strong>{money(stats.received)}</strong><small className="positive">Dinheiro já recebido</small></article><article className="metric-card"><span>Comissões a receber</span><strong>{money(stats.receivable)}</strong><small className="neutral">Saldo ainda não recebido</small></article></section>

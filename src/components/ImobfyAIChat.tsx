@@ -114,7 +114,16 @@ export default function ImobfyAIChat({ user }: Props) {
   return (
     <div className={`imobfy-intelligence ${messages.length ? "has-conversation" : ""}`}>
       <header className="imobfy-intelligence-top">
-        <div className="imobfy-intelligence-top-left">\n          <button type="button" className="intelligence-session-trigger" onClick={() => setShowSessions((value) => !value)} aria-expanded={showSessions}>\n            <Command size={13} /> <span>Navegar</span> <ArrowUpRight size={11} />\n          </button>\n          {showSessions && <div className="intelligence-session-menu">\n            <span className="session-menu-kicker">IR PARA</span>\n            {sessions.map((session) => <button key={session.to} type="button" onClick={() => { setShowSessions(false); void navigate({ to: session.to }); }}>{session.label}<ArrowUpRight size={12} /></button>)}\n          </div>}\n        </div>\n        <div className="imobfy-intelligence-brand">
+        <div className="imobfy-intelligence-top-left">
+          <button type="button" className={`intelligence-menu-trigger ${showSessions ? "is-open" : ""}`} onClick={() => setShowSessions((value) => !value)} aria-label="Abrir navegação" aria-expanded={showSessions}>
+            <span /><span /><span />
+          </button>
+          {showSessions && <div className="intelligence-session-menu">
+            <span className="session-menu-kicker">IR PARA</span>
+            {sessions.map((session) => <button key={session.to} type="button" onClick={() => { setShowSessions(false); void navigate({ to: session.to }); }}>{session.label}<ArrowUpRight size={12} /></button>)}
+          </div>}
+        </div>
+        <div className="imobfy-intelligence-brand">
           <div className="imobfy-intelligence-mark"><Sparkles size={14} /></div>
           <div><span>IMOBFY</span><strong>INTELLIGENCE</strong></div>
         </div>
@@ -130,7 +139,9 @@ export default function ImobfyAIChat({ user }: Props) {
 
       {!messages.length ? (
         <main className="imobfy-intelligence-stage">
-          <div className="imobfy-intelligence-grid" aria-hidden="true" />\n          <div className="imobfy-intelligence-noise" aria-hidden="true" />\n          <div className="imobfy-intelligence-particles" aria-hidden="true">{Array.from({ length: 14 }, (_, index) => <i key={index} />)}</div>
+          <div className="imobfy-intelligence-grid" aria-hidden="true" />
+          <div className="imobfy-intelligence-noise" aria-hidden="true" />
+          <div className="imobfy-intelligence-particles" aria-hidden="true">{Array.from({ length: 14 }, (_, index) => <i key={index} />)}</div>
           <div className="imobfy-intelligence-copy">
             <span className="imobfy-intelligence-kicker"><Command size={11} /> CENTRAL DE INTELIGÊNCIA COMERCIAL</span>
             <h1>Seu negócio.<br /><em>Uma inteligência a mais.</em></h1>
@@ -148,7 +159,9 @@ export default function ImobfyAIChat({ user }: Props) {
             </div>
             <span className="signal-ring ring-a" /><span className="signal-ring ring-b" /><span className="signal-ring ring-c" />
             <span className="signal-scan" />
-            <div className="signal-label signal-label-a">LIVE DATA</div>\n            <div className="signal-label signal-label-b">CRM / REAL TIME</div>\n            <div className={`signal-core ${listening ? "is-listening" : ""}`}>
+            <div className="signal-label signal-label-a">LIVE DATA</div>
+            <div className="signal-label signal-label-b">CRM / REAL TIME</div>
+            <div className={`signal-core ${listening ? "is-listening" : ""}`}>
               <div className="signal-core-inner"><BrainCircuit size={29} /></div>
             </div>
             <span className="signal-orbit orbit-a" /><span className="signal-orbit orbit-b" />

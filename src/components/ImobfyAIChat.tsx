@@ -27,6 +27,7 @@ export default function ImobfyAIChat({ user }: Props) {
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
+  const [showChat, setShowChat] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   async function ask(text: string) {
@@ -115,89 +116,36 @@ export default function ImobfyAIChat({ user }: Props) {
       if (prompt) void ask(prompt);
     };
     window.addEventListener("imobfy-ai-open", handleOpen);
-    return () => window.removeEventListener("imobfy-ai-open", handleOpen);
-  });
-
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    void ask(question);
-  }
-
-  return (
-    <div className="ai-page">
-      <section className="ai-hero">
-        <div>
-          <span className="label">IMOBFY INTELLIGENCE</span>
-          <h1>Seu assistente comercial.</h1>
-          <p>Converse com uma IA que consulta clientes, imóveis, negócios, agenda, propostas, visitas, vendas, comissões e VGV da sua operação.</p>
-          <small className="muted">Conectado à conta de {user.name}. Histórico da conversa salvo com segurança.</small>
+    return (
+    <div className="imobfy-ai-shell">
+      <section className="imobfy-ai-hero">
+        <div className="imobfy-ai-hero-copy">
+          <div className="imobfy-ai-status"><span className="imobfy-ai-pulse" /> IMOBFY INTELLIGENCE <span>AO VIVO</span></div>
+          <h1>Seu copiloto<br /><em>comercial.</em></h1>
+          <p>Fale com o IMOBFY. Ele lê sua operação, encontra oportunidades e transforma comandos em próximas ações.</p>
+          <div className="imobfy-ai-hero-actions">
+            <button type="button" className="imobfy-ai-talk-button" onClick={() => { setShowChat(true); setTimeout(toggleVoice, 80); }}><span className="imobfy-ai-talk-icon"><Mic size={19} /></span><span><strong>Falar com o IMOBFY</strong><small>Toque e diga o que precisa</small></span></button>
+            <button type="button" className="imobfy-ai-text-button" onClick={() => setShowChat(true)}><Sparkles size={15} /> Abrir assistente</button>
+          </div>
         </div>
-        <div className="ai-orb"><Sparkles size={25} /></div>
+        <div className="imobfy-ai-orbit" aria-hidden="true"><div className="imobfy-ai-orbit-ring ring-one" /><div className="imobfy-ai-orbit-ring ring-two" /><div className="imobfy-ai-core"><Sparkles size={30} /><span>AI</span></div><div className="imobfy-ai-orbit-dot dot-one" /><div className="imobfy-ai-orbit-dot dot-two" /></div>
       </section>
-
-      <section className="clean-card ai-chat-card ai-real-chat">
-        <div className="card-title">
-          <div>
-            <span className="label">ASSISTENTE</span>
-            <h3>Pergunte ao Imobfy</h3>
-          </div>
-          <span className="ai-live"><Bot size={13} /> IA conectada</span>
+      <section className="imobfy-ai-command">
+        <div className="imobfy-ai-command-head"><div><span className="label">CENTRAL DE COMANDO</span><h2>O IMOBFY está olhando sua operação.</h2></div><span className="imobfy-ai-connected"><span /> Dados sincronizados</span></div>
+        <div className="imobfy-ai-command-grid">
+          <div className="imobfy-ai-command-card"><span className="imobfy-ai-command-number">01</span><div><strong>Entenda</strong><small>Pergunte sobre clientes, VGV, negócios e comissões.</small></div><button type="button" onClick={() => { setQuestion("Faça um diagnóstico da minha operação."); setShowChat(true); }}>Explorar <Send size={12} /></button></div>
+          <div className="imobfy-ai-command-card"><span className="imobfy-ai-command-number">02</span><div><strong>Decida</strong><small>Descubra o que merece sua atenção agora.</small></div><button type="button" onClick={() => { setQuestion("O que merece minha atenção hoje?"); setShowChat(true); }}>Analisar <Send size={12} /></button></div>
+          <div className="imobfy-ai-command-card"><span className="imobfy-ai-command-number">03</span><div><strong>Execute</strong><small>Use sua voz para registrar e organizar tarefas.</small></div><button type="button" onClick={() => { setShowChat(true); setTimeout(toggleVoice, 80); }}>Comandar <Mic size={12} /></button></div>
         </div>
-
-        {!messages.length && (
-          <div className="ai-empty">
-            <Bot size={26} />
-            <strong>O que você quer descobrir?</strong>
-            <p>Faça uma pergunta sobre sua operação. A IA usa os dados protegidos da sua conta.</p>
-            <div className="ai-suggestions">
-              {suggestions.map((item) => (
-                <button key={item} type="button" onClick={() => void ask(item)}>{item}</button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {messages.length > 0 && (
-          <div className="ai-messages">
-            {messages.map((message, index) => (
-              <div className={`ai-message ${message.role}`} key={`${message.role}-${index}`}>
-                <div className="ai-message-meta">
-                  <span>{message.role === "assistant" ? "IMOBFY AI" : "VOCÊ"}</span>
-                  {message.role === "assistant" && (
-                    <button type="button" className="ai-voice-action" onClick={() => speak(message.text, index)} aria-label={speaking === index ? "Parar leitura" : "Ouvir resposta"}>
-                      {speaking === index ? <VolumeX size={13} /> : <Volume2 size={13} />}
-                    </button>
-                  )}
-                </div>
-                <p>{message.text}</p>
-              </div>
-            ))}
-            {loading && (
-              <div className="ai-message assistant">
-                <span>IMOBFY AI</span>
-                <p><Loader2 className="spin" size={16} /> Analisando seus dados...</p>
-              </div>
-            )}
-          </div>
-        )}
-
+      </section>
+      {showChat && <section className="imobfy-ai-workspace clean-card">
+        <div className="imobfy-ai-workspace-head"><div><span className="label">ASSISTENTE ATIVO</span><h2>O que posso fazer por você, {user.name.split(" ")[0]}?</h2></div><button type="button" className="imobfy-ai-close" onClick={() => setShowChat(false)}>Fechar</button></div>
+        {!messages.length && <div className="ai-empty"><div className="imobfy-ai-suggestion-title"><Sparkles size={15} /> Sugestões para começar</div><div className="ai-suggestions">{suggestions.map((item) => <button key={item} type="button" onClick={() => void ask(item)}>{item}</button>)}</div></div>}
+        {messages.length > 0 && <div className="ai-messages">{messages.map((message,index) => <div className={`ai-message ${message.role}`} key={`${message.role}-${index}`}><div className="ai-message-meta"><span>{message.role === "assistant" ? "IMOBFY AI" : "VOCÊ"}</span>{message.role === "assistant" && <button type="button" className="ai-voice-action" onClick={() => speak(message.text,index)}>{speaking === index ? <VolumeX size={13}/> : <Volume2 size={13}/>}</button>}</div><p>{message.text}</p></div>)}</div>}
+        {loading && <div className="imobfy-ai-thinking"><span /><span /><span /> Analisando sua operação...</div>}
         {error && <div className="notice"><strong>IA:</strong> {error}</div>}
-
-        <form className={`ai-input ${listening ? "is-listening" : ""}`} onSubmit={submit}>
-          <button className={`ai-mic-button ${listening ? "listening" : ""}`} type="button" onClick={toggleVoice} disabled={loading} aria-label={listening ? "Parar gravação" : "Falar com o Imobfy"} title={listening ? "Parar de ouvir" : "Falar com o Imobfy"}>
-            {listening ? <MicOff size={17} /> : <Mic size={17} />}
-          </button>
-          <input
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder={listening ? "Estou ouvindo..." : "Digite ou fale com o Imobfy..."}
-            disabled={loading}
-          />
-          <button className="clean-button primary" type="submit" disabled={loading || !question.trim()}>
-            <Send size={16} /> Perguntar
-          </button>
-        </form>
-      </section>
+        <form className={`ai-input ${listening ? "is-listening" : ""}`} onSubmit={submit}><button className={`ai-mic-button ${listening ? "listening" : ""}`} type="button" onClick={toggleVoice} disabled={loading}>{listening ? <MicOff size={17}/> : <Mic size={17}/>}</button><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={listening ? "Estou ouvindo..." : "Digite ou fale com o Imobfy..."} disabled={loading}/><button className="clean-button primary" type="submit" disabled={loading || !question.trim()}><Send size={16}/> Perguntar</button></form>
+      </section>}
+      <div className="imobfy-ai-disclaimer"><Sparkles size={12}/> Inteligência aplicada aos dados da sua própria operação. Você continua no controle.</div>
     </div>
-  );
-}
+  );}

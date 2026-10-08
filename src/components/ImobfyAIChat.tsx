@@ -146,11 +146,10 @@ export default function ImobfyAIChat({ user }: Props) {
             <span className="imobfy-intelligence-kicker"><Command size={11} /> CENTRAL DE INTELIGÊNCIA COMERCIAL</span>
             <h1>Seu negócio.<br /><em>Uma inteligência a mais.</em></h1>
             <p>Converse com seus dados, descubra prioridades e transforme informação em próxima ação.</p>
-            <button type="button" className={`imobfy-intelligence-listen ${listening ? "is-listening" : ""}`} onClick={toggleVoice}>
-              <span className="listen-icon">{listening ? <MicOff size={19} /> : <Mic size={19} />}</span>
-              <span className="listen-copy"><strong>{listening ? "Estou ouvindo..." : "Falar com o IMOBFY"}</strong><small>{listening ? "Diga o que precisa" : "Comande sua operação por voz"}</small></span>
-              <ArrowUpRight size={15} className="listen-arrow" />
-            </button>
+            <div className={`imobfy-intelligence-listen ${listening ? "is-listening" : ""}`}>
+              <span className="listen-icon"><Mic size={17} /></span>
+              <span className="listen-copy"><strong>{listening ? "Estou ouvindo..." : "Comando de voz"}</strong><small>{listening ? "Fale com o núcleo central" : "Clique no núcleo para falar com a IA"}</small></span>
+            </div>
           </div>
 
           <div className="imobfy-intelligence-signal" aria-hidden="true">

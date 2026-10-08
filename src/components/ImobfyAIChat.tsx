@@ -161,9 +161,9 @@ export default function ImobfyAIChat({ user }: Props) {
             <span className="signal-scan" />
             <div className="signal-label signal-label-a">LIVE DATA</div>
             <div className="signal-label signal-label-b">CRM / REAL TIME</div>
-            <div className={`signal-core ${listening ? "is-listening" : ""}`}>
+            <button type="button" className={`signal-core ${listening ? "is-listening" : ""}`} onClick={toggleVoice} aria-label={listening ? "Parar comando de voz" : "Ativar comando de voz"}>
               <div className="signal-core-inner"><BrainCircuit size={29} /></div>
-            </div>
+            </button>
             <span className="signal-orbit orbit-a" /><span className="signal-orbit orbit-b" />
           </div>
 

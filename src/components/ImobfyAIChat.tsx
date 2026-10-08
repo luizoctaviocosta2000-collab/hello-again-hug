@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { ImobfyUser } from "../lib/imobfy-session";
 import "../imobfy-fixes.css";
@@ -11,29 +11,19 @@ type SpeechRecognitionResultEvent = Event & {
   results: { [index: number]: { [index: number]: { transcript: string } } };
 };
 type SpeechRecognitionLike = {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  start: () => void;
-  stop: () => void;
+  lang: string; interimResults: boolean; continuous: boolean;
+  start: () => void; stop: () => void;
   onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
+  onend: (() => void) | null; onerror: (() => void) | null;
 };
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+declare global { interface Window { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor; } }
 
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionCtor;
-    webkitSpeechRecognition?: SpeechRecognitionCtor;
-  }
-}
-
-const suggestions = [
-  "Quais clientes devo contatar hoje?",
+const commands = [
+  "O que merece minha atenção hoje?",
   "Quais negócios estão parados?",
-  "Qual é meu maior VGV no pipeline?",
-  "Quanto tenho para receber de comissão?",
+  "Quanto tenho para receber?",
+  "Quais clientes devo contatar?",
 ];
 
 export default function ImobfyAIChat({ user }: Props) {
@@ -44,370 +34,138 @@ export default function ImobfyAIChat({ user }: Props) {
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
-  const [showChat, setShowChat] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   async function ask(text: string) {
     const value = text.trim();
     if (!value || loading) return;
-
-    setQuestion("");
-    setError("");
+    setQuestion(""); setError(""); setLoading(true);
     setMessages((current) => [...current, { role: "user", text: value }]);
-    setLoading(true);
-
     try {
-      const { data, error: functionError } =
-        await supabase.functions.invoke<AIResponse>("imobfy-ai", {
-          body: { question: value, conversation_id: conversationId },
-        });
-
+      const { data, error: functionError } = await supabase.functions.invoke<AIResponse>("imobfy-ai", {
+        body: { question: value, conversation_id: conversationId },
+      });
       if (functionError) throw functionError;
-      if (!data?.answer) {
-        throw new Error(data?.error || "A IA não retornou uma resposta.");
-      }
-
+      if (!data?.answer) throw new Error(data?.error || "A IA não retornou uma resposta.");
       if (data.conversation_id) setConversationId(data.conversation_id);
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", text: data.answer! },
-      ]);
+      setMessages((current) => [...current, { role: "assistant", text: data.answer! }]);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Não foi possível falar com a IA.",
-      );
-    } finally {
-      setLoading(false);
-    }
+      setError(e instanceof Error ? e.message : "Não foi possível falar com a IA.");
+    } finally { setLoading(false); }
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    void ask(question);
+    event.preventDefault(); void ask(question);
   }
 
   function toggleVoice() {
-    const Recognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!Recognition) {
-      setError(
-        "Seu navegador não oferece reconhecimento de voz. Tente usar o Chrome ou Edge.",
-      );
-      return;
-    }
-
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) { setError("Seu navegador não oferece reconhecimento de voz. Use Chrome ou Edge."); return; }
+    if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
     setError("");
     const recognition = new Recognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.onresult = (event) => {
-      const transcript =
-        event.results[0]?.[0]?.transcript?.trim() || "";
-      if (transcript) void ask(transcript);
-    };
+    recognition.lang = "pt-BR"; recognition.interimResults = false; recognition.continuous = false;
+    recognition.onresult = (event) => { const transcript = event.results[0]?.[0]?.transcript?.trim() || ""; if (transcript) void ask(transcript); };
     recognition.onend = () => setListening(false);
-    recognition.onerror = () => {
-      setListening(false);
-      setError(
-        "Não consegui ouvir sua voz. Verifique a permissão do microfone e tente novamente.",
-      );
-    };
-    recognitionRef.current = recognition;
-    setListening(true);
-    recognition.start();
+    recognition.onerror = () => { setListening(false); setError("Não consegui ouvir sua voz. Verifique a permissão do microfone."); };
+    recognitionRef.current = recognition; setListening(true); recognition.start();
   }
 
   function speak(text: string, index: number) {
-    if (!("speechSynthesis" in window)) {
-      setError("Seu navegador não oferece leitura de voz.");
-      return;
-    }
-
-    if (speaking === index) {
-      window.speechSynthesis.cancel();
-      setSpeaking(null);
-      return;
-    }
-
+    if (!("speechSynthesis" in window)) { setError("Seu navegador não oferece leitura de voz."); return; }
+    if (speaking === index) { window.speechSynthesis.cancel(); setSpeaking(null); return; }
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "pt-BR";
-    utterance.rate = 1.02;
-    utterance.onend = () => setSpeaking(null);
-    setSpeaking(index);
-    window.speechSynthesis.speak(utterance);
+    utterance.lang = "pt-BR"; utterance.rate = 1.02; utterance.onend = () => setSpeaking(null);
+    setSpeaking(index); window.speechSynthesis.speak(utterance);
   }
 
-  useEffect(() => {
-    return () => {
-      recognitionRef.current?.stop();
-      window.speechSynthesis?.cancel();
-    };
-  }, []);
+  useEffect(() => () => { recognitionRef.current?.stop(); window.speechSynthesis?.cancel(); }, []);
 
   useEffect(() => {
     const handleOpen = (event: Event) => {
       const prompt = (event as CustomEvent<{ prompt?: string }>).detail?.prompt;
-      if (prompt) {
-        setShowChat(true);
-        void ask(prompt);
-      }
+      if (prompt) void ask(prompt);
     };
-
     window.addEventListener("imobfy-ai-open", handleOpen);
     return () => window.removeEventListener("imobfy-ai-open", handleOpen);
   }, [conversationId, loading]);
 
+  const firstName = user.name.split(" ")[0];
+
   return (
-    <div className="imobfy-ai-shell">
-      <section className="imobfy-ai-hero">
-        <div className="imobfy-ai-hero-copy">
-          <div className="imobfy-ai-status">
-            <span className="imobfy-ai-pulse" /> IMOBFY INTELLIGENCE{" "}
-            <span>AO VIVO</span>
-          </div>
-          <h1>
-            Seu copiloto
-            <br />
-            <em>comercial.</em>
-          </h1>
-          <p>
-            Fale com o IMOBFY. Ele lê sua operação, encontra oportunidades e
-            transforma comandos em próximas ações.
-          </p>
-          <div className="imobfy-ai-hero-actions">
-            <button
-              type="button"
-              className="imobfy-ai-talk-button"
-              onClick={() => {
-                setShowChat(true);
-                setTimeout(toggleVoice, 80);
-              }}
-            >
-              <span className="imobfy-ai-talk-icon">
-                <Mic size={19} />
-              </span>
-              <span>
-                <strong>Falar com o IMOBFY</strong>
-                <small>Toque e diga o que precisa</small>
-              </span>
-            </button>
-            <button
-              type="button"
-              className="imobfy-ai-text-button"
-              onClick={() => setShowChat(true)}
-            >
-              <Sparkles size={15} /> Abrir assistente
-            </button>
-          </div>
+    <div className={`imobfy-intelligence ${messages.length ? "has-conversation" : ""}`}>
+      <div className="imobfy-intelligence-top">
+        <div className="imobfy-intelligence-brand">
+          <div className="imobfy-intelligence-mark"><Sparkles size={14} /></div>
+          <div><span>IMOBFY</span><strong>INTELLIGENCE</strong></div>
         </div>
-        <div className="imobfy-ai-orbit" aria-hidden="true">
-          <div className="imobfy-ai-orbit-ring ring-one" />
-          <div className="imobfy-ai-orbit-ring ring-two" />
-          <div className="imobfy-ai-core">
-            <Sparkles size={30} />
-            <span>AI</span>
-          </div>
-          <div className="imobfy-ai-orbit-dot dot-one" />
-          <div className="imobfy-ai-orbit-dot dot-two" />
-        </div>
-      </section>
+        <div className="imobfy-intelligence-live"><i /> SISTEMA ONLINE</div>
+      </div>
 
-      <section className="imobfy-ai-command">
-        <div className="imobfy-ai-command-head">
-          <div>
-            <span className="label">CENTRAL DE COMANDO</span>
-            <h2>O IMOBFY está olhando sua operação.</h2>
-          </div>
-          <span className="imobfy-ai-connected">
-            <span /> Dados sincronizados
-          </span>
-        </div>
-        <div className="imobfy-ai-command-grid">
-          <div className="imobfy-ai-command-card">
-            <span className="imobfy-ai-command-number">01</span>
-            <div>
-              <strong>Entenda</strong>
-              <small>
-                Pergunte sobre clientes, VGV, negócios e comissões.
-              </small>
+      {!messages.length ? (
+        <main className="imobfy-intelligence-stage">
+          <div className="imobfy-intelligence-grid" aria-hidden="true" />
+          <div className="imobfy-intelligence-signal">
+            <span className="signal-ring ring-a" /><span className="signal-ring ring-b" /><span className="signal-ring ring-c" />
+            <div className={`signal-core ${listening ? "is-listening" : ""}`}>
+              <div className="signal-core-inner"><Sparkles size={28} /></div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setQuestion("Faça um diagnóstico da minha operação.");
-                setShowChat(true);
-              }}
-            >
-              Explorar <Send size={12} />
+            <span className="signal-orbit orbit-a" /><span className="signal-orbit orbit-b" />
+          </div>
+
+          <div className="imobfy-intelligence-copy">
+            <span className="imobfy-intelligence-kicker">CENTRAL DE INTELIGÊNCIA COMERCIAL</span>
+            <h1>Fale. <em>Eu cuido do resto.</em></h1>
+            <p>Seu pipeline, seus clientes, seu VGV e suas comissões em uma conversa.</p>
+            <button type="button" className={`imobfy-intelligence-listen ${listening ? "is-listening" : ""}`} onClick={toggleVoice}>
+              {listening ? <MicOff size={19} /> : <Mic size={19} />}
+              <span>{listening ? "Estou ouvindo..." : "Falar com o IMOBFY"}</span>
+              <small>{listening ? "Diga o que precisa" : "Toque para comandar por voz"}</small>
             </button>
           </div>
 
-          <div className="imobfy-ai-command-card">
-            <span className="imobfy-ai-command-number">02</span>
-            <div>
-              <strong>Decida</strong>
-              <small>Descubra o que merece sua atenção agora.</small>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setQuestion("O que merece minha atenção hoje?");
-                setShowChat(true);
-              }}
-            >
-              Analisar <Send size={12} />
-            </button>
+          <div className="imobfy-intelligence-commands">
+            <span>OU COMANDE POR TEXTO</span>
+            <div>{commands.map((command) => (
+              <button key={command} type="button" onClick={() => void ask(command)}>
+                {command}<span>↗</span>
+              </button>
+            ))}</div>
           </div>
-
-          <div className="imobfy-ai-command-card">
-            <span className="imobfy-ai-command-number">03</span>
-            <div>
-              <strong>Execute</strong>
-              <small>Use sua voz para registrar e organizar tarefas.</small>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowChat(true);
-                setTimeout(toggleVoice, 80);
-              }}
-            >
-              Comandar <Mic size={12} />
-            </button>
+        </main>
+      ) : (
+        <main className="imobfy-intelligence-conversation">
+          <div className="conversation-header">
+            <div><span>CONVERSA ATIVA</span><strong>Estou com você, {firstName}.</strong></div>
+            <button type="button" onClick={() => setMessages([])} aria-label="Nova conversa"><X size={16} /></button>
           </div>
-        </div>
-      </section>
-
-      {showChat && (
-        <section className="imobfy-ai-workspace clean-card">
-          <div className="imobfy-ai-workspace-head">
-            <div>
-              <span className="label">ASSISTENTE ATIVO</span>
-              <h2>
-                O que posso fazer por você, {user.name.split(" ")[0]}?
-              </h2>
-            </div>
-            <button
-              type="button"
-              className="imobfy-ai-close"
-              onClick={() => setShowChat(false)}
-            >
-              Fechar
-            </button>
-          </div>
-
-          {!messages.length && (
-            <div className="ai-empty">
-              <div className="imobfy-ai-suggestion-title">
-                <Sparkles size={15} /> Sugestões para começar
-              </div>
-              <div className="ai-suggestions">
-                {suggestions.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => void ask(item)}
-                  >
-                    {item}
+          <div className="conversation-feed">
+            {messages.map((message, index) => (
+              <article className={`intelligence-message ${message.role}`} key={`${message.role}-${index}`}>
+                <span>{message.role === "assistant" ? "IMOBFY AI" : "VOCÊ"}</span>
+                <p>{message.text}</p>
+                {message.role === "assistant" && (
+                  <button type="button" onClick={() => speak(message.text, index)} className="message-speak">
+                    {speaking === index ? <VolumeX size={13} /> : <Volume2 size={13} />}
                   </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {messages.length > 0 && (
-            <div className="ai-messages">
-              {messages.map((message, index) => (
-                <div
-                  className={`ai-message ${message.role}`}
-                  key={`${message.role}-${index}`}
-                >
-                  <div className="ai-message-meta">
-                    <span>
-                      {message.role === "assistant" ? "IMOBFY AI" : "VOCÊ"}
-                    </span>
-                    {message.role === "assistant" && (
-                      <button
-                        type="button"
-                        className="ai-voice-action"
-                        onClick={() => speak(message.text, index)}
-                      >
-                        {speaking === index ? (
-                          <VolumeX size={13} />
-                        ) : (
-                          <Volume2 size={13} />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                  <p>{message.text}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {loading && (
-            <div className="imobfy-ai-thinking">
-              <span />
-              <span />
-              <span /> Analisando sua operação...
-            </div>
-          )}
-
-          {error && (
-            <div className="notice">
-              <strong>IA:</strong> {error}
-            </div>
-          )}
-
-          <form
-            className={`ai-input ${listening ? "is-listening" : ""}`}
-            onSubmit={submit}
-          >
-            <button
-              className={`ai-mic-button ${listening ? "listening" : ""}`}
-              type="button"
-              onClick={toggleVoice}
-              disabled={loading}
-            >
-              {listening ? <MicOff size={17} /> : <Mic size={17} />}
+                )}
+              </article>
+            ))}
+            {loading && <div className="intelligence-thinking"><i /><i /><i /> analisando sua operação</div>}
+          </div>
+          {error && <div className="intelligence-error">{error}</div>}
+          <form className={`intelligence-composer ${listening ? "is-listening" : ""}`} onSubmit={submit}>
+            <button type="button" onClick={toggleVoice} disabled={loading} aria-label="Comando de voz">
+              {listening ? <MicOff size={18} /> : <Mic size={18} />}
             </button>
-            <input
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder={
-                listening
-                  ? "Estou ouvindo..."
-                  : "Digite ou fale com o Imobfy..."
-              }
-              disabled={loading}
-            />
-            <button
-              className="clean-button primary"
-              type="submit"
-              disabled={loading || !question.trim()}
-            >
-              <Send size={16} /> Perguntar
-            </button>
+            <input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={loading} placeholder={listening ? "Estou ouvindo..." : "Diga ou escreva um comando..."} />
+            <button type="submit" disabled={loading || !question.trim()} aria-label="Enviar"><Send size={17} /></button>
           </form>
-        </section>
+        </main>
       )}
 
-      <div className="imobfy-ai-disclaimer">
-        <Sparkles size={12} /> Inteligência aplicada aos dados da sua própria
-        operação. Você continua no controle.
-      </div>
+      <div className="imobfy-intelligence-footer"><span>IA PRIVADA</span><i /> conectada aos dados da sua operação <b>•</b> você continua no controle</div>
     </div>
   );
 }

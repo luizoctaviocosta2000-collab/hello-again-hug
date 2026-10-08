@@ -8,7 +8,7 @@ const getGreeting = (date = new Date()) => {
   return hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 };
 
-type Deal = { id: string; status: string; property_value: number; created_at: string };
+type Deal = { id: string; status: string; property_value: number; created_at: string; updated_at?: string | null };
 type Vgv = { id: string; deal_id: string | null; reference_month: string; vgv: number };
 type Commission = { id: string; user_amount: number; status: string; created_at?: string; reference_month?: string | null };
 type CommissionReceipt = { commission_id: string; amount: number; received_at?: string | null };
@@ -24,7 +24,7 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
   async function load() {
     setLoading(true); setNotice("");
     const [d, v, c, r, cap, ap, cli] = await Promise.all([
-      supabase.from("deals").select("id,status,property_value,created_at"),
+      supabase.from("deals").select("id,status,property_value,created_at,updated_at"),
       supabase.from("vgv_entries").select("id,deal_id,reference_month,vgv").order("reference_month", { ascending: true }),
       supabase.from("commissions").select("id,user_amount,status,created_at,reference_month"),
       supabase.from("commission_receipts").select("commission_id,amount,received_at"),
@@ -67,7 +67,7 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
     });
     const stalled = deals.filter((x) => {
       if (x.status === "closed" || x.status === "lost") return false;
-      const updated = new Date(x.created_at).getTime();
+      const updated = new Date(x.updated_at || x.created_at).getTime();
       return now - updated >= 7 * 24 * 60 * 60 * 1000;
     });
     return { next24h, stalled };

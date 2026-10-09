@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowUpRight, BrainCircuit, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowUpRight, BrainCircuit, CalendarPlus, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { ImobfyUser } from "../lib/imobfy-session";
+import ImobfyAITaskComposer from "./ImobfyAITaskComposer";
 import "../imobfy-fixes.css";
 
 type Props = { user: ImobfyUser };
@@ -36,12 +37,23 @@ export default function ImobfyAIChat({ user }: Props) {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
   const [showSessions, setShowSessions] = useState(false);
+  const [showTaskComposer, setShowTaskComposer] = useState(false);
   const navigate = useNavigate();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const askRef = useRef<(text: string) => Promise<void>>(async () => {});
+  const listeningRef = useRef(false);
+  const mountedRef = useRef(true);
 
   async function ask(text: string) {
     const value = text.trim();
     if (!value || loading) return;
+    if (/(?:criar|crie|adicionar|adicione|agendar|agende|nova)\s+(?:uma\s+)?tarefa\b/i.test(value)) {
+      setQuestion("");
+      setError("");
+      setMessages((current) => [...current, { role: "user", text: value }, { role: "assistant", text: "Vamos preparar essa tarefa. Preencha os detalhes e revise tudo; só vou gravar na sua agenda depois da sua confirmação." }]);
+      setShowTaskComposer(true);
+      return;
+    }
     setQuestion(""); setError(""); setLoading(true);
     setMessages((current) => [...current, { role: "user", text: value }]);
     try {
@@ -57,21 +69,66 @@ export default function ImobfyAIChat({ user }: Props) {
     } finally { setLoading(false); }
   }
 
+  askRef.current = ask;
+  listeningRef.current = listening;
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); void ask(question);
   }
 
+  function stopVoice() {
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    listeningRef.current = false;
+    setListening(false);
+    if (recognition) {
+      recognition.onresult = null;
+      recognition.onend = null;
+      recognition.onerror = null;
+      try { recognition.stop(); } catch { /* recognition may already be stopped */ }
+    }
+  }
+
   function toggleVoice() {
+    if (listeningRef.current) { stopVoice(); return; }
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition) { setError("Seu navegador não oferece reconhecimento de voz. Use Chrome ou Edge."); return; }
-    if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
     setError("");
     const recognition = new Recognition();
-    recognition.lang = "pt-BR"; recognition.interimResults = false; recognition.continuous = false;
-    recognition.onresult = (event) => { const transcript = event.results[0]?.[0]?.transcript?.trim() || ""; if (transcript) void ask(transcript); };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => { setListening(false); setError("Não consegui ouvir sua voz. Verifique a permissão do microfone."); };
-    recognitionRef.current = recognition; setListening(true); recognition.start();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript?.trim() || "";
+      if (transcript) void askRef.current(transcript);
+    };
+    recognition.onend = () => {
+      if (recognitionRef.current === recognition) {
+        recognitionRef.current = null;
+        listeningRef.current = false;
+        if (mountedRef.current) setListening(false);
+      }
+    };
+    recognition.onerror = () => {
+      if (recognitionRef.current === recognition) {
+        recognitionRef.current = null;
+        listeningRef.current = false;
+        if (mountedRef.current) {
+          setListening(false);
+          setError("Não consegui ouvir sua voz. Verifique a permissão do microfone.");
+        }
+      }
+    };
+    recognitionRef.current = recognition;
+    listeningRef.current = true;
+    setListening(true);
+    try { recognition.start(); }
+    catch {
+      recognitionRef.current = null;
+      listeningRef.current = false;
+      setListening(false);
+      setError("Não consegui iniciar o microfone. Tente novamente.");
+    }
   }
 
   function speak(text: string, index: number) {
@@ -89,10 +146,25 @@ export default function ImobfyAIChat({ user }: Props) {
     setQuestion("");
     setError("");
     setSpeaking(null);
+    stopVoice();
     window.speechSynthesis?.cancel();
   }
 
-  useEffect(() => () => { recognitionRef.current?.stop(); window.speechSynthesis?.cancel(); }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      if (recognition) {
+        recognition.onresult = null;
+        recognition.onend = null;
+        recognition.onerror = null;
+        try { recognition.stop(); } catch { /* already stopped */ }
+      }
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
 
   useEffect(() => {
     const handleOpen = (event: Event) => {
@@ -189,8 +261,9 @@ export default function ImobfyAIChat({ user }: Props) {
               <span><i /> CONVERSA ATIVA</span>
               <strong>Estou com você, {firstName}.</strong>
             </div>
-            <button type="button" className="conversation-new" onClick={newConversation}><Plus size={14} /> Nova conversa</button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" className="conversation-new" onClick={() => setShowTaskComposer((value) => !value)}><CalendarPlus size={14} /> Nova tarefa</button><button type="button" className="conversation-new" onClick={newConversation}><Plus size={14} /> Nova conversa</button></div>
           </div>
+          {showTaskComposer && <ImobfyAITaskComposer userId={user.id} onClose={() => setShowTaskComposer(false)} onCreated={(message) => { setMessages((current) => [...current, { role: "assistant", text: message }]); setShowTaskComposer(false); }} />}
           <div className="conversation-feed">
             {messages.map((message, index) => (
               <article className={`intelligence-message ${message.role}`} key={`${message.role}-${index}`}>

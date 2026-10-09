@@ -7,7 +7,8 @@ const has=(...terms:string[])=>terms.some(t=>normalized.includes(t));
 const matches=(pattern:RegExp)=>pattern.test(normalized);
 let intent:"finance"|"vgv"|"clients"|"properties"|"deals"|"visits"|"general"="general";
 if(has("vgv","volume geral de vendas","meta de vgv")||matches(/\bmeta\b.*\bvgv\b/))intent="vgv";
-else if(has("comissao","comissoes","financeiro","dinheiro","a receber","receber","recebimento","recebimentos","quanto tenho para receber","quanto vou receber","quanto recebo")||matches(/\b(atrasad|vencid|pagament|recebiment|comiss)\w*/))intent="finance";
+else if(has("agenda","agendamento","agendamentos","compromisso","compromissos","tarefa","tarefas","visita","visitas")||matches(/\b(hoje|amanha)\b.*\b(agenda|visita|compromisso|tarefa)\b/))intent="visits";
+else if(has("comissao","comissoes","financeiro","dinheiro","a receber","receber","recebimento","recebimentos","quanto tenho para receber","quanto vou receber","quanto recebo")||matches(/\b(vencid|pagament|recebiment|comiss)\w*/))intent="finance";
 else if(has("cliente","clientes","lead","leads","prospect","prospects")||matches(/\bquem\b.*\b(cliente|lead)\b/))intent="clients";
 else if(has("imovel","imoveis","estoque","captacao","captacoes","captado","captados","proprietario","proprietarios")||matches(/\b(casa|apartamento|apto)\b/))intent="properties";
 else if(has("negocio","negocios","negociacao","negociacoes","pipeline","fechamento","fechamentos","venda","vendas","proposta","propostas","deal","deals")||matches(/\b(fechar|fechou|fechando|negociar|negociando)\b/))intent="deals";
@@ -46,33 +47,35 @@ if(intent==="finance"){
  ]);
  context={deals,proposals,sales,properties};
 }else if(intent==="visits"){
- const [visits,visitProperties,clients,properties]=await Promise.all([
+ const [visits,appointments,visitProperties,clients,properties]=await Promise.all([
    pick("visits","id,deal_id,client_id,starts_at,ends_at,status,location,notes,created_at,updated_at",300),
+   pick("appointments","id,title,starts_at,ends_at,status,notes,client_id,property_id,deal_id,created_at,updated_at",300),
    pick("visit_properties","id,visit_id,property_id,sequence,visited,notes",500),
    pick("clients","id,name,phone,status",300),
    pick("properties","id,title,neighborhood,city,property_type,asking_price,status",300)
  ]);
- context={visits,visit_properties:visitProperties,clients,properties};
+ context={visits,appointments,visit_properties:visitProperties,clients,properties};
 }else{
- const [clients,properties,deals,commissions,vgv,visits,proposals,sales,activities]=await Promise.all([
+ const [clients,properties,deals,commissions,vgv,visits,appointments,proposals,sales,activities]=await Promise.all([
    pick("clients","id,name,intent,budget_min,budget_max,preferred_neighborhoods,property_types,bedrooms_min,status,created_at,updated_at",150),
    pick("properties","id,title,neighborhood,city,property_type,bedrooms,bathrooms,parking_spaces,area_m2,sale_value,asking_price,status,created_at,updated_at",150),
    pick("deals","id,property_id,client_id,status,property_value,created_at,updated_at,closed_at,expected_close_at,title,stage,operation_value,sale_value",150),
    pick("commissions","id,deal_id,property_value,user_amount,status,received_at,due_date,paid_at,commission_type,reference_month",150),
    pick("vgv_entries","id,deal_id,property_value,month,reference_month,vgv",150),
    pick("visits","id,deal_id,client_id,starts_at,ends_at,status,location,notes,created_at,updated_at",150),
+   pick("appointments","id,title,starts_at,ends_at,status,notes,client_id,property_id,deal_id,created_at,updated_at",150),
    pick("proposals","id,deal_id,property_id,amount,status,financing,down_payment,proposed_at,responded_at",150),
    pick("sales","id,deal_id,property_id,proposal_id,sale_value,sold_at",150),
    pick("activities","id,client_id,deal_id,property_id,activity_type,title,description,occurred_at",200)
  ]);
- context={clients,properties,deals,commissions,vgv,visits,proposals,sales,activities};
+ context={clients,properties,deals,commissions,vgv,visits,appointments,proposals,sales,activities};
 }
 const {data:history,error:he}=await sb.from("ai_messages").select("role,content,created_at").eq("conversation_id",cid).eq("user_id",user.id).order("created_at",{ascending:false}).limit(20);
 if(he)throw he;
 const contents=(history||[]).reverse().filter((m:any)=>m.role==="user"||m.role==="assistant").map((m:any)=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
 contents.push({role:"user",parts:[{text:q}]});
 const system=\`Você é o Imobfy AI, cérebro comercial de um CRM imobiliário. Responda em português do Brasil, objetiva e acionável. Ajude o corretor a CAPTAR, VENDER, RECEBER ou DECIDIR melhor. Nunca invente dados; use somente o contexto fornecido. Não exponha IDs internos. Para financeiro, VGV e comissões, trate os números recebidos como fonte determinística e não refaça cálculos com regras próprias. Se faltar dado, diga o que falta. Não diga que executou algo se apenas recomendou.
-Intenção detectada: ${intent}.
+Intenção detectada: ${intent}. Para perguntas sobre agenda, diferencie visitas imobiliárias (tabela visits) de tarefas e compromissos pessoais/comerciais (tabela appointments). Considere status e datas fornecidos; não presuma que uma tarefa foi concluída sem status correspondente.
 CONTEXTO:
 ${JSON.stringify(context)}\`;
 try{const m=Deno.env.get("GEMINI_MODEL")?.trim()||"gemini-2.5-flash-lite";const r=await ask(key,m,system,contents);const answer=(r.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("\n").trim();if(!answer)return out({error:"Não consegui gerar uma resposta agora."},502);const {data:nc,error:ce}=cid?{data:{id:cid},error:null as any}:await sb.from("ai_conversations").insert({user_id:user.id,title:q.slice(0,80)}).select("id").single();if(ce||!nc)return out({error:"A resposta foi gerada, mas não consegui salvar a conversa."},500);cid=nc.id;const um=await sb.from("ai_messages").insert({user_id:user.id,conversation_id:cid,role:"user",content:q});if(um.error)return out({error:"A resposta foi gerada, mas não consegui registrar sua pergunta."},500);await sb.from("ai_messages").insert({user_id:user.id,conversation_id:cid,role:"assistant",content:answer});await sb.from("ai_conversations").update({updated_at:new Date().toISOString()}).eq("id",cid).eq("user_id",user.id);return out({answer,conversation_id:cid,model:m})}catch(e){const msg=e instanceof Error?e.message:String(e);console.error(msg);if(/503|high demand/i.test(msg))return out({error:"O Gemini está temporariamente sob alta demanda. O Imobfy tentou novamente automaticamente; tente de novo em alguns segundos."},503);return out({error:`Não consegui falar com a IA. ${msg}`},502)}});

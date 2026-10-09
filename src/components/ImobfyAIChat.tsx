@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowUpRight, BrainCircuit, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowUpRight, BrainCircuit, CalendarPlus, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { ImobfyUser } from "../lib/imobfy-session";
+import ImobfyAITaskComposer from "./ImobfyAITaskComposer";
 import "../imobfy-fixes.css";
 
 type Props = { user: ImobfyUser };
@@ -36,6 +37,7 @@ export default function ImobfyAIChat({ user }: Props) {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
   const [showSessions, setShowSessions] = useState(false);
+  const [showTaskComposer, setShowTaskComposer] = useState(false);
   const navigate = useNavigate();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const askRef = useRef<(text: string) => Promise<void>>(async () => {});
@@ -252,8 +254,9 @@ export default function ImobfyAIChat({ user }: Props) {
               <span><i /> CONVERSA ATIVA</span>
               <strong>Estou com você, {firstName}.</strong>
             </div>
-            <button type="button" className="conversation-new" onClick={newConversation}><Plus size={14} /> Nova conversa</button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" className="conversation-new" onClick={() => setShowTaskComposer((value) => !value)}><CalendarPlus size={14} /> Nova tarefa</button><button type="button" className="conversation-new" onClick={newConversation}><Plus size={14} /> Nova conversa</button></div>
           </div>
+          {showTaskComposer && <ImobfyAITaskComposer userId={user.id} onClose={() => setShowTaskComposer(false)} onCreated={(message) => { setMessages((current) => [...current, { role: "assistant", text: message }]); setShowTaskComposer(false); }} />}
           <div className="conversation-feed">
             {messages.map((message, index) => (
               <article className={`intelligence-message ${message.role}`} key={`${message.role}-${index}`}>

@@ -55,6 +55,25 @@ if(intent==="finance"){
    pick("properties","id,title,neighborhood,city,property_type,asking_price,status",300)
  ]);
  context={visits,appointments,visit_properties:visitProperties,clients,properties};
+ const sortByStart=(rows:any[])=>[...rows].sort((a,b)=>{
+   const ta=Date.parse(a.starts_at||"");
+   const tb=Date.parse(b.starts_at||"");
+   if(!Number.isFinite(ta))return Number.isFinite(tb)?1:0;
+   if(!Number.isFinite(tb))return -1;
+   return ta-tb;
+ });
+ const now=new Date();
+ context={
+   ...context,
+   visits:sortByStart(visits),
+   appointments:sortByStart(appointments),
+   agenda_reference:{
+     timezone:"America/Sao_Paulo",
+     now_iso:now.toISOString(),
+     now_local:new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"full",timeStyle:"long"}).format(now),
+     instructions:"Use esta referência para interpretar hoje, amanhã e atrasos no fuso America/Sao_Paulo. Compare starts_at com o horário atual. Só classifique como atrasado se o horário já passou e o status não indicar conclusão ou cancelamento. Preserve o status original; se o status for ambíguo, informe a ambiguidade em vez de presumir."
+   }
+ };
 }else{
  const [clients,properties,deals,commissions,vgv,visits,appointments,proposals,sales,activities]=await Promise.all([
    pick("clients","id,name,intent,budget_min,budget_max,preferred_neighborhoods,property_types,bedrooms_min,status,created_at,updated_at",150),
@@ -75,7 +94,7 @@ if(he)throw he;
 const contents=(history||[]).reverse().filter((m:any)=>m.role==="user"||m.role==="assistant").map((m:any)=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
 contents.push({role:"user",parts:[{text:q}]});
 const system=\`Você é o Imobfy AI, cérebro comercial de um CRM imobiliário. Responda em português do Brasil, objetiva e acionável. Ajude o corretor a CAPTAR, VENDER, RECEBER ou DECIDIR melhor. Nunca invente dados; use somente o contexto fornecido. Não exponha IDs internos. Para financeiro, VGV e comissões, trate os números recebidos como fonte determinística e não refaça cálculos com regras próprias. Se faltar dado, diga o que falta. Não diga que executou algo se apenas recomendou.
-Intenção detectada: ${intent}. Para perguntas sobre agenda, diferencie visitas imobiliárias (tabela visits) de tarefas e compromissos pessoais/comerciais (tabela appointments). Considere status e datas fornecidos; não presuma que uma tarefa foi concluída sem status correspondente.
+Intenção detectada: ${intent}. Para perguntas sobre agenda, diferencie visitas imobiliárias (tabela visits) de tarefas e compromissos pessoais/comerciais (tabela appointments). Quando existir agenda_reference, use explicitamente o horário atual e o fuso America/Sao_Paulo para interpretar hoje, amanhã e atrasos. Ordene mentalmente os compromissos pelo início; use starts_at e status originais. Só diga que algo está atrasado quando o início já passou e o status não indicar conclusão ou cancelamento. Se o status for ambíguo, explique a incerteza. Não presuma que uma tarefa foi concluída sem status correspondente.
 CONTEXTO:
 ${JSON.stringify(context)}\`;
 try{const m=Deno.env.get("GEMINI_MODEL")?.trim()||"gemini-2.5-flash-lite";const r=await ask(key,m,system,contents);const answer=(r.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("\n").trim();if(!answer)return out({error:"Não consegui gerar uma resposta agora."},502);const {data:nc,error:ce}=cid?{data:{id:cid},error:null as any}:await sb.from("ai_conversations").insert({user_id:user.id,title:q.slice(0,80)}).select("id").single();if(ce||!nc)return out({error:"A resposta foi gerada, mas não consegui salvar a conversa."},500);cid=nc.id;const um=await sb.from("ai_messages").insert({user_id:user.id,conversation_id:cid,role:"user",content:q});if(um.error)return out({error:"A resposta foi gerada, mas não consegui registrar sua pergunta."},500);await sb.from("ai_messages").insert({user_id:user.id,conversation_id:cid,role:"assistant",content:answer});await sb.from("ai_conversations").update({updated_at:new Date().toISOString()}).eq("id",cid).eq("user_id",user.id);return out({answer,conversation_id:cid,model:m})}catch(e){const msg=e instanceof Error?e.message:String(e);console.error(msg);if(/503|high demand/i.test(msg))return out({error:"O Gemini está temporariamente sob alta demanda. O Imobfy tentou novamente automaticamente; tente de novo em alguns segundos."},503);return out({error:`Não consegui falar com a IA. ${msg}`},502)}});

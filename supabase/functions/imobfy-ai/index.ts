@@ -46,26 +46,28 @@ if(intent==="finance"){
  ]);
  context={deals,proposals,sales,properties};
 }else if(intent==="visits"){
- const [visits,visitProperties,clients,properties]=await Promise.all([
+ const [visits,appointments,visitProperties,clients,properties]=await Promise.all([
    pick("visits","id,deal_id,client_id,starts_at,ends_at,status,location,notes,created_at,updated_at",300),
+   pick("appointments","id,title,starts_at,ends_at,status,notes,client_id,property_id,deal_id,created_at,updated_at",300),
    pick("visit_properties","id,visit_id,property_id,sequence,visited,notes",500),
    pick("clients","id,name,phone,status",300),
    pick("properties","id,title,neighborhood,city,property_type,asking_price,status",300)
  ]);
- context={visits,visit_properties:visitProperties,clients,properties};
+ context={visits,appointments,visit_properties:visitProperties,clients,properties};
 }else{
- const [clients,properties,deals,commissions,vgv,visits,proposals,sales,activities]=await Promise.all([
+ const [clients,properties,deals,commissions,vgv,visits,appointments,proposals,sales,activities]=await Promise.all([
    pick("clients","id,name,intent,budget_min,budget_max,preferred_neighborhoods,property_types,bedrooms_min,status,created_at,updated_at",150),
    pick("properties","id,title,neighborhood,city,property_type,bedrooms,bathrooms,parking_spaces,area_m2,sale_value,asking_price,status,created_at,updated_at",150),
    pick("deals","id,property_id,client_id,status,property_value,created_at,updated_at,closed_at,expected_close_at,title,stage,operation_value,sale_value",150),
    pick("commissions","id,deal_id,property_value,user_amount,status,received_at,due_date,paid_at,commission_type,reference_month",150),
    pick("vgv_entries","id,deal_id,property_value,month,reference_month,vgv",150),
    pick("visits","id,deal_id,client_id,starts_at,ends_at,status,location,notes,created_at,updated_at",150),
+   pick("appointments","id,title,starts_at,ends_at,status,notes,client_id,property_id,deal_id,created_at,updated_at",150),
    pick("proposals","id,deal_id,property_id,amount,status,financing,down_payment,proposed_at,responded_at",150),
    pick("sales","id,deal_id,property_id,proposal_id,sale_value,sold_at",150),
    pick("activities","id,client_id,deal_id,property_id,activity_type,title,description,occurred_at",200)
  ]);
- context={clients,properties,deals,commissions,vgv,visits,proposals,sales,activities};
+ context={clients,properties,deals,commissions,vgv,visits,appointments,proposals,sales,activities};
 }
 const {data:history,error:he}=await sb.from("ai_messages").select("role,content,created_at").eq("conversation_id",cid).eq("user_id",user.id).order("created_at",{ascending:false}).limit(20);
 if(he)throw he;

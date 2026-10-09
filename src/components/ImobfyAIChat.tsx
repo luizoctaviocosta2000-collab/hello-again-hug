@@ -47,7 +47,7 @@ export default function ImobfyAIChat({ user }: Props) {
   async function ask(text: string) {
     const value = text.trim();
     if (!value || loading) return;
-    if (/(?:criar|crie|adicionar|adicione|agendar|agende|nova)\\s+(?:uma\\s+)?tarefa\\b/i.test(value)) {
+    if (/(?:criar|crie|adicionar|adicione|agendar|agende|nova)\s+(?:uma\s+)?tarefa\b/i.test(value)) {
       setQuestion("");
       setError("");
       setMessages((current) => [...current, { role: "user", text: value }, { role: "assistant", text: "Vamos preparar essa tarefa. Preencha os detalhes e revise tudo; só vou gravar na sua agenda depois da sua confirmação." }]);

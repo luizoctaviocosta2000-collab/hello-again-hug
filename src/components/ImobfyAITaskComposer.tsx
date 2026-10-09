@@ -8,6 +8,11 @@ function localDateTime(date: string, time: string) {
   return new Date(`${date}T${time}:00`);
 }
 
+function localDateInputValue() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
 export default function ImobfyAITaskComposer({ userId, onCreated, onClose }: Props) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
@@ -31,21 +36,26 @@ export default function ImobfyAITaskComposer({ userId, onCreated, onClose }: Pro
     }
     setSaving(true);
     setError("");
-    const ends = new Date(starts.getTime() + 30 * 60 * 1000);
-    const { error: insertError } = await supabase.from("appointments").insert({
-      user_id: userId,
-      title: title.trim(),
-      starts_at: starts.toISOString(),
-      ends_at: ends.toISOString(),
-      status: "scheduled",
-      notes: notes.trim() || "Tarefa criada pela IMOBFY IA após confirmação do usuário.",
-    });
-    setSaving(false);
-    if (insertError) {
-      setError("Não consegui criar a tarefa. Confira sua conexão e tente novamente.");
-      return;
+    try {
+      const ends = new Date(starts.getTime() + 30 * 60 * 1000);
+      const { error: insertError } = await supabase.from("appointments").insert({
+        user_id: userId,
+        title: title.trim(),
+        starts_at: starts.toISOString(),
+        ends_at: ends.toISOString(),
+        status: "scheduled",
+        notes: notes.trim() || "Tarefa criada pela IMOBFY IA após confirmação do usuário.",
+      });
+      if (insertError) {
+        setError("Não consegui criar a tarefa. Confira sua conexão e tente novamente.");
+        return;
+      }
+      onCreated(`Tarefa criada na sua agenda: “${title.trim()}”, em ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(starts)}.`);
+    } catch {
+      setError("Não consegui criar a tarefa por causa de uma falha de conexão. Tente novamente.");
+    } finally {
+      setSaving(false);
     }
-    onCreated(`Tarefa criada na sua agenda: “${title.trim()}”, em ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(starts)}.`);
   }
 
   return <section style={{ margin: "14px 0", padding: 18, border: "1px solid rgba(194,161,97,.42)", borderRadius: 16, background: "rgba(255,255,255,.94)", color: "#252720", boxShadow: "0 12px 34px rgba(20,24,18,.07)" }} aria-label="Criar tarefa na agenda">
@@ -58,7 +68,7 @@ export default function ImobfyAITaskComposer({ userId, onCreated, onClose }: Pro
     </label>
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
       <label style={{ display: "block", fontSize: 11 }}>Data
-        <input type="date" value={date} min={new Date().toLocaleDateString("en-CA")} onChange={e => { setDate(e.target.value); setConfirming(false); }} style={fieldStyle} />
+        <input type="date" value={date} min={localDateInputValue()} onChange={e => { setDate(e.target.value); setConfirming(false); }} style={fieldStyle} />
       </label>
       <label style={{ display: "block", fontSize: 11 }}>Horário
         <input type="time" value={time} onChange={e => { setTime(e.target.value); setConfirming(false); }} style={fieldStyle} />

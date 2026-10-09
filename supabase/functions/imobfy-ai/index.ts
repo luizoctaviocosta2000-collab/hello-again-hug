@@ -89,8 +89,7 @@ if(intent==="finance"){
  ]);
  context={clients,properties,deals,commissions,vgv,visits,appointments,proposals,sales,activities};
 }
-const {data:history,error:he}=await sb.from("ai_messages").select("role,content,created_at").eq("conversation_id",cid).eq("user_id",user.id).order("created_at",{ascending:false}).limit(20);
-if(he)throw he;
+let history:any[]=[];if(cid){const {data:rows,error:he}=await sb.from("ai_messages").select("role,content,created_at").eq("conversation_id",cid).eq("user_id",user.id).order("created_at",{ascending:false}).limit(20);if(he)throw he;history=rows||[];}
 const contents=(history||[]).reverse().filter((m:any)=>m.role==="user"||m.role==="assistant").map((m:any)=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
 contents.push({role:"user",parts:[{text:q}]});
 const system=`Você é o Imobfy AI, cérebro comercial de um CRM imobiliário. Responda em português do Brasil, objetiva e acionável. Ajude o corretor a CAPTAR, VENDER, RECEBER ou DECIDIR melhor. Nunca invente dados; use somente o contexto fornecido. Não exponha IDs internos. Para financeiro, VGV e comissões, trate os números recebidos como fonte determinística e não refaça cálculos com regras próprias. Se faltar dado, diga o que falta. Não diga que executou algo se apenas recomendou.

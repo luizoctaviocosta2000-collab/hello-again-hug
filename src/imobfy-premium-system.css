@@ -1108,3 +1108,97 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 .imobfy-intelligence-listen .listen-icon{width:34px!important;height:34px!important}
 .imobfy-intelligence-listen.is-listening{opacity:1!important}
 .signal-core{transform-origin:center!important}
+
+
+/* IMOBFY DESIGN STANDARD — warm neutral + graphite + gold.
+   Shared tokens and rhythm overrides; presentation only. */
+:root{
+  color-scheme: light;
+  --im-primary: #a8843e;
+  --im-primary-hover: #8d6b2f;
+  --im-primary-soft: #f5efdf;
+  --im-primary-line: #dfcfaa;
+  --im-secondary: #a8843e;
+  --im-ink: #20211c;
+  --im-muted: #73756b;
+  --im-subtle: #929388;
+  --im-paper: #f6f4ee;
+  --im-surface: #ffffff;
+  --im-surface-alt: #f1eee5;
+  --im-border: #e3dfd4;
+  --im-border-strong: #cbc4b3;
+  --im-success: #3f7653;
+  --im-warning: #956a20;
+  --im-danger: #a7473f;
+  --im-info: #4d6f8c;
+  --im-radius-sm: 8px;
+  --im-radius-md: 10px;
+  --im-radius-lg: 14px;
+  --im-radius-xl: 18px;
+  --im-space-1: 4px;
+  --im-space-2: 8px;
+  --im-space-3: 12px;
+  --im-space-4: 16px;
+  --im-space-5: 20px;
+  --im-space-6: 24px;
+  --im-space-8: 32px;
+  --im-space-10: 40px;
+  --im-space-12: 48px;
+}
+html,body{background:var(--im-paper);color:var(--im-ink)}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-kerning:normal}
+button,input,select,textarea{font:inherit}
+h1,h2,h3,h4,p{overflow-wrap:anywhere}
+h1,h2,h3,h4{color:var(--im-ink);line-height:1.25}
+p{line-height:1.55}
+small,.muted,.clean-header p{color:var(--im-muted)}
+/* One consistent focus state, including keyboard navigation. */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{
+  outline:3px solid rgba(168,132,62,.30);
+  outline-offset:2px;
+}
+:where(input,select,textarea){
+  color:var(--im-ink);
+  border-color:var(--im-border);
+  border-radius:var(--im-radius-md);
+  line-height:1.4;
+}
+:where(input,select,textarea)::placeholder{color:#9b9b91;opacity:1}
+:where(input,select,textarea):focus{
+  border-color:var(--im-primary)!important;
+  box-shadow:0 0 0 3px rgba(168,132,62,.13)!important;
+}
+.clean-sidebar{background:#20211c}
+.clean-sidebar nav a.active{background:rgba(168,132,62,.18);color:#f7f2e5;box-shadow:inset 3px 0 0 var(--im-primary)}
+.brand-symbol{background:linear-gradient(145deg,#ddc27e,#a8843e);color:#20211c}
+.header-kicker,.label,.overline,.eyebrow{color:var(--im-primary)}
+.clean-button.primary{background:#25261f;border-color:#25261f;color:#fffdf7}
+.clean-button.primary:hover{background:#393a31;border-color:#393a31}
+.clean-button.secondary{background:var(--im-surface);border-color:var(--im-border);color:var(--im-ink)}
+.clean-button.secondary:hover{background:var(--im-primary-soft);border-color:var(--im-primary-line);color:#72551f}
+.metric-card,.clean-card,.pipeline-column,.pipeline-card,.inventory-card,.deal-card,.list-row{
+  border-color:var(--im-border);
+}
+.metric-card strong,.metric-card b,.clean-card strong{font-variant-numeric:tabular-nums lining-nums}
+.dashboard-list>div b,.dashboard-list>div span,.metric-card>span,.muted{
+  line-height:1.45;
+}
+.notice{background:#fbf7eb;border-color:#e8dcc0;color:#514b3d}
+.positive{color:var(--im-success)}.neutral{color:var(--im-muted)}
+/* Consistent density: predictable gaps and comfortable tap targets. */
+.module-actions,.clean-toolbar,.toolbar{gap:12px}
+.module-actions{margin-bottom:20px}
+.clean-grid,.dashboard-core,.negocios-core{gap:20px}
+.clean-card{padding:clamp(16px,2vw,22px)}
+.metric-card{padding:clamp(15px,1.8vw,20px)}
+.clean-button{min-height:40px;font-size:12px;line-height:1.2;letter-spacing:0}
+.clean-sidebar nav a{font-size:12px;min-height:40px}
+.clean-header h1{line-height:1.18}
+@media(max-width:700px){
+  .clean-card{padding:16px}
+  .module-actions{align-items:stretch;flex-wrap:wrap}
+  .module-actions>.clean-button{max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}

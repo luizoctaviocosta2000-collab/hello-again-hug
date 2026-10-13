@@ -30,3 +30,5 @@ function DashboardRoute(){
  if(!user)return null;
  return <ImobfyDashboardCore user={user}/>;
 }
+
+import "../imobfy-premium-system.css";

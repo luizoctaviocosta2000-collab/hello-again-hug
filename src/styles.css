@@ -114,3 +114,24 @@
 @media (prefers-reduced-motion: reduce) {
   .imobfy-app-shell .imobfy-main { animation: none !important; }
 }
+
+/* Keyboard focus remains visible across shared navigation and primary controls. */
+.imobfy-app-shell .clean-sidebar nav a:focus-visible,
+.imobfy-app-shell button:focus-visible,
+.imobfy-app-shell a:focus-visible,
+.imobfy-app-shell input:focus-visible,
+.imobfy-app-shell select:focus-visible,
+.imobfy-app-shell textarea:focus-visible {
+  outline: 2px solid #b08b45;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .imobfy-app-shell .clean-sidebar nav a,
+  .imobfy-app-shell .sidebar-footer button,
+  .imobfy-app-shell .clean-button,
+  .imobfy-app-shell .icon-button,
+  .imobfy-app-shell .mobile-menu,
+  .imobfy-app-shell .mobile-close {
+    transition: none !important;
+  }
+}

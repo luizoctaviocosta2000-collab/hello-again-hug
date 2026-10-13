@@ -1373,12 +1373,13 @@ small,.muted,.clean-header p{color:var(--im-muted)}
 }
 .imobfy-brand-copy strong span{color:#8db8a0}
 .imobfy-brand-copy>span{
-  color:rgba(246,244,238,.58);
-  font-size:7px;
+  color:rgba(246,244,238,.66);
+  font-size:6px;
   font-weight:750;
-  line-height:1.3;
-  letter-spacing:.15em;
-  white-space:nowrap;
+  line-height:1.55;
+  letter-spacing:.105em;
+  white-space:normal;
+  max-width:170px;
 }
 .imobfy-brand .mobile-close{margin-left:auto}
 @media(max-width:900px){

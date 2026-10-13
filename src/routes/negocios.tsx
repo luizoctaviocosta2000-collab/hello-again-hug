@@ -33,3 +33,5 @@ function NegociosRoute() {
   if (!user) return null;
   return <ImobfyNegociosCore user={user} />;
 }
+
+import "../imobfy-premium-system.css";

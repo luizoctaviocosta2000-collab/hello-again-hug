@@ -80,4 +80,3 @@ function LoginPage() {
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
-import "../imobfy-premium-system.css";

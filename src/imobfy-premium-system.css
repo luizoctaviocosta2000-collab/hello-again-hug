@@ -1245,3 +1245,17 @@ small,.muted,.clean-header p{color:var(--im-muted)}
   .dashboard-core .metrics-grid > .metric-card > strong { font-size: clamp(18px, 5vw, 23px); }
   .dashboard-core .metrics-grid > .metric-card > small { font-size: 10px; }
 }
+
+
+/* Header navigation: reserve layout space for the mobile menu button. */
+@media(max-width:900px){
+  .imobfy-header{display:flex;align-items:flex-start;gap:16px;padding:22px 20px 18px}
+  .imobfy-header .imobfy-mobile-menu{position:static;inset:auto;flex:0 0 38px;width:38px;height:38px;margin:0;z-index:auto}
+  .imobfy-header .imobfy-header-copy{flex:1 1 auto;min-width:0}
+  .imobfy-header .header-actions{display:none}
+}
+@media(max-width:560px){
+  .imobfy-header{gap:12px;padding:20px 16px 16px}
+  .imobfy-header .imobfy-header-copy{padding-top:1px}
+  .imobfy-header .imobfy-mobile-menu{flex-basis:36px;width:36px;height:36px}
+}

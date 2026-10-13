@@ -1347,43 +1347,23 @@ small,.muted,.clean-header p{color:var(--im-muted)}
 .imobfy-sidebar .clean-brand.imobfy-brand{
   display:flex;
   align-items:center;
-  gap:11px;
+  gap:10px;
   padding:0 9px 29px;
+  min-height:62px;
 }
-.imobfy-brand .brand-symbol{
-  display:grid;
-  place-items:center;
-  flex:0 0 42px;
-  width:42px;
-  height:42px;
-  border-radius:13px;
-  background:#e9f0e8;
-  color:#245b45;
-  box-shadow:0 5px 16px rgba(0,0,0,.16),inset 0 0 0 1px rgba(36,91,69,.08);
+.imobfy-brand .imobfy-logo-image{
+  display:block;
+  width:min(100%,205px);
+  height:auto;
+  max-height:62px;
+  object-fit:contain;
+  object-position:left center;
+  flex:0 1 auto;
 }
-.imobfy-brand .brand-symbol svg{display:block;width:31px;height:31px}
-.imobfy-brand-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
-.imobfy-brand-copy strong{
-  color:#f6f4ee;
-  font-family:Manrope,Inter,ui-sans-serif,system-ui,sans-serif;
-  font-size:20px;
-  font-weight:850;
-  line-height:1;
-  letter-spacing:-.065em;
-}
-.imobfy-brand-copy strong span{color:#8db8a0}
-.imobfy-brand-copy>span{
-  color:rgba(246,244,238,.66);
-  font-size:6px;
-  font-weight:750;
-  line-height:1.55;
-  letter-spacing:.105em;
-  white-space:normal;
-  max-width:170px;
-}
-.imobfy-brand .mobile-close{margin-left:auto}
+.imobfy-brand .mobile-close{margin-left:auto;flex:0 0 auto}
 @media(max-width:900px){
   .imobfy-sidebar .clean-brand.imobfy-brand{padding-bottom:27px}
+  .imobfy-brand .imobfy-logo-image{width:min(100%,195px)}
 }
 
 /* Dashboard visual refinement — consistent editorial hierarchy and spacing. */

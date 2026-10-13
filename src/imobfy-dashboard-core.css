@@ -123,3 +123,58 @@
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Dashboard loading state: skeletons preserve layout while real CRM data loads. */
+.dashboard-loading {
+  width: min(100%, 1240px);
+  margin: 0 auto;
+  padding: 28px 0 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: imobfy-dashboard-enter 280ms ease both;
+}
+.dashboard-loading-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.dashboard-skeleton {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(100deg, rgba(120, 126, 130, .09) 20%, rgba(120, 126, 130, .17) 38%, rgba(120, 126, 130, .09) 56%);
+  background-size: 220% 100%;
+  animation: imobfy-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+.dashboard-skeleton-eyebrow { width: 78px; height: 8px; border-radius: 5px; }
+.dashboard-skeleton-title { width: min(260px, 60%); height: 28px; }
+.dashboard-skeleton-copy { width: min(330px, 75%); height: 11px; }
+.dashboard-loading-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.dashboard-loading-card,
+.dashboard-loading-panel {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid rgba(100, 105, 100, .14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 3px 12px rgba(24, 32, 27, .025);
+}
+.dashboard-loading-card { min-height: 126px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.dashboard-skeleton-label { width: 44%; height: 9px; }
+.dashboard-skeleton-value { width: 68%; max-width: 150px; height: 26px; }
+.dashboard-skeleton-note { width: 55%; height: 8px; }
+.dashboard-loading-content { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
+.dashboard-loading-panel { display: flex; flex-direction: column; align-items: flex-start; gap: 17px; min-height: 230px; }
+.dashboard-skeleton-row { width: 100%; height: 32px; }
+.dashboard-skeleton-chart { width: 100%; height: 132px; margin-top: 4px; }
+.dashboard-loading-status { display: inline-flex; align-items: center; gap: 9px; color: var(--muted, #777d80); font-size: 12px; }
+@keyframes imobfy-skeleton-shimmer { to { background-position-x: -220%; } }
+@media (max-width: 900px) {
+  .dashboard-loading-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .dashboard-loading { padding-top: 18px; gap: 16px; }
+  .dashboard-loading-content { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-loading-card, .dashboard-loading-panel { padding: 16px; border-radius: 13px; }
+  .dashboard-loading-card { min-height: 110px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-skeleton { animation: none; }
+}

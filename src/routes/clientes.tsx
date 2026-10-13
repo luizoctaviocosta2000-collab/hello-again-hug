@@ -32,3 +32,5 @@ function ClientesRoute() {
   if (!user) return null;
   return <ImobfyOperacao module="clientes" userId={user.id} />;
 }
+
+import "../imobfy-premium-system.css";

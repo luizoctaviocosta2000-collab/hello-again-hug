@@ -1202,3 +1202,46 @@ small,.muted,.clean-header p{color:var(--im-muted)}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Dashboard KPI cards: keep label, amount and supporting text on distinct lines. */
+.dashboard-core .metrics-grid > .metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.dashboard-core .metrics-grid > .metric-card > span {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.dashboard-core .metrics-grid > .metric-card > strong {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.dashboard-core .metrics-grid > .metric-card > small {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .dashboard-core .metrics-grid > .metric-card { gap: 7px; }
+  .dashboard-core .metrics-grid > .metric-card > span { font-size: 11px; }
+  .dashboard-core .metrics-grid > .metric-card > strong { font-size: clamp(18px, 5vw, 23px); }
+  .dashboard-core .metrics-grid > .metric-card > small { font-size: 10px; }
+}

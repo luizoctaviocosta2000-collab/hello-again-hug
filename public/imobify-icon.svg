@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title">
+  <title id="title">IMOBIFY</title>
+  <rect width="192" height="192" rx="42" fill="#214E3B"/>
+  <path d="M43 84 96 39 149 84" fill="none" stroke="#F4F0E5" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M59 80V142H133V80" fill="none" stroke="#F4F0E5" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M84 142V107H108V142" fill="none" stroke="#D6B982" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M37 157H155" fill="none" stroke="#D6B982" stroke-width="6" stroke-linecap="round"/>
+</svg>

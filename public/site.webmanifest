@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "IMOBIFY — Gestão imobiliária",
+  "short_name": "IMOBIFY",
+  "description": "Gestão imobiliária simples, elegante e orientada a resultado.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F4F0E5",
+  "theme_color": "#214E3B",
+  "icons": [
+    {
+      "src": "/imobify-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

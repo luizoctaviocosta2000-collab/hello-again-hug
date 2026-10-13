@@ -77,7 +77,12 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
   const goalProgress = vgvGoal > 0 ? Math.min(100, (stats.realized / vgvGoal) * 100) : 0;
   const goalGap = Math.max(0, vgvGoal - stats.realized);
   const periodLabel = period === "current" ? "Mês atual" : period === "6m" ? "Últimos 6 meses" : period === "12m" ? "Últimos 12 meses" : "Tempo todo";
-  if (loading) return <div className="empty" aria-live="polite"><Loader2 className="spin" /> Organizando sua operação…</div>;
+  if (loading) return <div className="dashboard-loading" aria-live="polite" aria-busy="true">
+    <div className="dashboard-loading-heading"><span className="dashboard-skeleton dashboard-skeleton-eyebrow" /><span className="dashboard-skeleton dashboard-skeleton-title" /><span className="dashboard-skeleton dashboard-skeleton-copy" /></div>
+    <div className="dashboard-loading-metrics">{[1, 2, 3, 4].map((item) => <div className="dashboard-loading-card" key={item}><span className="dashboard-skeleton dashboard-skeleton-label" /><span className="dashboard-skeleton dashboard-skeleton-value" /><span className="dashboard-skeleton dashboard-skeleton-note" /></div>)}</div>
+    <div className="dashboard-loading-content"><div className="dashboard-loading-panel"><span className="dashboard-skeleton dashboard-skeleton-label" /><span className="dashboard-skeleton dashboard-skeleton-title" /><span className="dashboard-skeleton dashboard-skeleton-row" /><span className="dashboard-skeleton dashboard-skeleton-row" /><span className="dashboard-skeleton dashboard-skeleton-row" /></div><div className="dashboard-loading-panel"><span className="dashboard-skeleton dashboard-skeleton-label" /><span className="dashboard-skeleton dashboard-skeleton-title" /><span className="dashboard-skeleton dashboard-skeleton-chart" /></div></div>
+    <span className="dashboard-loading-status"><Loader2 className="spin" size={15} /> Preparando sua visão geral…</span>
+  </div>;
   return <div className="negocios-core dashboard-core">
     <div className="module-actions"><div><span className="label">MEU DIA</span><h2>{getGreeting()}, {user.name.split(" ")[0]}.</h2><p className="muted">Aqui está o que merece sua atenção na operação.</p></div><a className="clean-button primary" href="/negocios"><BriefcaseBusiness size={16} /> Ver meus negócios</a></div>
     {notice && <div className="notice"><strong>Imobfy:</strong> {notice}</div>}

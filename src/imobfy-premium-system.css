@@ -1343,27 +1343,30 @@ small,.muted,.clean-header p{color:var(--im-muted)}
 }
 
 
-/* IMOBIFY brand identity — official wordmark and geometric property mark */
+/* IMOBIFY brand — preserve the source artwork without stretching or artificial filters. */
 .imobfy-sidebar .clean-brand.imobfy-brand{
   display:flex;
   align-items:center;
   gap:10px;
-  padding:0 9px 29px;
-  min-height:62px;
+  padding:0 10px 26px;
+  min-height:58px;
 }
 .imobfy-brand .imobfy-logo-image{
   display:block;
-  width:min(100%,205px);
-  height:auto;
-  max-height:62px;
+  width: min(100%, 164px);
+  height: 46px;
+  max-height:46px;
   object-fit:contain;
   object-position:left center;
+  image-rendering:auto;
   flex:0 1 auto;
+  filter:none;
+  opacity:1;
 }
 .imobfy-brand .mobile-close{margin-left:auto;flex:0 0 auto}
 @media(max-width:900px){
-  .imobfy-sidebar .clean-brand.imobfy-brand{padding-bottom:27px}
-  .imobfy-brand .imobfy-logo-image{width:min(100%,195px)}
+  .imobfy-sidebar .clean-brand.imobfy-brand{padding-bottom:24px}
+  .imobfy-brand .imobfy-logo-image{width:min(100%,158px);height:44px;max-height:44px}
 }
 
 /* Dashboard visual refinement — consistent editorial hierarchy and spacing. */

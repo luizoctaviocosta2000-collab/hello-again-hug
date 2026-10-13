@@ -33,3 +33,4 @@ function ImoveisRoute() {
   if (!user) return null;
   return <ImobfyImoveisCore user={user} />;
 }
+

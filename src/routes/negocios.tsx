@@ -33,3 +33,4 @@ function NegociosRoute() {
   if (!user) return null;
   return <ImobfyNegociosCore user={user} />;
 }
+

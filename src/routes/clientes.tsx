@@ -33,4 +33,3 @@ function ClientesRoute() {
   return <ImobfyOperacao module="clientes" userId={user.id} />;
 }
 
-import "../imobfy-premium-system.css";

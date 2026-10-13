@@ -1,1 +1,125 @@
 .dashboard-core{display:flex;flex-direction:column;gap:22px}.dashboard-core .module-actions{align-items:flex-end}.dashboard-core .module-actions h2{margin:4px 0 3px;font-size:28px;letter-spacing:-.03em}.dashboard-bars{height:270px;display:flex;align-items:flex-end;gap:12px;padding:24px 4px 0}.dashboard-bar{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;min-width:0}.bar-track{height:190px;width:100%;max-width:46px;display:flex;align-items:flex-end;justify-content:center;border-radius:10px 10px 4px 4px;background:rgba(0,0,0,.035);overflow:hidden}.bar-track i{display:block;width:100%;min-height:2px;border-radius:9px 9px 3px 3px;background:currentColor}.dashboard-bar small{text-transform:capitalize;color:var(--muted,#7b7f87);font-size:11px}.dashboard-bar span{font-size:10px;color:var(--muted,#7b7f87);white-space:nowrap}.dashboard-list{display:flex;flex-direction:column;gap:2px;margin:8px 0 16px}.dashboard-list>div{display:flex;align-items:center;gap:10px;min-height:43px;padding:0 4px;border-bottom:1px solid rgba(0,0,0,.055)}.dashboard-list>div svg{opacity:.65}.dashboard-list>div span{flex:1;color:var(--muted,#666)}.dashboard-list>div b{font-weight:700}.goal-placeholder{display:flex;gap:12px;align-items:flex-start;padding:18px 0}.goal-placeholder svg{flex:0 0 auto;opacity:.65}.goal-placeholder strong{display:block}.goal-placeholder p{margin:5px 0 0;color:var(--muted,#666);font-size:13px;line-height:1.5}.dashboard-core .metric-card small.positive{color:#258a58}.dashboard-core .text-link{display:inline-flex;align-items:center;gap:5px}.dashboard-core .clean-button{display:inline-flex;align-items:center;gap:7px;text-decoration:none}.spin{animation:imobfy-spin .9s linear infinite}@keyframes imobfy-spin{to{transform:rotate(360deg)}}@media(max-width:760px){.dashboard-core .module-actions{align-items:stretch;flex-direction:column}.dashboard-core .module-actions .clean-button{width:100%;justify-content:center}.dashboard-bars{gap:6px}.dashboard-bar span{display:none}.bar-track{max-width:34px}}
+
+/* Dashboard polish: purposeful motion, clearer feedback and reduced-motion support. */
+.dashboard-core {
+  --dashboard-motion-fast: 160ms;
+  --dashboard-motion-base: 240ms;
+  animation: imobfy-dashboard-enter 420ms cubic-bezier(.2,.7,.2,1) both;
+}
+.dashboard-core .module-actions,
+.dashboard-core .dashboard-periods,
+.dashboard-core .metrics-grid,
+.dashboard-core .dashboard-attention,
+.dashboard-core .clean-grid {
+  animation: imobfy-section-enter 480ms cubic-bezier(.2,.7,.2,1) both;
+}
+.dashboard-core .dashboard-periods { animation-delay: 35ms; }
+.dashboard-core .metrics-grid { animation-delay: 70ms; }
+.dashboard-core .dashboard-attention { animation-delay: 105ms; }
+.dashboard-core .clean-grid { animation-delay: 140ms; }
+
+.dashboard-core .metric-card,
+.dashboard-core .clean-card,
+.dashboard-core .dashboard-attention-item,
+.dashboard-core .clean-button {
+  transition:
+    transform var(--dashboard-motion-base) cubic-bezier(.2,.7,.2,1),
+    box-shadow var(--dashboard-motion-base) ease,
+    border-color var(--dashboard-motion-base) ease,
+    background-color var(--dashboard-motion-base) ease,
+    color var(--dashboard-motion-base) ease;
+}
+.dashboard-core .metric-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.dashboard-core .metric-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--primary, #258a68);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 280ms cubic-bezier(.2,.7,.2,1);
+  z-index: -1;
+}
+.dashboard-core .metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(25, 35, 29, .075);
+  border-color: rgba(37, 138, 88, .24);
+}
+.dashboard-core .metric-card:hover::after { transform: scaleX(1); }
+.dashboard-core .metric-card strong {
+  display: inline-block;
+  transform-origin: left center;
+  transition: color var(--dashboard-motion-base) ease;
+}
+.dashboard-core .dashboard-attention-item {
+  border-radius: 12px;
+}
+.dashboard-core .dashboard-attention-item:hover {
+  transform: translateX(3px);
+  background: rgba(37, 138, 88, .045);
+}
+.dashboard-core .dashboard-attention-item > svg:last-child {
+  transition: transform var(--dashboard-motion-base) ease;
+}
+.dashboard-core .dashboard-attention-item:hover > svg:last-child {
+  transform: translate(2px, -2px);
+}
+.dashboard-core .clean-button {
+  will-change: transform;
+}
+.dashboard-core .clean-button:hover {
+  transform: translateY(-1px);
+}
+.dashboard-core .clean-button:active {
+  transform: translateY(0) scale(.985);
+}
+.dashboard-core .clean-button:focus-visible,
+.dashboard-core a:focus-visible {
+  outline: 2px solid var(--primary, #258a68);
+  outline-offset: 3px;
+}
+.dashboard-core .bar-track i {
+  transform-origin: bottom;
+  animation: imobfy-bar-rise 650ms cubic-bezier(.2,.7,.2,1) both;
+}
+.dashboard-core .dashboard-bar:nth-child(2) .bar-track i { animation-delay: 35ms; }
+.dashboard-core .dashboard-bar:nth-child(3) .bar-track i { animation-delay: 70ms; }
+.dashboard-core .dashboard-bar:nth-child(4) .bar-track i { animation-delay: 105ms; }
+.dashboard-core .dashboard-bar:nth-child(5) .bar-track i { animation-delay: 140ms; }
+.dashboard-core .dashboard-bar:nth-child(6) .bar-track i { animation-delay: 175ms; }
+.dashboard-core .dashboard-bar:nth-child(7) .bar-track i { animation-delay: 210ms; }
+.dashboard-core .dashboard-bar:nth-child(8) .bar-track i { animation-delay: 245ms; }
+.dashboard-core .dashboard-bar:nth-child(9) .bar-track i { animation-delay: 280ms; }
+.dashboard-core .dashboard-bar:nth-child(10) .bar-track i { animation-delay: 315ms; }
+.dashboard-core .dashboard-bar:nth-child(11) .bar-track i { animation-delay: 350ms; }
+.dashboard-core .dashboard-bar:nth-child(12) .bar-track i { animation-delay: 385ms; }
+
+@keyframes imobfy-dashboard-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes imobfy-section-enter {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes imobfy-bar-rise {
+  from { transform: scaleY(.12); opacity: .45; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-core,
+  .dashboard-core *,
+  .dashboard-core *::before,
+  .dashboard-core *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

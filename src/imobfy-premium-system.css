@@ -1110,15 +1110,15 @@ td b,.card-head b,.card-head h3,.deal-head b,.activity-main b,.property-body>div
 .signal-core{transform-origin:center!important}
 
 
-/* IMOBFY DESIGN STANDARD — warm neutral + graphite + gold.
+/* IMOBFY DESIGN STANDARD — warm neutral + graphite + forest green.
    Shared tokens and rhythm overrides; presentation only. */
 :root{
   color-scheme: light;
-  --im-primary: #a8843e;
-  --im-primary-hover: #8d6b2f;
-  --im-primary-soft: #f5efdf;
-  --im-primary-line: #dfcfaa;
-  --im-secondary: #a8843e;
+  --im-primary: #245b45;
+  --im-primary-hover: #194633;
+  --im-primary-soft: #e8f1eb;
+  --im-primary-line: #c6d9cc;
+  --im-secondary: #245b45;
   --im-ink: #20211c;
   --im-muted: #73756b;
   --im-subtle: #929388;
@@ -1154,7 +1154,7 @@ p{line-height:1.55}
 small,.muted,.clean-header p{color:var(--im-muted)}
 /* One consistent focus state, including keyboard navigation. */
 :where(button,a,input,select,textarea,[tabindex]):focus-visible{
-  outline:3px solid rgba(168,132,62,.30);
+  outline:3px solid rgba(36,91,69,.28);
   outline-offset:2px;
 }
 :where(input,select,textarea){
@@ -1166,16 +1166,16 @@ small,.muted,.clean-header p{color:var(--im-muted)}
 :where(input,select,textarea)::placeholder{color:#9b9b91;opacity:1}
 :where(input,select,textarea):focus{
   border-color:var(--im-primary)!important;
-  box-shadow:0 0 0 3px rgba(168,132,62,.13)!important;
+  box-shadow:0 0 0 3px rgba(36,91,69,.14)!important;
 }
 .clean-sidebar{background:#20211c}
-.clean-sidebar nav a.active{background:rgba(168,132,62,.18);color:#f7f2e5;box-shadow:inset 3px 0 0 var(--im-primary)}
-.brand-symbol{background:linear-gradient(145deg,#ddc27e,#a8843e);color:#20211c}
+.clean-sidebar nav a.active{background:rgba(36,91,69,.22);color:#f7f2e5;box-shadow:inset 3px 0 0 var(--im-primary)}
+.brand-symbol{background:linear-gradient(145deg,#6da88a,#245b45);color:#20211c}
 .header-kicker,.label,.overline,.eyebrow{color:var(--im-primary)}
 .clean-button.primary{background:#25261f;border-color:#25261f;color:#fffdf7}
 .clean-button.primary:hover{background:#393a31;border-color:#393a31}
 .clean-button.secondary{background:var(--im-surface);border-color:var(--im-border);color:var(--im-ink)}
-.clean-button.secondary:hover{background:var(--im-primary-soft);border-color:var(--im-primary-line);color:#72551f}
+.clean-button.secondary:hover{background:var(--im-primary-soft);border-color:var(--im-primary-line);color:#194633}
 .metric-card,.clean-card,.pipeline-column,.pipeline-card,.inventory-card,.deal-card,.list-row{
   border-color:var(--im-border);
 }

@@ -44,16 +44,21 @@ export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
 
   async function load() {
     setLoading(true);
-    const [dealResult, clientResult, propertyResult] = await Promise.all([
-      supabase.from("deals").select("id,client_id,title,stage,operation_value,expected_close_at,notes").eq("user_id", user.id).order("updated_at", { ascending: false }),
-      supabase.from("clients").select("id,name,phone").eq("user_id", user.id).order("name"),
-      supabase.from("properties").select("id,title,neighborhood,city,sale_value,status").eq("user_id", user.id).order("created_at", { ascending: false }),
-    ]);
-    if (dealResult.error || clientResult.error || propertyResult.error) setNotice("Não consegui carregar todos os dados do pipeline.");
-    setDeals((dealResult.data ?? []) as Deal[]);
-    setClients((clientResult.data ?? []) as Client[]);
-    setProperties((propertyResult.data ?? []) as Property[]);
-    setLoading(false);
+    try {
+      const [dealResult, clientResult, propertyResult] = await Promise.all([
+        supabase.from("deals").select("id,client_id,title,stage,operation_value,expected_close_at,notes").eq("user_id", user.id).order("updated_at", { ascending: false }),
+        supabase.from("clients").select("id,name,phone").eq("user_id", user.id).order("name"),
+        supabase.from("properties").select("id,title,neighborhood,city,sale_value,status").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ]);
+      if (dealResult.error || clientResult.error || propertyResult.error) setNotice("Não consegui carregar todos os dados do pipeline.");
+      setDeals((dealResult.data ?? []) as Deal[]);
+      setClients((clientResult.data ?? []) as Client[]);
+      setProperties((propertyResult.data ?? []) as Property[]);
+    } catch {
+      setNotice("Ocorreu um erro inesperado ao carregar o pipeline. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function loadJourney(deal: Deal) {

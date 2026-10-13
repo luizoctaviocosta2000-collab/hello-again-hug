@@ -34,4 +34,3 @@ function ImoveisRoute() {
   return <ImobfyImoveisCore user={user} />;
 }
 
-import "../imobfy-premium-system.css";

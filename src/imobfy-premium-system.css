@@ -1347,41 +1347,58 @@ small,.muted,.clean-header p{color:var(--im-muted)}
 .imobfy-sidebar .clean-brand.imobfy-brand{
   display:flex;
   align-items:center;
-  gap:11px;
+  gap:10px;
   padding:0 9px 29px;
+  min-height:62px;
 }
-.imobfy-brand .brand-symbol{
-  display:grid;
-  place-items:center;
-  flex:0 0 42px;
-  width:42px;
-  height:42px;
-  border-radius:13px;
-  background:#e9f0e8;
-  color:#245b45;
-  box-shadow:0 5px 16px rgba(0,0,0,.16),inset 0 0 0 1px rgba(36,91,69,.08);
+.imobfy-brand .imobfy-logo-image{
+  display:block;
+  width:min(100%,205px);
+  height:auto;
+  max-height:62px;
+  object-fit:contain;
+  object-position:left center;
+  flex:0 1 auto;
 }
-.imobfy-brand .brand-symbol svg{display:block;width:31px;height:31px}
-.imobfy-brand-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
-.imobfy-brand-copy strong{
-  color:#f6f4ee;
-  font-family:Manrope,Inter,ui-sans-serif,system-ui,sans-serif;
-  font-size:20px;
-  font-weight:850;
-  line-height:1;
-  letter-spacing:-.065em;
-}
-.imobfy-brand-copy strong span{color:#8db8a0}
-.imobfy-brand-copy>span{
-  color:rgba(246,244,238,.66);
-  font-size:6px;
-  font-weight:750;
-  line-height:1.55;
-  letter-spacing:.105em;
-  white-space:normal;
-  max-width:170px;
-}
-.imobfy-brand .mobile-close{margin-left:auto}
+.imobfy-brand .mobile-close{margin-left:auto;flex:0 0 auto}
 @media(max-width:900px){
   .imobfy-sidebar .clean-brand.imobfy-brand{padding-bottom:27px}
+  .imobfy-brand .imobfy-logo-image{width:min(100%,195px)}
+}
+
+/* Dashboard visual refinement — consistent editorial hierarchy and spacing. */
+.dashboard-core { gap: 22px; }
+.dashboard-core > .module-actions { align-items: flex-end; gap: 20px; margin-bottom: 2px; }
+.dashboard-core > .module-actions h2 { font-size: clamp(27px, 3vw, 36px); line-height: 1.12; letter-spacing: -.055em; }
+.dashboard-core > .module-actions p { margin-top: 8px; font-size: 13px; line-height: 1.6; }
+.dashboard-core > .module-actions .clean-button { min-height: 44px; border-radius: 12px; }
+.dashboard-core .metrics-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 15px; }
+.dashboard-core .metric-card { min-height: 142px; padding: 21px 22px; border-radius: 18px; box-shadow: 0 2px 8px rgba(26,42,32,.025); }
+.dashboard-core .metric-card:hover { transform: translateY(-2px); }
+.dashboard-core .metric-card > span { color: #657269; font-size: 12px; font-weight: 600; }
+.dashboard-core .metric-card > strong { color: #1e3328; font-size: clamp(20px, 2vw, 28px); letter-spacing: -.045em; }
+.dashboard-core .metric-card > small { color: #7a877e; font-size: 11px; }
+.dashboard-core .clean-card { border-radius: 18px; padding: 23px; box-shadow: 0 2px 8px rgba(26,42,32,.025); }
+.dashboard-core .card-title h3 { font-size: 17px; letter-spacing: -.035em; }
+.dashboard-core .dashboard-attention-grid { gap: 10px; }
+.dashboard-core .dashboard-attention-item { border-radius: 13px; padding: 15px 16px; background: #f7f9f6; border: 1px solid #e7ece7; }
+.dashboard-core .dashboard-attention-item > svg:first-child { color: #245b45; }
+.dashboard-core .dashboard-attention-item strong { font-size: 12px; }
+.dashboard-core .dashboard-attention-item span { font-size: 11px; line-height: 1.55; }
+.dashboard-core .dashboard-bars { padding-left: 8px; padding-right: 8px; }
+.dashboard-core .bar-track { background: #edf2ed; }
+.dashboard-core .bar-track i { background: #245b45; }
+.dashboard-core .goal-progress { height: 9px; border-radius: 99px; background: #e8eee8; overflow: hidden; }
+.dashboard-core .goal-progress i { background: #245b45; border-radius: inherit; }
+@media(max-width:1000px) {
+ .dashboard-core .metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:600px) {
+ .dashboard-core { gap: 16px; }
+ .dashboard-core > .module-actions { align-items: stretch; flex-direction: column; }
+ .dashboard-core > .module-actions h2 { font-size: 29px; }
+ .dashboard-core .metrics-grid { gap: 10px; }
+ .dashboard-core .metric-card { min-height: 126px; padding: 16px 14px; }
+ .dashboard-core .clean-card { padding: 17px; }
+ .dashboard-core .dashboard-attention-item { padding: 13px; }
 }

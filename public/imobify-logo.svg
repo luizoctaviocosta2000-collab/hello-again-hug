@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="150" viewBox="0 0 520 150" role="img" aria-labelledby="title desc">
+  <title id="title">IMOBIFY</title>
+  <desc id="desc">Identidade visual IMOBIFY em verde-floresta, creme e grafite.</desc>
+  <g transform="translate(8 8)">
+    <rect x="0" y="0" width="134" height="134" rx="28" fill="#214E3B"/>
+    <path d="M31 62 67 32 103 62" fill="none" stroke="#F4F0E5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M42 59V101H92V59" fill="none" stroke="#F4F0E5" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M59 101V77H75V101" fill="none" stroke="#D6B982" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M27 111H107" fill="none" stroke="#D6B982" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g fill="#214E3B">
+    <text x="164" y="81" font-family="Inter, Montserrat, Arial, sans-serif" font-size="57" font-weight="800" letter-spacing="1.1">IMOBIFY</text>
+  </g>
+  <text x="167" y="112" fill="#59645D" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="2.4">GESTÃO IMOBILIÁRIA</text>
+</svg>

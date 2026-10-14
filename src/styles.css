@@ -784,7 +784,7 @@
 .clients-module .clients-directory-head b { font-size: 15px; }
 .clients-module .clients-directory-head > div > span:last-child { color: #999b91; font-size: 9px; }
 .clients-module .clients-directory-mark { display: grid; place-items: center; width: 37px; height: 37px; border: 1px solid #dfe5d9; border-radius: 11px; color: #53724a; background: #f0f4ec; }
-.clients-module .clients-directory .filter-bar { gap: 10px; }
+.clients-module > .filter-bar { gap: 10px; }
 .clients-module .clients-empty { position: relative; display: flex; flex-direction: column; align-items: center; padding: 30px 20px 24px; text-align: center; overflow: hidden; border: 1px dashed #d8dfd1; border-radius: 14px; background: radial-gradient(circle at 50% 0%, rgba(115,145,99,.09), transparent 43%), #fcfcf8; }
 .clients-module .clients-empty-art { position: relative; display: grid; place-items: center; width: 84px; height: 76px; margin-bottom: 17px; }
 .clients-module .clients-empty-art > span { z-index: 1; display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid #d5dfce; border-radius: 17px; color: #4b6e43; background: linear-gradient(145deg,#f7faf3,#e7eee1); box-shadow: 0 8px 20px rgba(54,83,46,.09); }
@@ -814,12 +814,12 @@
 .clients-module .client-actions .icon-btn:hover { color: #42633b; border-color: #d2ddca; background: #f0f4ec; }
 .clients-module .client-actions .danger-icon { width: 31px; height: 31px; border: 1px solid transparent; }
 .clients-module .client-actions .danger-icon:hover { border-color: #f0d8d2; }
-.clients-module .clients-directory .filter-bar { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(135px, .7fr) minmax(135px, .7fr); }
+.clients-module > .filter-bar { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(135px, .7fr) minmax(135px, .7fr); }
 @media (max-width: 900px) {
   .clients-module .clients-intro { grid-template-columns: 1fr; gap: 17px; }
   .clients-module .clients-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .clients-module .clients-directory .filter-bar { grid-template-columns: 1fr 1fr; }
-  .clients-module .clients-directory .filter-bar .search { grid-column: 1 / -1; width: 100%; }
+  .clients-module > .filter-bar { grid-template-columns: 1fr 1fr; }
+  .clients-module > .filter-bar .search { grid-column: 1 / -1; width: 100%; }
 }
 @media (max-width: 640px) {
   .clients-module .clients-intro { padding: 18px 16px; }
@@ -832,8 +832,8 @@
   .clients-module .clients-metrics .metric strong { font-size: 22px; }
   .clients-module .clients-metric-note { line-height: 1.4; }
   .clients-module .clients-directory { padding: 14px; }
-  .clients-module .clients-directory .filter-bar { grid-template-columns: 1fr; }
-  .clients-module .clients-directory .filter-bar .search { grid-column: auto; }
+  .clients-module > .filter-bar { grid-template-columns: 1fr; }
+  .clients-module > .filter-bar .search { grid-column: auto; }
   .clients-module .clients-empty { padding: 25px 14px 21px; }
   .clients-module .client-row { display: grid; grid-template-columns: 39px minmax(0,1fr); gap: 10px; }
   .clients-module .client-main { min-width: 0; }

@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "IMOBIFY — Gestão imobiliária",
+  "name": "IMOBIFY — Gestão inteligente para grandes conquistas",
   "short_name": "IMOBIFY",
-  "description": "Gestão imobiliária simples, elegante e orientada a resultado.",
+  "description": "Gestão inteligente para grandes conquistas.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#F4F0E5",
-  "theme_color": "#214E3B",
+  "background_color": "#F7F6EF",
+  "theme_color": "#0F3F32",
   "icons": [
     {
       "src": "/imobify-icon.svg",

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Mail, Pencil, Phone, Plus, Search, Trash2, UserRound, X } from "lucide-react";
+import { ArrowRight, Building2, CalendarClock, Mail, Pencil, Phone, Plus, Search, Target, Trash2, UserRound, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   CLIENT_PROFILE_LABELS,
@@ -152,7 +152,7 @@ export default function ClientsModule() {
   };
 
   return (
-    <section className="module">
+    <section className="module clients-module">
       <div className="toolbar">
         <div>
           <div className="overline">CRM</div>
@@ -165,18 +165,41 @@ export default function ClientsModule() {
         </button>
       </div>
 
-      <div className="metrics three">
+      <div className="clients-intro">
+        <div className="clients-intro-copy">
+          <span className="clients-intro-kicker"><Target size={13} /> RELACIONAMENTO COMERCIAL</span>
+          <h3>Da primeira conversa ao fechamento.</h3>
+          <p>Organize sua carteira, entenda o que cada pessoa procura e mantenha o próximo passo sempre à vista.</p>
+        </div>
+        <div className="clients-intro-steps" aria-label="Etapas do relacionamento">
+          <div><span className="clients-step-icon"><Users size={15} /></span><span><b>Conhecer</b><small>Registre o contato</small></span></div>
+          <ArrowRight className="clients-step-arrow" size={15} />
+          <div><span className="clients-step-icon"><Building2 size={15} /></span><span><b>Conectar</b><small>Encontre o imóvel</small></span></div>
+          <ArrowRight className="clients-step-arrow" size={15} />
+          <div><span className="clients-step-icon"><CalendarClock size={15} /></span><span><b>Avançar</b><small>Defina o retorno</small></span></div>
+        </div>
+      </div>
+
+      <div className="metrics clients-metrics">
         <div className="metric">
-          <div className="metric-top"><span>Leads</span></div>
-          <strong>{counts.lead}</strong>
+          <div className="metric-top"><span>Total na carteira</span><span className="clients-metric-icon"><Users size={16} /></span></div>
+          <strong>{clients.length}</strong>
+          <small className="clients-metric-note">Contatos registrados</small>
         </div>
         <div className="metric">
-          <div className="metric-top"><span>Em atendimento</span></div>
+          <div className="metric-top"><span>Novos leads</span><span className="clients-metric-icon"><Target size={16} /></span></div>
+          <strong>{counts.lead}</strong>
+          <small className="clients-metric-note">Primeiro atendimento</small>
+        </div>
+        <div className="metric">
+          <div className="metric-top"><span>Em atendimento</span><span className="clients-metric-icon"><CalendarClock size={16} /></span></div>
           <strong>{counts.active}</strong>
+          <small className="clients-metric-note">Qualificados ou ativos</small>
         </div>
         <div className="metric accent">
-          <div className="metric-top"><span>Convertidos</span></div>
+          <div className="metric-top"><span>Convertidos</span><span className="clients-metric-icon"><ArrowRight size={16} /></span></div>
           <strong>{counts.converted}</strong>
+          <small className="clients-metric-note">Relacionamentos concluídos</small>
         </div>
       </div>
 
@@ -204,18 +227,27 @@ export default function ClientsModule() {
         </select>
       </div>
 
-      <div className="card">
-        <div className="card-head">
+      <div className="card clients-directory">
+        <div className="card-head clients-directory-head">
           <div>
+            <span className="overline">BASE DE RELACIONAMENTO</span>
             <b>Minha carteira</b>
-            <span>{filtered.length} {filtered.length === 1 ? "contato" : "contatos"}</span>
+            <span>{filtered.length} {filtered.length === 1 ? "contato" : "contatos"} {query || profileFilter || statusFilter ? "encontrados" : "no total"}</span>
           </div>
+          <span className="clients-directory-mark"><Users size={18} /></span>
         </div>
         {filtered.length === 0 ? (
-          <div className="empty">
-            <div className="empty-icon"><UserRound size={17} /></div>
-            <b>{clients.length ? "Nenhum cliente para esse filtro" : "Nenhum cliente ainda"}</b>
-            <span>{clients.length ? "Ajuste a busca ou os filtros." : "Comece sua carteira e conecte clientes aos seus negócios."}</span>
+          <div className="clients-empty">
+            <div className="clients-empty-art"><span><Users size={27} /></span><i /><i /><i /></div>
+            <span className="clients-empty-kicker">{clients.length ? "BUSCA SEM RESULTADOS" : "SEU CRM COMEÇA AQUI"}</span>
+            <b>{clients.length ? "Não encontramos esse cliente." : "Sua próxima venda começa com um bom relacionamento."}</b>
+            <p>{clients.length ? "Tente outro nome, bairro ou ajuste os filtros para ver sua carteira." : "Cadastre quem está procurando um imóvel, registre as preferências e transforme cada contato em uma oportunidade acompanhada."}</p>
+            {clients.length ? (
+              <button className="outline" onClick={() => { setQuery(""); setProfileFilter(""); setStatusFilter(""); }}>Limpar filtros</button>
+            ) : (
+              <button className="primary clients-empty-cta" onClick={startNew}><Plus size={17} /> Cadastrar primeiro cliente</button>
+            )}
+            {!clients.length && <small>Nome, contato, perfil de busca e orçamento em um só lugar.</small>}
           </div>
         ) : (
           <div className="client-list">
@@ -224,9 +256,14 @@ export default function ClientsModule() {
                 <div className="client-avatar"><UserRound size={17} /></div>
                 <div className="client-main">
                   <b>{client.name}</b>
-                  <span>
+                  <span className="client-description">
                     {CLIENT_PROFILE_LABELS[client.profile]}
                     {client.neighborhoods?.length ? ` · ${client.neighborhoods.join(", ")}` : ""}
+                  </span>
+                  <span className="client-contact-line">
+                    {client.phone && <span><Phone size={11} /> {client.phone}</span>}
+                    {client.email && <span><Mail size={11} /> {client.email}</span>}
+                    {client.bedrooms ? <span>{client.bedrooms}+ quartos</span> : null}
                   </span>
                 </div>
                 <div className="client-meta">

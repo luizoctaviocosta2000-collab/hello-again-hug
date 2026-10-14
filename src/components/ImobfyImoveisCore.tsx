@@ -164,7 +164,8 @@ import { type ImobfyUser } from "../lib/imobfy-session";
     </div>
 
      
-\n    <Actions close={()=>setShowForm(false)} save={save} busy={busy}/>
+
+    <Actions close={()=>setShowForm(false)} save={save} busy={busy}/>
    </Modal>}
    {showPhotoManager&&photoProperty&&<Modal title={`Fotos · ${photoProperty.title}`} close={()=>setShowPhotoManager(false)} wide>
     <div className="property-form-intro">Envie e organize as fotos em uma etapa separada. As informações do imóvel já estão salvas.</div>

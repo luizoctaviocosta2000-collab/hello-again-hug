@@ -672,3 +672,35 @@
   .imoveis-core .field-span-2 { grid-column: auto; }
   .imoveis-core .mvp-actions .clean-button { flex: 1; }
 }
+
+
+/* Dashboard polish: calmer surfaces, clearer focus, and compact-screen safety. */
+.imobfy-app-shell .imobfy-main .metric,
+.imobfy-app-shell .imobfy-main .analytics-card,
+.imobfy-app-shell .imobfy-main .goal-card,
+.imobfy-app-shell .imobfy-main .recent {
+  border-radius: 15px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.imobfy-app-shell .imobfy-main .metric:hover {
+  border-color: #d2c7aa;
+  box-shadow: 0 12px 30px rgba(42,42,31,.065);
+}
+.imobfy-app-shell .imobfy-main input:focus-visible,
+.imobfy-app-shell .imobfy-main select:focus-visible,
+.imobfy-app-shell .imobfy-main textarea:focus-visible {
+  outline: 2px solid #b39450;
+  outline-offset: 2px;
+}
+.imobfy-app-shell .imobfy-main button,
+.imobfy-app-shell .imobfy-main a { -webkit-tap-highlight-color: transparent; }
+@media (max-width: 640px) {
+  .imobfy-app-shell .imobfy-main .metric { min-width: 0; }
+  .imobfy-app-shell .imobfy-main .card-head { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .imobfy-app-shell .imobfy-main .metric,
+  .imobfy-app-shell .imobfy-main .analytics-card,
+  .imobfy-app-shell .imobfy-main .goal-card,
+  .imobfy-app-shell .imobfy-main .recent { transition: none; }
+}

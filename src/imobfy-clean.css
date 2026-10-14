@@ -10,3 +10,57 @@
 /* IMOBFY MOBILE MENU — top-left */
 .imobfy-mobile-menu{display:none}
 @media(max-width:900px){.imobfy-header{position:relative;padding:22px 20px 22px 68px;min-height:108px}.imobfy-mobile-menu{display:grid;position:absolute;left:20px;top:22px;width:38px;height:38px;z-index:2}.imobfy-header-copy{min-width:0}.imobfy-header h1{margin-top:9px}.imobfy-header .header-actions{margin-left:auto}.imobfy-header .header-avatar{display:none}}
+
+
+/* IMOBIFY official identity — authentication screen refinement */
+.auth-page{background:#F7F6EF!important;grid-template-columns:minmax(0,1.08fr) minmax(460px,.92fr)!important}
+.auth-brand-panel{
+  background:radial-gradient(ellipse at 78% 22%,rgba(167,184,159,.12),transparent 32%),linear-gradient(145deg,#153F32 0%,#0F3027 58%,#10271F 100%)!important;
+  padding:42px clamp(34px,7vw,104px) 30px!important;
+}
+.auth-brand-panel:after{border-color:rgba(167,184,159,.18)!important;box-shadow:0 0 0 55px rgba(167,184,159,.035),0 0 0 110px rgba(167,184,159,.02)!important}
+.auth-brand{min-height:58px!important}
+.auth-brand img{display:block;width:min(100%,300px);height:auto;max-height:82px;object-fit:contain;object-position:left center}
+.auth-pitch{padding:46px 0!important;max-width:590px!important}
+.auth-pitch .label,.auth-heading .label{color:#A7B89F!important}
+.auth-pitch h1{color:#F7F6EF!important;font-size:clamp(44px,4.8vw,68px)!important;line-height:1.01!important;letter-spacing:-.065em!important}
+.auth-pitch h1 em{color:#A7D8BD!important}
+.auth-pitch p{color:rgba(247,246,239,.78)!important;font-size:14px!important;max-width:490px!important}
+.auth-points span{color:#F7F6EF!important;font-size:12px!important}
+.auth-points svg{color:#D6B982!important}
+.auth-legal{color:rgba(247,246,239,.48)!important;font-size:9px!important}
+.auth-form-panel{background:#F7F6EF!important;padding:40px clamp(28px,6vw,88px)!important}
+.auth-form-wrap{width:min(410px,100%)!important}
+.auth-heading{margin-bottom:32px!important}
+.auth-heading .label{font-size:9px!important}
+.auth-heading h2{color:#202B25!important;font-size:clamp(30px,2.6vw,38px)!important;letter-spacing:-.055em!important}
+.auth-heading p{color:#6D776F!important;font-size:12px!important}
+.auth-form-wrap label{color:#26372E!important;font-size:11px!important;font-weight:750!important}
+.auth-form-wrap input{height:49px!important;border-color:#D8DED7!important;border-radius:11px!important;color:#202B25!important;font-size:13px!important;background:#fff!important}
+.auth-form-wrap input:focus{border-color:#0F3F32!important;box-shadow:0 0 0 4px rgba(15,63,50,.10)!important}
+.password-field button:hover{background:#EDF2ED!important;color:#0F3F32!important}
+.auth-submit{height:50px!important;border-radius:11px!important;border-color:#0F3F32!important;background:#0F3F32!important;color:#F7F6EF!important;font-size:12px!important;box-shadow:0 10px 24px rgba(15,63,50,.16)!important}
+.auth-submit:hover{background:#194F3F!important;border-color:#194F3F!important;box-shadow:0 14px 30px rgba(15,63,50,.20)!important}
+.auth-submit:disabled{opacity:.68!important;cursor:wait!important}
+.auth-switch{font-size:11px!important;color:#737E75!important}
+.auth-switch button{color:#0F3F32!important}
+.auth-switch button:hover{text-decoration:underline!important}
+.auth-form-wrap:after{color:#879188!important;font-size:9px!important}
+.auth-feedback{border-radius:11px!important;padding:12px 14px!important;font-size:12px!important;line-height:1.5!important}
+.auth-mobile-brand{align-items:center!important;gap:12px!important}
+.auth-mobile-brand img{display:block;width:44px;height:44px;object-fit:contain;border-radius:12px}
+.auth-mobile-brand strong{display:block;color:#0F3F32;font-size:20px!important;letter-spacing:.04em!important}
+.auth-mobile-brand span{display:block;color:#647168;font-size:7px;letter-spacing:.1em;line-height:1.5;margin-top:4px;max-width:220px}
+@media(max-width:900px){
+ .auth-page{grid-template-columns:1fr!important}
+ .auth-form-panel{background:#F7F6EF!important;padding:28px 24px!important}
+ .auth-mobile-brand{display:flex!important;margin-bottom:46px!important}
+ .auth-form-wrap{max-width:420px!important}
+}
+@media(max-width:560px){
+ .auth-form-panel{padding:22px 20px!important}
+ .auth-mobile-brand{margin-bottom:38px!important}
+ .auth-heading{margin-bottom:25px!important}
+ .auth-heading h2{font-size:30px!important}
+ .auth-form-wrap form{gap:16px!important}
+}

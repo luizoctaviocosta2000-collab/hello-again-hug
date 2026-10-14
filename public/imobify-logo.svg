@@ -1,15 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="150" viewBox="0 0 520 150" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="150" viewBox="0 0 560 150" role="img" aria-labelledby="title desc">
   <title id="title">IMOBIFY</title>
-  <desc id="desc">Identidade visual IMOBIFY em verde-floresta, creme e grafite.</desc>
-  <g transform="translate(8 8)">
-    <rect x="0" y="0" width="134" height="134" rx="28" fill="#214E3B"/>
-    <path d="M31 62 67 32 103 62" fill="none" stroke="#F4F0E5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M42 59V101H92V59" fill="none" stroke="#F4F0E5" stroke-width="7" stroke-linejoin="round"/>
-    <path d="M59 101V77H75V101" fill="none" stroke="#D6B982" stroke-width="6" stroke-linejoin="round"/>
-    <path d="M27 111H107" fill="none" stroke="#D6B982" stroke-width="4" stroke-linecap="round"/>
+  <desc id="desc">Símbolo geométrico oficial do IMOBIFY e slogan Gestão inteligente para grandes conquistas.</desc>
+  <g transform="translate(8 10)">
+    <path d="M8 58 30 43 30 103 8 118Z" fill="#F7F6EF"/>
+    <path d="M36 39 58 23 58 111 36 127Z" fill="#F7F6EF"/>
+    <path d="M64 22 86 38 86 126 64 110Z" fill="#A7B89F"/>
+    <path d="M92 43 114 59 114 119 92 103Z" fill="#F7F6EF"/>
   </g>
-  <g fill="#214E3B">
-    <text x="164" y="81" font-family="Inter, Montserrat, Arial, sans-serif" font-size="57" font-weight="800" letter-spacing="1.1">IMOBIFY</text>
-  </g>
-  <text x="167" y="112" fill="#59645D" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="2.4">GESTÃO IMOBILIÁRIA</text>
+  <text x="150" y="73" fill="#F7F6EF" font-family="Montserrat, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="1.1">IMOBIFY</text>
+  <text x="153" y="104" fill="#F7F6EF" font-family="Montserrat, Arial, sans-serif" font-size="12.5" font-weight="600" letter-spacing="2.05">GESTÃO INTELIGENTE PARA</text>
+  <text x="153" y="125" fill="#F7F6EF" font-family="Montserrat, Arial, sans-serif" font-size="12.5" font-weight="600" letter-spacing="2.05">GRANDES CONQUISTAS</text>
 </svg>

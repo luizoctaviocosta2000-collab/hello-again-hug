@@ -187,6 +187,7 @@ import { type ImobfyUser } from "../lib/imobfy-session";
    </Modal>}
    {showPhotoManager&&photoProperty&&<Modal title={`Fotos · ${photoProperty.title}`} close={()=>setShowPhotoManager(false)} wide>
     <div className="property-form-intro">Envie e organize as fotos em uma etapa separada. As informações do imóvel já estão salvas.</div>
+    {notice&&<div className="notice" role="status" aria-live="polite" style={{margin:"12px 0"}}><strong>Imobfy:</strong> {notice}</div>}
 <section className="property-form-section">
       <div className="property-section-heading"><span>06</span><div><h3>Fotos do imóvel</h3><p>Adicione imagens e use a IA para classificar os ambientes.</p></div></div>
       <div style={{display:"flex",flexWrap:"wrap",gap:10,alignItems:"center",marginBottom:12}}>

@@ -920,3 +920,48 @@
 .share-link-deactivate{display:inline-flex;align-items:center;gap:6px;margin-top:17px;border:0;background:transparent;color:#9b5146;font-size:11px;cursor:pointer;padding:4px 0}
 .share-link-deactivate:disabled{opacity:.5;cursor:wait}
 @media(max-width:560px){.share-link-actions{display:grid;grid-template-columns:1fr}.share-link-actions button{justify-content:center}}
+
+
+/* IMOBIFY public property page — premium presentation refresh */
+.public-property{min-height:100vh;background:#f7f5ee;color:#172a20;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+.public-property .share-topbar{height:82px;padding:0 clamp(20px,5vw,76px);background:#102b20;border-bottom:1px solid #ffffff17;color:#f7f3e8}
+.public-property .share-brand{color:#f5eddb;letter-spacing:.16em;font-size:15px}
+.public-property .share-brand-mark{width:42px;height:42px;border-radius:50%;border:1px solid #c4a66b;background:transparent;color:#d9bd80}
+.public-property .share-brand small{color:#c5bda9;letter-spacing:.2em;font-size:8px}
+.public-property .share-secure{color:#d8d9ca;font-size:12px}
+.public-property .share-hero{max-width:1440px;padding:34px clamp(20px,4.3vw,64px) 48px;grid-template-columns:minmax(0,1.25fr) minmax(320px,.78fr);gap:clamp(28px,4vw,60px);align-items:center}
+.public-property .share-gallery{order:1;display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:10px;padding:0;align-items:stretch}
+.public-property .share-cover,.public-property .share-no-photo{height:clamp(360px,39vw,540px);border-radius:5px;box-shadow:none}
+.public-property .share-cover{grid-column:1;grid-row:1;object-fit:cover;background:#e4e0d4}
+.public-property .share-no-photo{grid-column:1;grid-row:1}
+.public-property .share-thumbnails{grid-column:2;grid-row:1;display:flex;flex-direction:column;gap:10px;padding:0;overflow-y:auto;overflow-x:hidden;max-height:clamp(360px,39vw,540px)}
+.public-property .share-thumbnails button{flex:0 0 94px;width:100%;height:94px;border:2px solid transparent;border-radius:4px;transition:border-color .2s,opacity .2s}
+.public-property .share-thumbnails button:hover{opacity:.86}
+.public-property .share-thumbnails button.active{border-color:#b89a5b}
+.public-property .share-photo-count{top:14px;left:14px;right:auto;background:#102b20e8;padding:8px 12px;border-radius:3px;font-size:11px;letter-spacing:.04em}
+.public-property .share-hero-copy{order:2;padding:8px 0 8px 4px}
+.public-property .share-eyebrow{font-size:10px;letter-spacing:.21em;color:#a4864d}
+.public-property .share-hero h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(35px,3.4vw,51px);line-height:1.07;letter-spacing:-.035em;color:#14281e;margin:17px 0 19px}
+.public-property .share-location{color:#687367;font-size:14px;margin-bottom:28px;gap:9px}
+.public-property .share-location svg{color:#a4864d}
+.public-property .share-price{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,3vw,40px);letter-spacing:-.025em;color:#1e4935;margin:0 0 16px}
+.public-property .share-hero-note{font-size:14px;line-height:1.8;color:#70786d;margin:0 0 26px}
+.public-property .share-cta{min-height:52px;border-radius:4px;padding:15px 22px;background:#143c2b;border-color:#143c2b;font-size:13px;letter-spacing:.01em;box-shadow:0 7px 18px #183b2a12}
+.public-property .share-cta:hover{background:#0e2d20;transform:translateY(-2px);box-shadow:0 12px 24px #183b2a20}
+.public-property .share-details{background:#fff;padding:64px clamp(20px,5vw,76px) 70px;border-top:1px solid #e9e5d9}
+.public-property .share-section-heading{text-align:left;margin:0 auto 28px;max-width:1160px}
+.public-property .share-section-heading>span{font-size:10px;letter-spacing:.2em;color:#a4864d}
+.public-property .share-section-heading h2,.public-property .share-bottom-card h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;color:#193729;font-size:clamp(29px,3vw,38px);line-height:1.14}
+.public-property .share-section-heading p,.public-property .share-bottom-card p{color:#72786f;line-height:1.8}
+.public-property .share-specs{max-width:1160px;margin:0 auto 54px;border:0;border-top:1px solid #e7e4da;border-bottom:1px solid #e7e4da;border-radius:0}
+.public-property .share-specs>div{min-height:116px;border-right:1px solid #e7e4da;gap:8px}
+.public-property .share-specs svg{color:#a4864d;width:23px;height:23px}
+.public-property .share-specs strong{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:27px;color:#193729}
+.public-property .share-specs span{font-size:12px;color:#767c72}
+.public-property .share-bottom-card{max-width:1160px;background:#f4f2e9;border:1px solid #e5e0d2;border-radius:5px;padding:34px 38px}
+.public-property .share-bottom-card h2{font-size:clamp(26px,3vw,34px)}
+.public-property .share-footer{max-width:none;padding:28px clamp(20px,5vw,76px);background:#102b20;color:#c2c6b8;font-size:11px}
+.public-property .share-footer span:first-child{color:#d9bd80;letter-spacing:.2em}
+.public-property .share-state{background:#f7f5ee}
+@media(max-width:900px){.public-property .share-hero{grid-template-columns:1fr;gap:30px}.public-property .share-gallery{order:1;grid-template-columns:minmax(0,1fr) 92px}.public-property .share-hero-copy{order:2;padding:0}.public-property .share-cover,.public-property .share-no-photo,.public-property .share-thumbnails{height:clamp(300px,60vw,460px);max-height:460px}.public-property .share-thumbnails button{flex-basis:78px;height:78px}}
+@media(max-width:560px){.public-property .share-topbar{height:70px;padding:0 16px}.public-property .share-brand{font-size:13px}.public-property .share-brand-mark{width:36px;height:36px}.public-property .share-hero{padding:24px 16px 32px;gap:24px}.public-property .share-gallery{grid-template-columns:minmax(0,1fr) 68px;gap:7px}.public-property .share-cover,.public-property .share-no-photo{height:300px}.public-property .share-thumbnails{height:300px;max-height:300px;gap:7px}.public-property .share-thumbnails button{flex-basis:68px;height:68px}.public-property .share-hero h1{font-size:36px}.public-property .share-details{padding:38px 16px 44px}.public-property .share-section-heading{margin-bottom:22px}.public-property .share-specs{margin-bottom:32px}.public-property .share-specs>div{min-height:108px}.public-property .share-bottom-card{padding:24px 20px;gap:18px}.public-property .share-footer{padding:22px 16px}}

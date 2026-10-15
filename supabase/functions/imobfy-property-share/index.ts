@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
     const { data: property, error: propertyError } = await admin.from("properties")
       .select("id,title,property_type,bedrooms,bathrooms,parking_spaces,area_m2,asking_price,sale_value,status,neighborhood,city,state")
       .eq("id", link.property_id).maybeSingle();
-    if (propertyError || !property || !["active", "ativo", "reserved", "reservado"].includes(String(property.status).toLowerCase())) {
+    if (propertyError || !property || !["ativo", "active", "reservado", "reserved"].includes(String(property.status).toLowerCase())) {
       return respond({ error: "Este imóvel não está disponível no momento." }, 404);
     }
 

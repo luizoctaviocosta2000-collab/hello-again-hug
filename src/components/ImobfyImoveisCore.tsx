@@ -125,6 +125,7 @@ import { type ImobfyUser } from "../lib/imobfy-session";
      {parsingAudio&&<span className="muted" role="status"><Loader2 className="spin" size={14}/> A IA está organizando as informações.</span>}
      {!isRecordingAudio&&!parsingAudio&&<span className="muted" style={{fontSize:12}}>Grave uma descrição curta em português. Você revisa tudo antes de salvar.</span>}
     </div>
+    {notice&&<div className="notice" role="status" aria-live="polite" style={{marginBottom:14}}><strong>Imobfy:</strong> {notice}</div>}
     <div className="property-form-scroll">
      <section className="property-form-section">
       <div className="property-section-heading"><span>01</span><div><h3>Identificação do imóvel</h3><p>Como o imóvel será identificado no seu inventário.</p></div></div>

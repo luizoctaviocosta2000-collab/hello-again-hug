@@ -101,6 +101,22 @@ Deno.serve(async (req: Request) => {
   const token = Array.from(tokenBytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   const { error: insertError } = await admin.from("property_share_links")
     .insert({ property_id: propertyId, user_id: authData.user.id, token, is_active: true });
-  if (insertError) return respond({ error: "Não consegui gerar o link. Tente novamente." }, 500);
+  if (insertError) {
+    // Two clicks can race to create the same property's link. If the other request won,
+    // return that link instead of leaving the UI with a silent failure.
+    const { data: raced } = await admin.from("property_share_links")
+      .select("token,is_active").eq("property_id", propertyId).eq("user_id", authData.user.id).maybeSingle();
+    if (raced?.token) {
+      if (!raced.is_active) {
+        const { error: reactivateError } = await admin.from("property_share_links")
+          .update({ is_active: true, updated_at: new Date().toISOString() })
+          .eq("property_id", propertyId).eq("user_id", authData.user.id);
+        if (reactivateError) return respond({ error: "Não consegui reativar o link." }, 500);
+      }
+      return respond({ ok: true, active: true, token: raced.token });
+    }
+    console.error("property share insert failed", insertError.message);
+    return respond({ error: "Não consegui gerar o link. Tente novamente." }, 500);
+  }
   return respond({ ok: true, active: true, token });
 });

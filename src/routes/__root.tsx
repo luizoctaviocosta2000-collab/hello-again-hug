@@ -43,7 +43,8 @@ function RootComponent() {
   const location = useLocation();
   const user = getSession();
   const isAuth = location.pathname === "/login" || location.pathname.startsWith("/recuperar");
-  const authenticated = Boolean(user) && !isAuth;
+  const isPublicProperty = location.pathname.startsWith("/p/");
+  const authenticated = Boolean(user) && !isAuth && !isPublicProperty;
 
   return (
     <QueryClientProvider client={queryClient}>

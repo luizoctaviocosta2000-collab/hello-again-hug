@@ -995,3 +995,11 @@
     margin-top: 3px;
   }
 }
+
+
+/* Desktop-only refinement: restore breathing room around the IMOBIFY page heading. */
+@media (min-width: 641px) {
+  .imobfy-app-shell .imobfy-header {
+    padding-inline-start: 22px;
+  }
+}

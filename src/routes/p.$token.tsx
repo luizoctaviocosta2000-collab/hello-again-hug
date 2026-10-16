@@ -34,7 +34,7 @@ function PublicPropertyPage() {
   const money = (value: number | null) => value == null ? "Consulte o valor" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
   const location = property ? [property.neighborhood, property.city, property.state].filter(Boolean).join(" · ") : "";
   const message = property ? encodeURIComponent("Olá! Tenho interesse no imóvel " + property.title + (location ? " (" + location + ")" : "") + ". Podemos conversar?") : "";
-  const whatsappDigits = property?.whatsappPhone?.replace(/\\D/g, "") || "";
+  const whatsappDigits = property?.whatsappPhone?.replace(/\D/g, "") || "";
   const whatsappNumber = whatsappDigits.length === 10 || whatsappDigits.length === 11 ? "55" + whatsappDigits : whatsappDigits;
   const whatsappUrl = whatsappNumber.length >= 12 && whatsappNumber.length <= 13
     ? "https://wa.me/" + whatsappNumber + "?text=" + message

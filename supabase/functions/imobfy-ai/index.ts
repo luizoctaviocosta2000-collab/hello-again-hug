@@ -27,14 +27,14 @@ if(intent==="finance"){
  context={vgv_summary:v.data||{}};
 }else if(intent==="clients"){
  const [clients,deals,activities]=await Promise.all([
-   pick("clients","id,name,email,phone,intent,budget_min,budget_max,preferred_neighborhoods,property_types,bedrooms_min,status,created_at,updated_at",300),
+   pick("clients","id,name,intent,budget_min,budget_max,preferred_neighborhoods,property_types,bedrooms_min,status,created_at,updated_at",300),
    pick("deals","id,property_id,client_id,status,property_value,created_at,updated_at,closed_at,expected_close_at,title,stage,operation_value,sale_value",200),
    pick("activities","id,client_id,deal_id,property_id,activity_type,title,description,occurred_at",300)
  ]);
  context={clients,deals,activities};
 }else if(intent==="properties"){
  const [properties,captures]=await Promise.all([
-   pick("properties","id,title,address,neighborhood,city,state,property_type,bedrooms,bathrooms,parking_spaces,area_m2,sale_value,asking_price,status,owner_name,owner_phone,notes,created_at,updated_at",300),
+   pick("properties","id,title,address,neighborhood,city,state,property_type,bedrooms,bathrooms,parking_spaces,area_m2,sale_value,asking_price,status,notes,created_at,updated_at",300),
    pick("captures","id,property_id,status,captured_at,commission_pct,notes",300)
  ]);
  context={properties,captures};
@@ -51,7 +51,7 @@ if(intent==="finance"){
    pick("visits","id,deal_id,client_id,starts_at,ends_at,status,location,notes,created_at,updated_at",300),
    pick("appointments","id,title,starts_at,ends_at,status,notes,client_id,property_id,deal_id,created_at,updated_at",300),
    pick("visit_properties","id,visit_id,property_id,sequence,visited,notes",500),
-   pick("clients","id,name,phone,status",300),
+   pick("clients","id,name,status",300),
    pick("properties","id,title,neighborhood,city,property_type,asking_price,status",300)
  ]);
  context={visits,appointments,visit_properties:visitProperties,clients,properties};
@@ -92,7 +92,7 @@ if(intent==="finance"){
 let history:any[]=[];if(cid){const {data:rows,error:he}=await sb.from("ai_messages").select("role,content,created_at").eq("conversation_id",cid).eq("user_id",user.id).order("created_at",{ascending:false}).limit(20);if(he)throw he;history=rows||[];}
 const contents=(history||[]).reverse().filter((m:any)=>m.role==="user"||m.role==="assistant").map((m:any)=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
 contents.push({role:"user",parts:[{text:q}]});
-const system=`Você é o Imobfy AI, cérebro comercial de um CRM imobiliário. Responda em português do Brasil, objetiva e acionável. Ajude o corretor a CAPTAR, VENDER, RECEBER ou DECIDIR melhor. Nunca invente dados; use somente o contexto fornecido. Não exponha IDs internos. Para financeiro, VGV e comissões, trate os números recebidos como fonte determinística e não refaça cálculos com regras próprias. Se faltar dado, diga o que falta. Não diga que executou algo se apenas recomendou.
+const system=`Você é o Imobfy AI, cérebro comercial de um CRM imobiliário. Responda em português do Brasil, objetiva e acionável. Ajude o corretor a CAPTAR, VENDER, RECEBER ou DECIDIR melhor. Nunca invente dados; use somente o contexto fornecido. Não exponha IDs internos, e-mails, telefones ou dados de contato. O contexto enviado à IA deve conter apenas os dados necessários para responder à pergunta. Para financeiro, VGV e comissões, trate os números recebidos como fonte determinística e não refaça cálculos com regras próprias. Se faltar dado, diga o que falta. Não diga que executou algo se apenas recomendou.
 Intenção detectada: ${intent}. Para perguntas sobre agenda, diferencie visitas imobiliárias (tabela visits) de tarefas e compromissos pessoais/comerciais (tabela appointments). Quando existir agenda_reference, use explicitamente o horário atual e o fuso America/Sao_Paulo para interpretar hoje, amanhã e atrasos. Ordene mentalmente os compromissos pelo início; use starts_at e status originais. Só diga que algo está atrasado quando o início já passou e o status não indicar conclusão ou cancelamento. Se o status for ambíguo, explique a incerteza. Não presuma que uma tarefa foi concluída sem status correspondente.
 CONTEXTO:
 ${JSON.stringify(context)}`;

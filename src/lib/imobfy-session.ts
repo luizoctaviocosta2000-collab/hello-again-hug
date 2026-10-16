@@ -32,6 +32,23 @@ export async function restoreSession(): Promise<ImobfyUser | null> {
       ),
     ]);
 
+    if (result.error) {
+      const authError = result.error as { status?: number; name?: string; message?: string };
+      const message = authError.message || "";
+      const invalidSession =
+        authError.status === 401 ||
+        authError.name === "AuthSessionMissingError" ||
+        /session (is )?(missing|invalid|expired)|jwt expired/i.test(message);
+
+      if (invalidSession) {
+        clearSession();
+        return null;
+      }
+
+      // A temporary API/network error must not erase a valid cached session.
+      return localSession;
+    }
+
     const { data } = result;
     if (!data.user) {
       clearSession();
@@ -46,8 +63,8 @@ export async function restoreSession(): Promise<ImobfyUser | null> {
     setSession(user);
     return user;
   } catch {
-    clearSession();
-    return null;
+    // Timeouts and transport failures are not proof that the session is invalid.
+    return localSession;
   }
 }
 

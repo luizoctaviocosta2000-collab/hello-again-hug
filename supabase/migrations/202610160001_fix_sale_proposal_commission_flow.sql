@@ -22,7 +22,7 @@ begin
       order by dp.updated_at desc nulls last
       limit 1
     ));
-    sale_value := coalesce(new.sale_value, new.property_value, new.operation_value, 0);
+    sale_value := coalesce(nullif(new.sale_value, 0), nullif(new.property_value, 0), nullif(new.operation_value, 0), 0);
 
     if sale_property is null then
       raise exception 'Não é possível fechar o negócio sem imóvel vendido.';

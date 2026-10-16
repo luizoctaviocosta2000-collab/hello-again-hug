@@ -21,6 +21,7 @@ function normalizeMoney(value: string) {
 export default function ImobfyConfiguracoesCore() {
   const [user, setUser] = useState<ImobfyUser | null>(null);
   const [name, setName] = useState("");
+  const [whatsappPhone, setWhatsappPhone] = useState("");
   const [vgvGoal, setVgvGoal] = useState("");
   const [participation, setParticipation] = useState(DEFAULTS.participation);
   const [tax, setTax] = useState(DEFAULTS.tax);
@@ -45,7 +46,7 @@ export default function ImobfyConfiguracoesCore() {
 
     void supabase
       .from("profiles")
-      .select("full_name, default_commission_pct, tax_pct, participation_pct, vgv_goal")
+      .select("name, whatsapp_phone, default_commission_pct, tax_pct, participation_pct, vgv_goal")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data, error: profileError }) => {
@@ -56,7 +57,8 @@ export default function ImobfyConfiguracoesCore() {
           return;
         }
         if (data) {
-          setName(data.full_name ?? user.name ?? "");
+          setName(data.name ?? user.name ?? "");
+          setWhatsappPhone(data.whatsapp_phone ?? "");
           setBrokerage(String(data.default_commission_pct ?? DEFAULTS.brokerage));
           setTax(String(data.tax_pct ?? DEFAULTS.tax));
           setParticipation(String(data.participation_pct ?? DEFAULTS.participation));
@@ -82,7 +84,8 @@ export default function ImobfyConfiguracoesCore() {
     const { error: saveError } = await supabase
       .from("profiles")
       .update({
-        full_name: cleanName,
+        name: cleanName,
+        whatsapp_phone: whatsappPhone.replace(/\D/g, "") || null,
         default_commission_pct: cleanBrokerage,
         tax_pct: cleanTax,
         participation_pct: cleanParticipation,
@@ -108,7 +111,7 @@ export default function ImobfyConfiguracoesCore() {
   return <div className="settings-core">
     <section className="clean-card settings-hero"><span className="label">CONTA & OPERAÇÃO</span><h2>Deixe o IMOBFY trabalhar do seu jeito.</h2><p>Perfil, meta e regras comerciais em um único lugar.</p></section>
     <div className="clean-grid two settings-grid">
-      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFIL</span><h3>Identidade profissional</h3></div><UserRound size={20}/></div><label>Seu nome<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" disabled={loading}/></label><p className="settings-help">Usado para personalizar saudações e sua operação.</p></section>
+      <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFIL</span><h3>Identidade profissional</h3></div><UserRound size={20}/></div><label>Seu nome<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" disabled={loading}/></label><p className="settings-help">Usado para personalizar saudações e sua operação.</p><label>WhatsApp profissional<input type="tel" value={whatsappPhone} onChange={(e) => setWhatsappPhone(e.target.value)} placeholder="5531999999999" disabled={loading}/></label><p className="settings-help">Use código do país + DDD + número (ex.: 5531999999999). Esse número aparecerá nos links públicos dos seus imóveis.</p></section>
       <section className="clean-card settings-card"><div className="card-title"><div><span className="label">PERFORMANCE</span><h3>Meta de VGV</h3></div><Target size={20}/></div><label>Meta mensal<input type="number" min="0" value={vgvGoal} onChange={(e) => setVgvGoal(e.target.value)} placeholder="Ex.: 1500000" disabled={loading}/></label><p className="settings-help">A meta fica vinculada ao seu perfil e pode alimentar os indicadores de performance.</p></section>
       <section className="clean-card settings-card"><div className="card-title"><div><span className="label">COMISSIONAMENTO</span><h3>Regras padrão</h3></div><WalletCards size={20}/></div><div className="settings-form-grid"><label>Corretagem imobiliária (%)<input type="number" min="0" max="100" step="0.1" value={brokerage} onChange={(e) => setBrokerage(e.target.value)} disabled={loading}/></label><label>Imposto sobre corretagem (%)<input type="number" min="0" max="100" step="0.1" value={tax} onChange={(e) => setTax(e.target.value)} disabled={loading}/></label><label>Participação do corretor (%)<input type="number" min="0" max="100" step="0.1" value={participation} onChange={(e) => setParticipation(e.target.value)} disabled={loading}/></label></div><div className="settings-rule"><ShieldCheck size={16}/><span>Essas regras ficam salvas no seu perfil e são usadas no cálculo de novas vendas. Cada comissão guarda a regra aplicada no momento do fechamento.</span></div></section>
       <section className="clean-card settings-card settings-preview"><span className="label">COMO FICA</span><strong>{name || user?.name || "Seu nome"}</strong><span>Meta mensal: {vgvGoal && Number(vgvGoal) > 0 ? `R$ ${Number(vgvGoal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "não definida"}</span><span>Participação: {participation}%</span><span>Corretagem: {brokerage}% · Imposto: {tax}%</span></section>

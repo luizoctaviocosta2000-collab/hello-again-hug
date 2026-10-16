@@ -23,8 +23,10 @@ Deno.serve(async (req: Request) => {
     const token = url.searchParams.get("token")?.trim();
     if (!token || token.length < 20 || token.length > 120) return respond({ error: "Link inválido ou expirado." }, 404);
     const { data: link, error: linkError } = await admin
-      .from("property_share_links").select("property_id").eq("token", token).eq("is_active", true).maybeSingle();
+      .from("property_share_links").select("property_id,user_id").eq("token", token).eq("is_active", true).maybeSingle();
     if (linkError || !link) return respond({ error: "Este link não está disponível." }, 404);
+
+    const { data: profile } = await admin.from("profiles").select("whatsapp_phone").eq("id", link.user_id).maybeSingle();
 
     const { data: property, error: propertyError } = await admin.from("properties")
       .select("id,title,property_type,bedrooms,bathrooms,parking_spaces,area_m2,asking_price,sale_value,status,neighborhood,city,state")
@@ -51,6 +53,7 @@ Deno.serve(async (req: Request) => {
       neighborhood: property.neighborhood,
       city: property.city,
       state: property.state,
+      whatsappPhone: profile?.whatsapp_phone ?? null,
       photos: gallery.filter(Boolean),
     };
     return respond({ property: publicProperty });

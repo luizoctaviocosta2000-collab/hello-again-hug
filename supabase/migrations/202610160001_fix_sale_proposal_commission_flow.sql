@@ -170,3 +170,7 @@ begin
   return new;
 end;
 $$;
+
+-- Trigger-only functions must not be exposed as callable RPC endpoints.
+revoke all on function public.create_sale_from_closed_deal() from public, anon, authenticated;
+revoke all on function public.generate_sale_commission() from public, anon, authenticated;

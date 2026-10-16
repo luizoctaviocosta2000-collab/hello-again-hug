@@ -14,16 +14,18 @@ Deno.serve(async req=>{
  let body:any; try{body=await req.json()}catch{return out({error:"Requisição inválida."},400)}
  const images=Array.isArray(body.images)?body.images:[];
  if(!images.length||images.length>40) return out({error:"Envie de 1 a 40 fotos por vez."},400);
+ let totalImageChars=0;
  const parts:any[]=[{text:"Classifique as fotos de um imóvel residencial para um anúncio imobiliário. Para cada imagem, retorne seu índice original (index), uma categoria curta em português e uma posição sugerida. Não invente atributos do imóvel; classifique apenas o ambiente visual. Categorias permitidas: fachada, sala, cozinha, area_servico, quarto, banheiro, varanda, area_externa, garagem, condominio, planta, outros. Ordem padrão: fachada, sala, cozinha, area_servico, quarto, banheiro, varanda, area_externa, garagem, condominio, planta, outros. Se não tiver certeza, use outros. Retorne SOMENTE JSON válido no formato {\"photos\":[{\"index\":0,\"category\":\"sala\",\"order\":1}]}. Cada índice deve aparecer exatamente uma vez."}];
  for(let i=0;i<images.length;i++){
    const im=images[i]; if(typeof im.data!=="string"||typeof im.mimeType!=="string"||!/^image\/(jpeg|png|webp|avif)$/.test(im.mimeType))return out({error:"Formato de imagem não permitido."},400);
    const raw=im.data.replace(/^data:image\/[^;]+;base64,/,"");
    if(raw.length>8_000_000)return out({error:"Uma das imagens está muito grande para análise. Reduza o tamanho e tente novamente."},413);
+   totalImageChars+=raw.length; if(totalImageChars>20_000_000)return out({error:"O conjunto de fotos está muito grande. Envie menos fotos por vez."},413);
    parts.push({text:"Índice original: "+i});
    parts.push({inlineData:{mimeType:im.mimeType,data:raw}});
  }
  try{
-   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts}],generationConfig:{temperature:0,responseMimeType:"application/json"}})});
+   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{role:"user",parts}],generationConfig:{temperature:0,responseMimeType:"application/json"}})});
    const result:any=await response.json();
    if(!response.ok)return out({error:"A IA não conseguiu analisar as fotos agora. Tente novamente."},502);
    const text=(result.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("");

@@ -13,7 +13,7 @@ type Visit = { id: string; deal_id: string; starts_at: string; ends_at: string |
 
 const stages = [["novo", "Novo"], ["contato", "Contato"], ["visita", "Visita"], ["proposta", "Proposta"], ["negociacao", "Negociação"], ["fechado_ganho", "Fechado"]] as const;
 const money = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const validProposal = (status: string) => ["sent", "accepted", "aceita", "accepted_final"].includes(status);
+const validProposal = (status: string) => ["accepted", "aceita", "accepted_final"].includes(status);
 
 export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -114,6 +114,23 @@ export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
     setBusy(false);
   }
 
+  async function acceptProposal(proposalId: string) {
+    if (!selected) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("proposals")
+      .update({ status: "accepted", responded_at: new Date().toISOString() })
+      .eq("id", proposalId)
+      .eq("deal_id", selected.id)
+      .eq("user_id", user.id);
+    if (error) setNotice(error.message);
+    else {
+      setNotice("Proposta aceita. Agora ela pode ser vinculada ao fechamento.");
+      await loadJourney(selected);
+    }
+    setBusy(false);
+  }
+
   async function closeSale() {
     const amount = Number(saleAmount);
     const proposal = proposedProperties.find((item) => item.property_id === saleProperty);
@@ -145,7 +162,7 @@ export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
         <div className="journey-actions"><button className="clean-button secondary" onClick={() => setModal("visit")}><CalendarDays size={15}/> Agendar visita</button><button className="clean-button secondary" onClick={() => visitedProperties.length ? setModal("proposal") : setNotice("Registre uma visita antes de criar uma proposta.")}><Send size={15}/> Registrar proposta</button><button className="clean-button primary" onClick={() => proposedProperties.length ? setModal("sale") : setNotice("Registre uma proposta antes de fechar a venda.")}><Check size={15}/> Fechar venda</button></div>
         <div className="journey-stage">{stages.map(([key, label]) => <button key={key} className={selected.stage === key ? "current" : ""} onClick={() => void moveStage(key)}>{label}</button>)}</div>
         <div className="journey-sections"><article className="clean-card"><div className="card-title"><div><span className="label">IMÓVEIS DA JORNADA</span><h3>{dealProperties.length} imóveis</h3></div><Home size={17}/></div>{dealProperties.length ? dealProperties.map((item) => { const property = propertyMap.get(item.property_id); return <div className="journey-row" key={item.id}><div><strong>{property?.title ?? "Imóvel"}</strong><small>{property?.neighborhood ?? ""}{property?.sale_value ? ` · ${money(property.sale_value)}` : ""}</small></div><em>{item.sold ? "Vendido" : item.proposal_made ? "Com proposta" : item.visit_status === "visited" ? "Visitado" : "Agendado"}</em></div>; }) : <div className="empty"><span>Nenhum imóvel vinculado.</span></div>}</article>
-          <article className="clean-card"><div className="card-title"><div><span className="label">PROPOSTAS</span><h3>{proposals.length} propostas</h3></div><Send size={17}/></div>{proposals.length ? proposals.map((proposal) => <div className="journey-row" key={proposal.id}><div><strong>{propertyMap.get(proposal.property_id)?.title ?? "Imóvel"}</strong><small>{money(proposal.amount)} · {new Date(proposal.proposed_at).toLocaleDateString("pt-BR")}</small></div><em>{proposal.status}</em></div>) : <div className="empty"><span>As propostas aparecerão aqui.</span></div>}</article>
+          <article className="clean-card"><div className="card-title"><div><span className="label">PROPOSTAS</span><h3>{proposals.length} propostas</h3></div><Send size={17}/></div>{proposals.length ? proposals.map((proposal) => <div className="journey-row" key={proposal.id}><div><strong>{propertyMap.get(proposal.property_id)?.title ?? "Imóvel"}</strong><small>{money(proposal.amount)} · {new Date(proposal.proposed_at).toLocaleDateString("pt-BR")}</small></div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><em>{proposal.status}</em>{["sent", "enviada", "pending"].includes(proposal.status) && <button className="clean-button secondary" disabled={busy} onClick={() => void acceptProposal(proposal.id)}>Aceitar proposta</button>}</div></div>) : <div className="empty"><span>As propostas aparecerão aqui.</span></div>}</article>
           <article className="clean-card"><div className="card-title"><div><span className="label">VISITAS</span><h3>{visits.length} visitas</h3></div><CalendarDays size={17}/></div>{visits.length ? visits.map((visit) => <div className="journey-row" key={visit.id}><div><strong>{new Date(visit.starts_at).toLocaleString("pt-BR")}</strong><small>{visit.location ?? "Visita imobiliária"}</small></div><em>{visit.status}</em></div>) : <div className="empty"><span>Nenhuma visita registrada.</span></div>}</article></div>
       </div>}
 

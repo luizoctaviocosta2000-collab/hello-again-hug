@@ -21,10 +21,10 @@ export const DEFAULT_FINANCE_RULES: FinanceRules = {
   participationPercent: 20,
 };
 
-export const OPERATION_PARTICIPATION: Record<OperationType, number> = {
-  capture: 20,
+export const OPERATION_PARTICIPATION: Record<OperationType, number | null> = {
+  capture: null,
   capture_split: 10,
-  sale: 20,
+  sale: null,
   sale_split: 10,
 };
 
@@ -32,7 +32,7 @@ export const OPERATION_PARTICIPATION: Record<OperationType, number> = {
  * Calculates the commission chain used by Imobfy:
  * VGV -> gross commission -> 9% tax -> net -> participation -> user's share.
  * Percentages are configurable, while the operation's participation rule can
- * override the default 20%/10% split.
+ * override the configurable participation only for split operations.
  */
 export function calculateCommission(
   operationValue: number,

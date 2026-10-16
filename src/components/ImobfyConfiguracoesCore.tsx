@@ -85,7 +85,7 @@ export default function ImobfyConfiguracoesCore() {
       .from("profiles")
       .update({
         name: cleanName,
-        whatsapp_phone: whatsappPhone.replace(/\\D/g, "") || null,
+        whatsapp_phone: whatsappPhone.replace(/\D/g, "") || null,
         default_commission_pct: cleanBrokerage,
         tax_pct: cleanTax,
         participation_pct: cleanParticipation,

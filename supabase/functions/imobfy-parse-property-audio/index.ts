@@ -72,8 +72,13 @@ Regras:
 - title pode ser uma referência curta montada apenas com dados explicitamente mencionados, como tipo e bairro; se não houver o suficiente, null.
 - Use descrição para características e diferenciais do imóvel. Use commercial_notes para condições de negociação ou informações internas explicitamente ditas.`;
 
+  const { data: quotaAllowed, error: quotaError } = await supabase.rpc("consume_ai_quota", { p_feature: "audio" });
+  if (quotaError) { console.error("AI audio quota check failed:", quotaError.message); return out({ error: "Não foi possível validar seu limite diário de IA. Tente novamente em instantes." }, 503); }
+  if (quotaAllowed !== true) return out({ error: "Você atingiu o limite diário de 30 análises de áudio. Tente novamente amanhã." }, 429);
+  const model = Deno.env.get("GEMINI_AUDIO_MODEL")?.trim() || "gemini-3.8-flash";
+
   try {
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
       body: JSON.stringify({

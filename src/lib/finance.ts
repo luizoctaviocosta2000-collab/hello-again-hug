@@ -29,7 +29,9 @@ export const OPERATION_PARTICIPATION: Record<OperationType, number | null> = {
 };
 
 /**
- * Calculates the commission chain used by Imobfy:
+ * Reference/specification only: the application currently generates real commissions
+ * in the PostgreSQL trigger `generate_sale_commission`; this helper is not imported by the app.
+ * Calculates the commission chain used by IMOBFY:
  * VGV -> gross commission -> 9% tax -> net -> participation -> user's share.
  * Percentages are configurable, while the operation's participation rule can
  * override the configurable participation only for split operations.

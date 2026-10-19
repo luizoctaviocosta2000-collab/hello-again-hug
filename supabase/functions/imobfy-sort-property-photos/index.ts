@@ -24,8 +24,12 @@ Deno.serve(async req=>{
    parts.push({text:"Índice original: "+i});
    parts.push({inlineData:{mimeType:im.mimeType,data:raw}});
  }
+ const {data:quotaAllowed,error:quotaError}=await sb.rpc("consume_ai_quota",{p_feature:"photos"});
+ if(quotaError){console.error("AI photo quota check failed:",quotaError.message);return out({error:"Não foi possível validar seu limite diário de IA. Tente novamente em instantes."},503)}
+ if(quotaAllowed!==true)return out({error:"Você atingiu o limite diário de 20 análises de fotos. Tente novamente amanhã."},429);
+ const model=Deno.env.get("GEMINI_VISION_MODEL")?.trim()||"gemini-2.5-flash";
  try{
-   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{role:"user",parts}],generationConfig:{temperature:0,responseMimeType:"application/json"}})});
+   const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{role:"user",parts}],generationConfig:{temperature:0,responseMimeType:"application/json"}})});
    const result:any=await response.json();
    if(!response.ok)return out({error:"A IA não conseguiu analisar as fotos agora. Tente novamente."},502);
    const text=(result.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("");

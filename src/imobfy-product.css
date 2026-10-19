@@ -1,5 +1,0 @@
-/* Product interaction layer: keeps the existing functional UI intact while adding a consistent premium hierarchy. */
-[data-imobfy-section],.page-head,.metrics,.dashboard-grid,.dashboard-bottom,.toolbar,.property-grid,.deal-list{animation:imobfy-enter .35s ease both}
-[data-imobfy-section]:nth-child(2),.metric:nth-child(2),.property-card:nth-child(2){animation-delay:.03s}.metric:nth-child(3),.property-card:nth-child(3){animation-delay:.06s}.metric:nth-child(4),.property-card:nth-child(4){animation-delay:.09s}
-@keyframes imobfy-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

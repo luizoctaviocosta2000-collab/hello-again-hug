@@ -10,7 +10,6 @@ create table if not exists public.ai_usage (
 
 alter table public.ai_usage enable row level security;
 revoke all on table public.ai_usage from anon, authenticated;
-grant usage on schema public to authenticated;
 
 create or replace function public.consume_ai_quota(p_feature text)
 returns boolean

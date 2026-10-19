@@ -36,7 +36,7 @@ import { type ImobfyUser } from "../lib/imobfy-session";
    try{
     const {data,error}=await supabase.functions.invoke("imobfy-property-share",{body:{action:"create",propertyId:p.id}});
     if(error||!data?.token)throw new Error(data?.error||error?.message||"Não consegui gerar o link.");
-    setShareLink(window.location.origin+"/p/"+data.token);setShareActive(Boolean(data.active));
+    setShareLink(window.location.origin+"/p/"+data.token);setShareActive(Boolean(data.active));const {data:prof}=await supabase.from("profiles").select("whatsapp_phone").eq("id",user.id).maybeSingle();if(!String(prof?.whatsapp_phone||"").replace(/\D/g,""))setNotice("Atenção: seu WhatsApp profissional não está cadastrado. Sem ele, o botão de contato não aparece na página pública. Cadastre em Configurações.");
    }catch(error){setNotice(error instanceof Error?error.message:"Não consegui gerar o link do imóvel.");setShareLink("");setShareActive(false)}
    finally{setShareBusy(false)}
   }
@@ -133,7 +133,7 @@ import { type ImobfyUser } from "../lib/imobfy-session";
       <div className="property-section-heading"><span>01</span><div><h3>Identificação do imóvel</h3><p>Como o imóvel será identificado no seu inventário.</p></div></div>
       <div className="form-grid">
        <label className="field-span-2">Nome / referência <input value={form.title} onChange={e=>setField("title",e.target.value)} placeholder="Ex.: Apartamento 3 quartos · Castelo" /></label>
-       <label>Código automático <input value={editing?.property_code||""} readOnly placeholder="Gerado ao salvar (ex.: IMB-001)" /><small style={{display:"block",marginTop:4,color:"var(--muted, #777)"}}>O IMOBIFY gera o próximo código automaticamente.</small></label>
+       <label>Código automático <input value={editing?.property_code||""} readOnly placeholder="Gerado ao salvar (ex.: IMB-001)" /><small style={{display:"block",marginTop:4,color:"var(--muted, #777)"}}>O IMOBFY gera o próximo código automaticamente.</small></label>
        <label>Tipo de imóvel <select value={form.property_type} onChange={e=>setField("property_type",e.target.value)}><option>Apartamento</option><option>Casa</option><option>Cobertura</option><option>Loja</option><option>Lote</option><option>Conjunto</option><option>Outro</option></select></label>
        <label>Finalidade <select value={form.purpose} onChange={e=>setField("purpose",e.target.value)}><option value="venda">Venda</option><option value="locacao">Locação</option><option value="venda_locacao">Venda ou locação</option></select></label>
        <label>Status do imóvel <select value={form.status} onChange={e=>setField("status",e.target.value)}><option value="ativo">Ativo</option><option value="reservado">Reservado</option><option value="vendido">Vendido</option><option value="inativo">Inativo</option></select></label>
@@ -176,7 +176,7 @@ import { type ImobfyUser } from "../lib/imobfy-session";
      <section className="property-form-section">
       <div className="property-section-heading"><span>05</span><div><h3>Informações adicionais</h3><p>Detalhes que ajudam a apresentar e negociar o imóvel.</p></div></div>
       <div className="form-grid">
-       <div className="field-span-2"><label>Descrição do imóvel <textarea value={form.description} onChange={e=>setField("description",e.target.value)} rows={4} placeholder="A IA gera automaticamente com base nos dados preenchidos. Você também pode editar o texto..." /></label><button type="button" className="clean-button secondary" style={{marginTop:8}} onClick={()=>void generateDescription()} disabled={generatingDescription||busy}><Sparkles size={15}/>{generatingDescription?" Gerando descrição...":" Gerar descrição com IA"}</button><small style={{display:"block",marginTop:6,color:"var(--muted, #777)"}}>Se deixar este campo vazio, o IMOBIFY gera uma descrição ao salvar o imóvel.</small></div>
+       <div className="field-span-2"><label>Descrição do imóvel <textarea value={form.description} onChange={e=>setField("description",e.target.value)} rows={4} placeholder="A IA gera automaticamente com base nos dados preenchidos. Você também pode editar o texto..." /></label><button type="button" className="clean-button secondary" style={{marginTop:8}} onClick={()=>void generateDescription()} disabled={generatingDescription||busy}><Sparkles size={15}/>{generatingDescription?" Gerando descrição...":" Gerar descrição com IA"}</button><small style={{display:"block",marginTop:6,color:"var(--muted, #777)"}}>Se deixar este campo vazio, o IMOBFY gera uma descrição ao salvar o imóvel.</small></div>
        <label className="field-span-2">Observações comerciais <textarea value={form.commercial_notes} onChange={e=>setField("commercial_notes",e.target.value)} rows={3} placeholder="Condições de negociação, chaves, disponibilidade..." /></label>
       </div>
      </section>

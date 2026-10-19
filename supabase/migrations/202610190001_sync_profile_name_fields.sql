@@ -23,11 +23,13 @@ begin
     new.full_name := coalesce(nullif(btrim(new.full_name), ''), new.name);
   else
     if new.name is distinct from old.name and new.full_name is not distinct from old.full_name then
+      new.name := coalesce(nullif(btrim(new.name), ''), nullif(btrim(old.full_name), ''), 'Corretor');
       new.full_name := new.name;
     elsif new.full_name is distinct from old.full_name and new.name is not distinct from old.name then
+      new.full_name := coalesce(nullif(btrim(new.full_name), ''), nullif(btrim(old.name), ''), 'Corretor');
       new.name := new.full_name;
     else
-      new.name := coalesce(nullif(btrim(new.name), ''), nullif(btrim(new.full_name), ''), old.name, 'Corretor');
+      new.name := coalesce(nullif(btrim(new.name), ''), nullif(btrim(new.full_name), ''), nullif(btrim(old.name), ''), 'Corretor');
       new.full_name := coalesce(nullif(btrim(new.full_name), ''), new.name);
     end if;
   end if;
@@ -52,7 +54,7 @@ begin
   v_name := coalesce(
     nullif(btrim(new.raw_user_meta_data->>'name'), ''),
     nullif(btrim(new.raw_user_meta_data->>'full_name'), ''),
-    split_part(coalesce(new.email, ''), '@', 1),
+    nullif(split_part(coalesce(new.email, ''), '@', 1), ''),
     'Corretor'
   );
 

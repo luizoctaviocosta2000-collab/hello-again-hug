@@ -1,0 +1,226 @@
+/* IMOBFY design layer — tokens and accessible refinements. */
+:root {
+  --im-graphite: hsl(222 16% 13%);
+  --im-graphite-2: hsl(222 14% 22%);
+  --im-champagne: hsl(39 42% 62%);
+  --im-champagne-strong: hsl(36 48% 34%);
+  --im-champagne-soft: hsl(39 45% 93%);
+  --im-champagne-line: hsl(39 32% 76%);
+  --im-track: hsl(39 20% 93%);
+  --im-text-muted: hsl(220 10% 36%);
+}
+
+.imobfy-app-shell :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--im-champagne-strong);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imobfy-app-shell *, .imobfy-app-shell *::before, .imobfy-app-shell *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}
+
+.imobfy-app-shell .label,
+.auth-form-panel .label {
+  color: var(--im-champagne-strong);
+}
+
+.imobfy-app-shell .muted {
+  color: var(--im-text-muted);
+}
+
+.imobfy-app-shell :is(b, strong, .metric-card strong) {
+  font-variant-numeric: tabular-nums;
+}
+
+.imobfy-app-shell .clean-button.primary {
+  background: var(--im-graphite);
+  border-color: var(--im-graphite);
+  color: white;
+}
+
+.imobfy-app-shell .clean-button.primary:hover {
+  background: var(--im-graphite-2);
+  border-color: var(--im-graphite-2);
+}
+
+.imobfy-app-shell .clean-button.secondary {
+  background: white;
+  border: 1px solid var(--im-champagne-line);
+  color: var(--im-graphite);
+}
+
+.imobfy-app-shell .clean-button.secondary:hover {
+  border-color: var(--im-champagne-strong);
+  background: var(--im-champagne-soft);
+}
+
+.imobfy-app-shell .imobfy-sidebar {
+  display: flex;
+  flex-direction: column;
+  box-shadow: none;
+}
+
+.imobfy-app-shell .imobfy-sidebar nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.imobfy-app-shell .imobfy-sidebar .sidebar-footer {
+  flex: none;
+}
+
+.imobfy-app-shell .imobfy-logo-image {
+  width: 148px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.imobfy-app-shell .imobfy-sidebar nav a.active {
+  background: var(--im-graphite-2);
+  color: var(--im-champagne-soft);
+  box-shadow: inset 3px 0 0 var(--im-champagne);
+}
+
+.imobfy-app-shell .imobfy-sidebar nav a.active svg:first-child {
+  color: var(--im-champagne);
+}
+
+.imobfy-app-shell .imobfy-sidebar nav a .nav-chevron {
+  display: none;
+}
+
+.imobfy-app-shell .imobfy-sidebar .profile-avatar {
+  background: var(--im-champagne);
+  color: var(--im-graphite);
+}
+
+.imobfy-app-shell .imobfy-header {
+  min-height: 56px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.imobfy-app-shell .imobfy-crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  color: var(--im-text-muted);
+}
+
+.imobfy-app-shell .imobfy-crumb-root {
+  color: var(--im-champagne-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.imobfy-app-shell .imobfy-crumb h1 {
+  margin: 0;
+  color: var(--im-graphite);
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.imobfy-app-shell .imobfy-content {
+  padding-top: 24px;
+  padding-bottom: 104px;
+}
+
+.imobfy-app-shell .dashboard-core .metric-card {
+  container-type: inline-size;
+  min-height: 0;
+  padding: 20px 22px;
+}
+
+.imobfy-app-shell .dashboard-core .metric-card:first-child {
+  border-top: 3px solid var(--im-champagne);
+}
+
+.imobfy-app-shell .dashboard-core .metric-card strong {
+  display: block;
+  white-space: nowrap;
+  font-size: clamp(1rem, calc(130cqi / var(--kpi-len, 10)), 1.75rem);
+  letter-spacing: -0.02em;
+}
+
+.imobfy-app-shell .dashboard-core .bar-track {
+  background: var(--im-track);
+}
+
+.imobfy-app-shell .dashboard-core .bar-track i {
+  background: var(--im-graphite);
+}
+
+.imobfy-app-shell .dashboard-core .dashboard-bar.is-current .bar-track i {
+  background: var(--im-champagne);
+}
+
+.imobfy-app-shell .dashboard-core .dashboard-attention {
+  border-left: 3px solid var(--im-champagne);
+}
+
+.imobfy-app-shell .clean-card > h3 {
+  margin: 6px 0;
+}
+
+.imobfy-app-shell .clean-card > p {
+  margin: 0 0 14px;
+  color: var(--im-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.imobfy-app-shell .empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--im-text-muted);
+}
+
+.imobfy-app-shell .empty strong {
+  color: var(--im-graphite);
+  font-size: 15px;
+}
+
+@media (max-width: 900px) {
+  .imobfy-app-shell .imobfy-header {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .imobfy-app-shell .imobfy-content {
+    padding: 20px 16px 104px;
+  }
+
+  .imobfy-app-shell .imobfy-main {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .imobfy-app-shell .dashboard-core .metric-card {
+    padding: 16px;
+  }
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="430" height="150" viewBox="0 0 430 150" role="img" aria-labelledby="title">
+  <title id="title">IMOBFY</title>
+  <g transform="translate(8 10)">
+    <path d="M8 58 30 43 30 103 8 118Z" fill="#F7F6EF"/>
+    <path d="M36 39 58 23 58 111 36 127Z" fill="#F7F6EF"/>
+    <path d="M64 22 86 38 86 126 64 110Z" fill="#C9AE7C"/>
+    <path d="M92 43 114 59 114 119 92 103Z" fill="#F7F6EF"/>
+  </g>
+  <text x="150" y="104" fill="#F7F6EF" font-family="Montserrat, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="1.1">IMOBFY</text>
+</svg>

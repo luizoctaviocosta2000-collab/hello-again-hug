@@ -72,7 +72,7 @@ function LoginPage() {
   }, [navigate]);
 
   if (checkingCallback) {
-    return <main className="auth-page"><section className="auth-form-panel"><div className="auth-form-wrap"><div className="auth-mobile-brand"><div className="brand-symbol">I</div><strong>imobfy</strong></div><div className="auth-heading"><span className="label">IMOBFY</span><h2>Confirmando seu acesso...</h2><p>Estamos validando seu e-mail. Aguarde um instante.</p></div></div></section></main>;
+    return <main className="auth-page"><section className="auth-form-panel"><div className="auth-form-wrap"><div className="auth-mobile-brand"><img src="/imobfy-icon.svg" alt="" /><strong>IMOBFY</strong></div><div className="auth-heading"><span className="label">IMOBFY</span><h2>Confirmando seu acesso...</h2><p>Estamos validando seu e-mail. Aguarde um instante.</p></div></div></section></main>;
   }
 
   return <ImobfyAuth onAuthenticated={() => void navigate({ to: "/", replace: true })} initialMessage={callbackError ? `Não foi possível confirmar automaticamente: ${callbackError}` : undefined} />;

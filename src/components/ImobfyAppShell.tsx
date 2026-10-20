@@ -24,7 +24,7 @@ const settings: NavItem[] = [{ to: "/configuracoes", label: "Configurações", i
 function NavGroup({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate: () => void }) {
   return <div className="imobfy-nav-group">{items.map(({ to, label, icon: Icon }) => {
     const active = to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`);
-    return <Link key={to} to={to} className={active ? "active" : ""} onClick={onNavigate}><Icon size={17} strokeWidth={1.8} /><span>{label}</span>{active && <ChevronRight size={13} className="nav-chevron" />}</Link>;
+    return <Link key={to} to={to} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={onNavigate}><Icon size={17} strokeWidth={1.8} /><span>{label}</span>{active && <ChevronRight size={13} className="nav-chevron" />}</Link>;
   })}</div>;
 }
 
@@ -51,14 +51,14 @@ export default function ImobfyAppShell({ user, children }: Props) {
   return <div className="imobfy-app-shell">
     {open && <button aria-label="Fechar menu" className="imobfy-sidebar-overlay" onClick={() => setOpen(false)} />}
     <aside className={`clean-sidebar imobfy-sidebar ${open ? "open" : ""}`}>
-      <div className="clean-brand imobfy-brand"><img className="imobfy-logo-image" src="/imobfy-logo.svg" alt="IMOBFY — Gestão inteligente para grandes conquistas" /><button className="mobile-close" aria-label="Fechar menu" onClick={() => setOpen(false)}><X size={19} /></button></div>
+      <div className="clean-brand imobfy-brand"><img className="imobfy-logo-image" src="/imobfy-logo-compact.svg" alt="IMOBFY — Clareza para o próximo passo" /><button className="mobile-close" aria-label="Fechar menu" onClick={() => setOpen(false)}><X size={19} /></button></div>
       <nav><div className="nav-section">OPERAÇÃO</div><NavGroup items={primary} pathname={pathname} onNavigate={() => setOpen(false)} /><div className="nav-section">PERFORMANCE</div><NavGroup items={performance} pathname={pathname} onNavigate={() => setOpen(false)} /><div className="nav-section">SISTEMA</div><NavGroup items={settings} pathname={pathname} onNavigate={() => setOpen(false)} /></nav>
       <div className="sidebar-footer"><div className="profile-avatar">{initials || "L"}</div><div><strong>{user.name}</strong><span>{user.creci ? `CRECI ${user.creci}` : "Corretor / Captador"}</span></div><button title="Sair" aria-label="Sair" onClick={handleLogout}><LogOut size={15} /></button></div>
     </aside>
     <main className={`clean-main imobfy-main ${pathname === "/ia" ? "imobfy-main-ai" : ""}`}>
       {pathname !== "/ia" && <header className="clean-header imobfy-header">
         <button className="mobile-menu imobfy-mobile-menu" aria-label="Abrir menu" onClick={() => setOpen(true)}><Menu size={21} /></button>
-        <div className="imobfy-header-copy"><span className="header-kicker">{kicker}</span><h1>{title}</h1><p>{description}</p></div>
+        <div className="imobfy-crumb" title={description}><span className="imobfy-crumb-root">{kicker}</span><ChevronRight size={14} aria-hidden="true" /><h1>{title}</h1></div>
         <div className="header-actions"><div className="header-avatar">{initials || "L"}</div></div>
       </header>}
       <div className={`content imobfy-content ${pathname === "/ia" ? "imobfy-content-ai" : ""}`}>{children}</div>

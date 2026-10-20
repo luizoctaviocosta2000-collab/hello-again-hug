@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title">
-  <title id="title">IMOBFY</title>
-  <rect width="192" height="192" rx="42" fill="#0F3F32"/>
-  <g transform="translate(32 29)">
-    <path d="M0 55 21 40 21 105 0 120Z" fill="#F7F6EF"/>
-    <path d="M28 36 49 20 49 128 28 144Z" fill="#F7F6EF"/>
-    <path d="M56 19 77 35 77 143 56 127Z" fill="#A7B89F"/>
-    <path d="M84 40 105 56 105 121 84 105Z" fill="#F7F6EF"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-labelledby="title"><title id="title">IMOBFY</title><rect width="192" height="192" rx="42" fill="#1C1F26"/><g fill="#C7AB78" transform="translate(49 45)"><path d="M4 34 28 20V86L4 100ZM36 46 58 33V73L36 86ZM66 13 90 0V87L66 101Z"/></g></svg>

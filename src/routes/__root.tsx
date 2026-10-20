@@ -16,15 +16,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Imobfy — Gestão imobiliária" },
-      { name: "description", content: "Gestão imobiliária simples, elegante e orientada a resultado." },
-      { name: "theme-color", content: "#214E3B" },
+      { title: "IMOBFY — Clareza para o próximo passo" },
+      { name: "description", content: "Sua operação imobiliária, organizada. Clareza para o próximo passo." },
+      { name: "theme-color", content: "#1C1F26" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "IMOBFY" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700;750;800&display=swap" },
       { rel: "icon", type: "image/svg+xml", href: "/imobfy-icon.svg" },
       { rel: "manifest", href: "/site.webmanifest" },
       { rel: "apple-touch-icon", href: "/imobfy-icon.svg" },
@@ -50,7 +51,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {authenticated ? <ImobfyAppShell user={user!}><Outlet /></ImobfyAppShell> : <Outlet />}
-      {authenticated && <FloatingImobfyAI />}
+      {authenticated && location.pathname !== "/ia" && <FloatingImobfyAI />}
     </QueryClientProvider>
   );
 }

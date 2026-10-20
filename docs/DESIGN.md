@@ -1,21 +1,47 @@
-# IMOBFY — guia de design
+# IMOBFY — identidade visual
 
-Identidade visual: grafite e champagne, com verde reservado a estados semânticos positivos.
+Direção aprovada em 20/10/2026: grafite, champagne e superfícies claras.
+Assinatura: **Clareza para o próximo passo.**
 
-## Tokens
-- `--im-graphite`: ações primárias, navegação e texto forte.
-- `--im-champagne`: destaques, progresso e estado selecionado.
-- `--im-champagne-strong`: texto champagne sobre fundo claro.
-- `--im-champagne-soft` e `--im-champagne-line`: fundos e bordas sutis.
-- `--im-text-muted`: texto secundário legível.
+## Paleta
+| Papel | Cor |
+| --- | --- |
+| Grafite: marca, navegação, ação primária | #1C1F26 |
+| Grafite hover | #2D323C |
+| Champagne: símbolo, detalhes sobre fundo escuro | #C7AB78 |
+| Champagne escuro: texto e ícones sobre fundo claro | #80602D |
+| Fundo | #F7F6F2 |
+| Superfície | #FFFFFF |
+| Texto secundário | #5B606B |
 
-CSS novo deve reutilizar tokens; evite cores soltas, gradientes e `!important`.
+Não usar champagne claro para texto pequeno sobre branco. Verde, vermelho e amarelo continuam reservados aos estados semânticos. Não substituir sucesso por cor de marca.
 
-## Regras de interface
-1. Um único H1 por página; títulos de conteúdo usam H2.
-2. Uma ação primária por tela; ações secundárias devem ter hierarquia visual inferior.
-3. Estados vazios explicam o próximo passo e, quando aplicável, oferecem uma ação.
-4. Valores monetários devem permanecer legíveis e não quebrar em linhas inesperadas.
-5. Respeitar `prefers-reduced-motion` e exibir foco visível em controles interativos.
-6. Validar layout em 390 px sem rolagem horizontal e contraste WCAG AA.
-7. O botão flutuante de IA não deve cobrir conteúdo nem aparecer na própria tela de IA.
+## Marca
+- Símbolo geométrico de três planos ascendentes, traduzido do conceito aprovado para SVG.
+- `public/imobfy-logo.svg` e `imobfy-logo-compact.svg`: assinatura clara para fundo grafite.
+- `public/imobfy-logo-dark.svg`: assinatura escura para fundo claro.
+- `public/imobfy-icon.svg`: símbolo sobre grafite para favicon e aplicativo.
+- Letras em paths: o logo não depende de fontes instaladas.
+- Não distorcer, aplicar filtros ou acrescentar efeitos metálicos.
+- A prancha conceitual não é uma especificação de rotas ou funcionalidades.
+
+## Tipografia e componentes
+Inter no produto, carregada com display=swap e fallback de sistema.
+Tokens canônicos em `src/imobfy-design.css`; regras legadas de marca foram alinhadas em `src/imobfy-premium-system.css`.
+Novos estilos devem reutilizar tokens, sem gradientes ou novos `!important`.
+Um H1 por tela, H2 no conteúdo. Ações primárias em grafite.
+Cabeçalho compacto, navegação preservada, foco visível e contraste.
+Valores monetários usam algarismos tabulares; nunca truncar o valor silenciosamente.
+Em telas pequenas os KPIs usam uma coluna para dar espaço a valores longos.
+Não confundir estado vazio com erro de carregamento.
+Assistente flutuante oculto na própria rota /ia.
+
+## Validação antes de merge
+- Testes, typecheck e build no commit final.
+- Revisão no navegador em 390 px e desktop: login, dashboard, imóveis, clientes, negócios, agenda, comissões, VGV e IA.
+- Teclado, zoom de 200%, movimento reduzido, valores longos, modais e estados de carregamento/erro.
+- Confirmar legibilidade da marca e cores sem fonte externa carregada.
+- Confirmar sincronização do Lovable após merge autorizado.
+
+As mudanças de identidade não implementam o P1, não alteram fórmulas financeiras,
+consultas, autenticação, migrations ou Edge Functions.

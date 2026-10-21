@@ -106,7 +106,12 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+}
+
+/* Keep navigation scrollable without a visible scrollbar. */
+.imobfy-app-shell .imobfy-sidebar nav::-webkit-scrollbar {
+  display: none;
 }
 
 .imobfy-app-shell .imobfy-sidebar .sidebar-footer {

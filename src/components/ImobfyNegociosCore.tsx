@@ -89,8 +89,9 @@ export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
   async function scheduleVisit() {
     if (!selected || !visitDate || !visitIds.length) { setNotice("Selecione a data e pelo menos um imóvel."); return; }
     setBusy(true);
-    const rows = visitIds.map((propertyId) => ({ user_id: user.id, deal_id: selected.id, property_id: propertyId, visit_status: "scheduled" }));
-    const { error: linkError } = await supabase.from("deal_properties").upsert(rows, { onConflict: "deal_id,property_id" });
+    const rows = [...new Set(visitIds)].map((propertyId) => ({ user_id: user.id, deal_id: selected.id, property_id: propertyId, visit_status: "planned" }));
+    // A new appointment must not reset visited/proposal/sold journey state.
+    const { error: linkError } = await supabase.from("deal_properties").upsert(rows, { onConflict: "user_id,deal_id,property_id", ignoreDuplicates: true });
     if (linkError) { setNotice(linkError.message); setBusy(false); return; }
     const starts = new Date(`${visitDate}T${visitTime}:00`);
     const { data: visit, error } = await supabase.from("visits").insert({ user_id: user.id, deal_id: selected.id, client_id: selected.client_id, starts_at: starts.toISOString(), ends_at: new Date(starts.getTime() + 3600000).toISOString(), status: "scheduled" }).select("id").single();
@@ -174,3 +175,4 @@ export default function ImobfyNegociosCore({ user }: { user: ImobfyUser }) {
     </div>
   );
 }
+

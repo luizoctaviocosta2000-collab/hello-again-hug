@@ -9,7 +9,7 @@ import "../imobfy-premium-system.css";
 import "../imobfy-design.css";
 import FloatingImobfyAI from "../components/FloatingImobfyAI";
 import ImobfyAppShell from "../components/ImobfyAppShell";
-import { getSession } from "../lib/imobfy-session";
+import ImobfySessionGate from "../components/ImobfySessionGate";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -43,15 +43,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
-  const user = getSession();
   const isAuth = location.pathname === "/login" || location.pathname.startsWith("/recuperar");
   const isPublicProperty = location.pathname.startsWith("/p/");
-  const authenticated = Boolean(user) && !isAuth && !isPublicProperty;
 
   return (
     <QueryClientProvider client={queryClient}>
-      {authenticated ? <ImobfyAppShell user={user!}><Outlet /></ImobfyAppShell> : <Outlet />}
-      {authenticated && location.pathname !== "/ia" && <FloatingImobfyAI />}
+      {isAuth || isPublicProperty ? <Outlet /> : (
+        <ImobfySessionGate>{(user) => <>
+          <ImobfyAppShell user={user}><Outlet /></ImobfyAppShell>
+          {location.pathname !== "/ia" && <FloatingImobfyAI />}
+        </>}</ImobfySessionGate>
+      )}
     </QueryClientProvider>
   );
 }

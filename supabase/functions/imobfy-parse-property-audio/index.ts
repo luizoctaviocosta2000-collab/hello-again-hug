@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { generateWithGemini, geminiFailure, geminiText } from "../_shared/gemini.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,7 @@ Deno.serve(async (req) => {
 
   let body: { audioBase64?: unknown; mimeType?: unknown };
   try { body = await req.json(); } catch { return out({ error: "Não consegui ler o áudio enviado." }, 400); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return out({ error: "Áudio inválido. Grave novamente." }, 400);
 
   const audioBase64 = typeof body.audioBase64 === "string" ? body.audioBase64 : "";
   const mimeType = typeof body.mimeType === "string" ? body.mimeType.split(";")[0].trim().toLowerCase() : "";
@@ -75,28 +77,20 @@ Regras:
   const { data: quotaAllowed, error: quotaError } = await supabase.rpc("consume_ai_quota", { p_feature: "audio" });
   if (quotaError) { console.error("AI audio quota check failed:", quotaError.message); return out({ error: "Não foi possível validar seu limite diário de IA. Tente novamente em instantes." }, 503); }
   if (quotaAllowed !== true) return out({ error: "Você atingiu o limite diário de 30 análises de áudio. Tente novamente amanhã." }, 429);
-  const model = Deno.env.get("GEMINI_AUDIO_MODEL")?.trim() || "gemini-3.8-flash";
-
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-      body: JSON.stringify({
+    const { result, model } = await generateWithGemini({
+      apiKey: geminiKey,
+      // Use the model verified for Portuguese audio throughout retries.
+      models: [Deno.env.get("GEMINI_AUDIO_MODEL")?.trim() || Deno.env.get("GEMINI_MODEL")?.trim() || "gemini-3.5-flash"],
+      request: {
         contents: [{ role: "user", parts: [
           { inlineData: { mimeType, data: audioBase64 } },
           { text: prompt },
         ] }],
         generationConfig: { temperature: 0.1, responseMimeType: "application/json" },
-      }),
+      },
     });
-    if (!response.ok) {
-      const details = await response.text();
-      console.error("Gemini audio parsing failed:", response.status, details.slice(0, 500));
-      if (response.status === 429) return out({ error: "A IA está temporariamente ocupada. Aguarde alguns segundos e tente novamente." }, 503);
-      return out({ error: "A IA não conseguiu interpretar esse áudio. Tente gravar novamente com menos ruído." }, 502);
-    }
-    const result = await response.json();
-    const raw = (result.candidates?.[0]?.content?.parts || []).map((part: { text?: string }) => part.text || "").join("").trim();
+    const raw = geminiText(result);
     if (!raw) return out({ error: "Não consegui entender o áudio. Tente falar um pouco mais devagar." }, 422);
     let parsed: { fields?: Record<string, unknown> };
     try { parsed = JSON.parse(raw); } catch {
@@ -129,9 +123,9 @@ Regras:
     }
     if (typeof parsed.fields.exclusivity === "boolean") fields.exclusivity = parsed.fields.exclusivity;
     if (!Object.keys(fields).length) return out({ error: "Não consegui identificar campos suficientes. Tente falar tipo, bairro, preço e características." }, 422);
-    return out({ fields });
+    return out({ fields, model });
   } catch (error) {
-    console.error("Property audio processing error:", error instanceof Error ? error.message : String(error));
-    return out({ error: "Não consegui processar o áudio agora. Verifique sua conexão e tente novamente." }, 502);
+    const failure = geminiFailure(error);
+    return out({ error: failure.message }, failure.status);
   }
 });

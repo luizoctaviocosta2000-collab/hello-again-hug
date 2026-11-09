@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, BrainCircuit, CalendarPlus, Command, Mic, MicOff, Plus, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { readableFunctionError } from "../lib/function-error";
 import type { ImobfyUser } from "../lib/imobfy-session";
 import ImobfyAITaskComposer from "./ImobfyAITaskComposer";
 import "../imobfy-fixes.css";
@@ -59,13 +60,14 @@ export default function ImobfyAIChat({ user }: Props) {
     try {
       const { data, error: functionError } = await supabase.functions.invoke<AIResponse>("imobfy-ai", {
         body: { question: value, conversation_id: conversationId },
+        timeout: 45_000,
       });
       if (functionError) throw functionError;
       if (!data?.answer) throw new Error(data?.error || "A IA não retornou uma resposta.");
       if (data.conversation_id) setConversationId(data.conversation_id);
       setMessages((current) => [...current, { role: "assistant", text: data.answer! }]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível falar com a IA.");
+      setError(await readableFunctionError(e));
     } finally { setLoading(false); }
   }
 

@@ -1,26 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Bot, CalendarPlus, Check, Send, Sparkles, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { readableFunctionError } from "../lib/function-error";
 import { getSession, restoreSession, type ImobfyUser } from "../lib/imobfy-session";
 import "../imobfy-ai-float.css";
 
 type Message = { role: "user" | "assistant"; text: string };
 type AIAction = { type: "create_followup"; label: string; client_id: string; property_id?: string | null; deal_id?: string | null; starts_at: string; ends_at: string; notes?: string };
-
-async function readableFunctionError(error: unknown) {
-  if (error && typeof error === "object" && "context" in error) {
-    const context = (error as { context?: Response }).context;
-    if (context instanceof Response) {
-      try {
-        const payload = await context.clone().json();
-        if (payload?.error) return `${payload.error}${payload.detail ? ` (${payload.detail})` : ""}`;
-      } catch {
-        try { const text = await context.clone().text(); if (text) return text; } catch {}
-      }
-    }
-  }
-  return error instanceof Error ? error.message : "Erro ao conectar com a IA.";
-}
 
 function formatActionDate(value: string) {
   const date = new Date(value);
@@ -33,6 +19,7 @@ export default function FloatingImobfyAI() {
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [actions, setActions] = useState<AIAction[]>([]);
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState<number | null>(null);
@@ -43,7 +30,7 @@ export default function FloatingImobfyAI() {
     if (!user) { setMessages(current => [...current, { role: "assistant", text: "Sua sessão não foi encontrada. Faça login novamente para usar o Imobfy AI." }]); setOpen(true); return; }
     setQuestion(""); setMessages(current => [...current, { role: "user", text: value }]); setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("imobfy-ai", { body: { question: value } });
+      const { data, error } = await supabase.functions.invoke("imobfy-ai", { body: { question: value, conversation_id: conversationId }, timeout: 45_000 });
       if (error) throw error;
       if (!data || typeof data !== "object") throw new Error("A IA retornou uma resposta vazia.");
       if (data.error) throw new Error(`${data.error}${data.detail ? ` (${data.detail})` : ""}`);
@@ -53,7 +40,8 @@ export default function FloatingImobfyAI() {
         throw new Error(diagnostic);
       }
       setMessages(current => [...current, { role: "assistant", text: answer }]);
-      if (Array.isArray(data.actions)) setActions(data.actions as AIAction[]);
+      if (typeof data.conversation_id === "string") setConversationId(data.conversation_id);
+      setActions(Array.isArray(data.actions) ? data.actions as AIAction[] : []);
     } catch (error) {
       const message = await readableFunctionError(error);
       setMessages(current => [...current, { role: "assistant", text: `Não consegui falar com a IA. ${message}` }]);

@@ -33,9 +33,21 @@ Os testes de `src/lib/finance.ts` documentam a regra de cálculo esperada; eles 
 
 ## Supabase
 
-As migrations ficam em `supabase/migrations/`. As Edge Functions estão em `supabase/functions/`. Configure as variáveis secretas no ambiente do Supabase — nunca as coloque no código do frontend. As funções de IA usam `GEMINI_API_KEY`; os modelos podem ser configurados com `GEMINI_MODEL`, `GEMINI_AUDIO_MODEL` e `GEMINI_VISION_MODEL`.
+As migrations ficam em `supabase/migrations/`. As Edge Functions estão em `supabase/functions/`. Configure as variáveis secretas no ambiente do Supabase — nunca as coloque no código do frontend. As funções de IA usam `GEMINI_API_KEY`. `GEMINI_MODEL` é o modelo comum; `GEMINI_AUDIO_MODEL`, `GEMINI_VISION_MODEL` e `GEMINI_DESCRIPTION_MODEL` permitem escolher modelos específicos. Áudio usa `GEMINI_AUDIO_MODEL`, depois `GEMINI_MODEL`, e por padrão `gemini-3.5-flash`, validado com fala em português brasileiro. As tentativas de áudio mantêm o mesmo modelo. Fotos e descrição usam o modelo comum (`gemini-3.5-flash-lite` por padrão) quando não há modelo específico, quando ele não existe ou após duas falhas transitórias.
+
+As chamadas ao Gemini para mídia e descrição têm um prazo total de 25 segundos e até três tentativas para falhas transitórias. A geração de descrição usa a cota existente de texto (`chat`); não exige nova migration. O frontend encerra a espera após 45 segundos e exibe a mensagem útil devolvida pela função.
 
 Antes de implantar uma versão de Edge Function que depende de uma migration, aplique e verifique a migration correspondente no projeto Supabase. Mantenha `verify_jwt` habilitado nas funções que exigem usuário autenticado.
+
+Para atualizar as funções de mídia/descrição, use a CLI Supabase 3.x autenticada com acesso ao projeto:
+
+```sh
+supabase functions deploy imobfy-parse-property-audio --remote=zenzuialkjalkabenbtv --use-api
+supabase functions deploy imobfy-sort-property-photos --remote=zenzuialkjalkabenbtv --use-api
+supabase functions deploy imobfy-generate-property-description --remote=zenzuialkjalkabenbtv --use-api
+```
+
+Depois da implantação, teste novamente áudio, fotos e descrição com uma conta de teste. O push no GitHub sincroniza o código com o Lovable; confirme separadamente a implantação das Edge Functions no Supabase.
 
 ## Lovable
 

@@ -1,6 +1,6 @@
 // @ts-nocheck — CI executa este arquivo com Bun; o app não inclui tipos de bun:test.
 import { describe, expect, test } from "bun:test";
-import { parseAttendanceDraft, requiresHumanForOffer, safeAttendanceHistory } from "../../supabase/functions/_shared/attendance-contract";
+import { parseAttendanceDraft, requiresHumanForOffer, requestsHuman, safeAttendanceHistory } from "../../supabase/functions/_shared/attendance-contract";
 
 describe("simulador comercial — contrato de resposta", () => {
   test("rejeita resposta não estruturada em vez de inventar dados", () => {
@@ -17,6 +17,13 @@ describe("simulador comercial — contrato de resposta", () => {
     const value = parseAttendanceDraft(JSON.stringify({ reply: "Fechado, aceitamos o desconto!", handoff_required: false }), "Aceita R$ 500.000?");
     expect(value.brief.handoff_required).toBe(true);
     expect(value.draft).not.toContain("Fechado");
+  });
+  test("pedido explícito de corretor exige transferência humana", () => {
+    expect(requestsHuman("Quero falar com um corretor, por favor")).toBe(true);
+    const result = parseAttendanceDraft(JSON.stringify({ reply: "Posso resolver tudo sozinho!", handoff_required: false }), "Quero falar com um corretor");
+    expect(result.brief.handoff_required).toBe(true);
+    expect(result.draft).toContain("encaminhar");
+    expect(result.draft).not.toContain("sozinho");
   });
   test("pergunta de disponibilidade não aciona negociação", () => {
     expect(requiresHumanForOffer("Esse apartamento ainda está disponível?")).toBe(false);

@@ -1,3 +1,4 @@
+// @ts-nocheck — CI executa este arquivo com Bun; o app não inclui tipos de bun:test.
 import { describe, expect, test } from "bun:test";
 import { parseAttendanceDraft, requiresHumanForOffer, safeAttendanceHistory } from "../../supabase/functions/_shared/attendance-contract";
 

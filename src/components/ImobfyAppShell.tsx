@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Building2, CalendarDays, ChevronRight, CircleDollarSign, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Users, X, BriefcaseBusiness } from "lucide-react";
+import { BarChart3, Building2, CalendarDays, ChevronRight, CircleDollarSign, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Users, X, BriefcaseBusiness, MessageSquareText } from "lucide-react";
 import type { ImobfyUser } from "../lib/imobfy-session";
 import { signOut } from "../lib/imobfy-session";
 
@@ -11,6 +11,7 @@ const primary: NavItem[] = [
   { to: "/", label: "Visão geral", icon: LayoutDashboard },
   { to: "/imoveis", label: "Imóveis", icon: Building2 },
   { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/atendimento", label: "Atendimento", icon: MessageSquareText },
   { to: "/negocios", label: "Negócios", icon: BriefcaseBusiness },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
 ];
@@ -38,6 +39,7 @@ export default function ImobfyAppShell({ user, children }: Props) {
     "/": ["VISÃO GERAL", "Dashboard", "Tudo que merece sua atenção, em um só lugar."],
     "/imoveis": ["OPERAÇÃO", "Imóveis", "Seu estoque, captações e oportunidades de venda."],
     "/clientes": ["RELACIONAMENTO", "Clientes", "Quem está comprando, o que procura e qual é o próximo passo."],
+    "/atendimento": ["RELACIONAMENTO", "Atendimento inteligente", "Simule conversas com imóveis reais antes de ativar canais externos."],
     "/negocios": ["COMERCIAL", "Negócios", "Acompanhe cada oportunidade até o fechamento."],
     "/agenda": ["ROTINA", "Agenda", "Visitas, follow-ups e compromissos que movem sua operação."],
     "/comissoes": ["FINANCEIRO", "Comissões", "Quanto você gerou, quanto recebeu e quanto ainda falta receber."],

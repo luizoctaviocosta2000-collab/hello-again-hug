@@ -43,9 +43,9 @@ export function parseAttendanceDraft(raw: string, message: string): AttendanceDr
   const amount = obj.budget_brl;
   return {
     draft: humanAsked
-      ? "Claro! Vou encaminhar seu atendimento a um corretor responsável. Ele poderá continuar a conversa e tirar suas dúvidas."
+      ? "Claro! Posso encaminhar seu atendimento a um corretor responsável para que ele continue a conversa e tire suas dúvidas."
       : forcedHandoff
-        ? "Entendi sua proposta ou pedido de negociação. Vou encaminhar ao corretor responsável para verificar as possibilidades com o proprietário. Não consigo confirmar descontos ou condições por aqui."
+        ? "Entendi sua proposta ou pedido de negociação. Posso encaminhar ao corretor responsável para avaliação com o proprietário. Não consigo confirmar descontos ou condições por aqui."
         : draft,
     brief: {
       intent: short(obj.intent, 120) || "Interesse no imóvel",

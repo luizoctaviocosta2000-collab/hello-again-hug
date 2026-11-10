@@ -24,6 +24,11 @@ export function requiresHumanForOffer(message: string): boolean {
   return /\b(proposta|contraproposta|desconto|negociar|negociacao|baixar o preco|fechar por|aceita(ria)?\s+(r\$|\d)|ofereco|oferta de \d)/i.test(normalized);
 }
 
+export function requestsHuman(message: string): boolean {
+  const normalized = message.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+  return /\\b(falar|conversar|passar|transferir)\\b.{0,35}\\b(corretor|atendente|humano|pessoa)\\b|\\b(atendente humano|pessoa de verdade)\\b/i.test(normalized);
+}
+
 export function parseAttendanceDraft(raw: string, message: string): AttendanceDraft {
   const text = raw.trim().replace(/^\x60\x60\x60(?:json)?\s*/i, "").replace(/\s*\x60\x60\x60$/, "");
   let value: unknown;
@@ -33,19 +38,22 @@ export function parseAttendanceDraft(raw: string, message: string): AttendanceDr
   const draft = short(obj.reply, 1800);
   if (!draft || draft.length < 3) throw new Error("A IA não gerou uma resposta utilizável.");
   const forcedHandoff = requiresHumanForOffer(message);
-  const handoff = forcedHandoff || obj.handoff_required === true;
+  const humanAsked = requestsHuman(message);
+  const handoff = forcedHandoff || humanAsked || obj.handoff_required === true;
   const amount = obj.budget_brl;
   return {
-    draft: forcedHandoff
-      ? "Entendi sua proposta ou pedido de negociação. Vou encaminhar ao corretor responsável para verificar as possibilidades com o proprietário. Não consigo confirmar descontos ou condições por aqui."
-      : draft,
+    draft: humanAsked
+      ? "Claro! Vou encaminhar seu atendimento a um corretor responsável. Ele poderá continuar a conversa e tirar suas dúvidas."
+      : forcedHandoff
+        ? "Entendi sua proposta ou pedido de negociação. Vou encaminhar ao corretor responsável para verificar as possibilidades com o proprietário. Não consigo confirmar descontos ou condições por aqui."
+        : draft,
     brief: {
       intent: short(obj.intent, 120) || "Interesse no imóvel",
       objection: short(obj.objection, 180) || null,
       budget_brl: typeof amount === "number" && Number.isFinite(amount) && amount > 0 && amount < 1_000_000_000 ? amount : null,
       preferred_neighborhood: short(obj.preferred_neighborhood, 120) || null,
       handoff_required: handoff,
-      handoff_reason: forcedHandoff ? "Negociação comercial exige avaliação humana." : short(obj.handoff_reason, 240) || null,
+      handoff_reason: humanAsked ? "O cliente solicitou atendimento humano." : forcedHandoff ? "Negociação comercial exige avaliação humana." : short(obj.handoff_reason, 240) || null,
       next_step: short(obj.next_step, 240) || "Revisar e decidir o próximo contato.",
     },
   };

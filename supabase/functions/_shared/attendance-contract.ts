@@ -25,8 +25,8 @@ export function requiresHumanForOffer(message: string): boolean {
 }
 
 export function requestsHuman(message: string): boolean {
-  const normalized = message.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
-  return /\\b(falar|conversar|passar|transferir)\\b.{0,35}\\b(corretor|atendente|humano|pessoa)\\b|\\b(atendente humano|pessoa de verdade)\\b/i.test(normalized);
+  const normalized = message.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /\b(falar|conversar|passar|transferir)\b.{0,35}\b(corretor|atendente|humano|pessoa)\b|\b(atendente humano|pessoa de verdade)\b/i.test(normalized);
 }
 
 export function parseAttendanceDraft(raw: string, message: string): AttendanceDraft {

@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCES = (
     "supabase/migrations/202610150002_properties_complete_capture_fields.sql",
     "supabase/migrations/202610150003_auto_generate_property_codes.sql",
+    "supabase/migrations/20261116142000_property_code_unbounded_width.sql",
     "supabase/migrations/202610160001_fix_sale_proposal_commission_flow.sql",
     "supabase/migrations/20261116134000_respect_explicit_sale_commission_sides.sql",
     "supabase/migrations/202610160002_profile_whatsapp_contact.sql",
@@ -84,6 +85,15 @@ begin
     raise exception 'Legacy commission fallback reintroduced';
   end if;
 
+  if position('greatest(3, length(next_number::text))' in lower(
+      pg_get_functiondef('public.generate_property_code()'::regprocedure))) = 0 then
+    raise exception 'Property code 1000 width guard missing';
+  end if;
+  if has_function_privilege('anon','public.generate_property_code()','EXECUTE')
+    or has_function_privilege('authenticated','public.generate_property_code()','EXECUTE') then
+    raise exception 'Inventory trigger exposed as callable RPC';
+  end if;
+
   if exists (select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relkind in ('r','p') and not c.relrowsecurity) then
     raise exception 'Public table missing RLS'; end if;
@@ -99,11 +109,15 @@ def load() -> list[tuple[str,str,str]]:
         if not s.strip() or re.search(r"(?im)^\s*(?:BEGIN|COMMIT|ROLLBACK|START TRANSACTION)\s*;",s):
             raise ValueError(f"Invalid migration component {path}")
         files.append((path,s.rstrip(),hashlib.sha256(s.encode()).hexdigest()))
-    original = files[2][1].lower()
-    patched = files[3][1].lower()
+    if "lpad(next_number::text, 3, '0')" not in files[1][1].lower():
+        raise ValueError("Expected source-19 property code truncation bug absent")
+    if "greatest(3, length(next_number::text))" not in files[2][1].lower():
+        raise ValueError("Property code width fix missing")
+    original = files[3][1].lower()
+    patched = files[4][1].lower()
     if "or not has_explicit_sides" not in original or "or not has_explicit_sides" in patched:
         raise ValueError("Incorrect commission migration ordering/content")
-    if "create or replace function public.handle_new_user()" not in files[5][1].lower():
+    if "create or replace function public.handle_new_user()" not in files[6][1].lower():
         raise ValueError("Profile creation trigger source missing")
     return files
 
@@ -111,7 +125,7 @@ def load() -> list[tuple[str,str,str]]:
 def render(files: list[tuple[str,str,str]], managed: bool) -> str:
     chunks = [
         "-- GENERATED from versioned sources. STAGING ONLY. NOT FOR PRODUCTION.",
-        "-- Historical sources 18,19,20,21,22 with immediate PR57 commission repair.",
+        "-- Historical sources 18,19,20,21,22 with immediate width guard and PR57 commission repair.",
     ]
     if not managed:
         chunks.append("BEGIN;")
@@ -132,7 +146,7 @@ def main() -> None:
     args = cli.parse_args()
     sources = load()
     if args.check:
-        print("PASS: inventory + profile sources and immediate finance correction correctly ordered")
+        print("PASS: property code width and finance corrections immediately follow vulnerable historical sources")
         print("NOT VERIFIED: live Auth or app API integration")
     else:
         print(render(sources,args.managed), end="")

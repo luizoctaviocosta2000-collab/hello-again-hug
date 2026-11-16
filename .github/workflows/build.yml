@@ -15,6 +15,8 @@ jobs:
         with:
           bun-version: 1.3.5
       - run: bun install
+      - name: Validate staging financial migration bundle (static check only)
+        run: python3 scripts/staging/build_atomic_finance_batch.py --check
       - run: bun run test
       - run: bun run typecheck
       - run: bun run build

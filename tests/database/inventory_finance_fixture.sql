@@ -24,7 +24,8 @@ alter table public.deals
 
 alter table public.proposals
   add column responded_at timestamptz,
-  add column proposed_at timestamptz not null default now();
+  add column proposed_at timestamptz not null default now(),
+  add column amount numeric(14,2) not null default 0;
 
 alter table public.deal_properties
   add column sold boolean not null default false,

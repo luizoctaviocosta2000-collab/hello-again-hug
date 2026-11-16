@@ -41,6 +41,8 @@ jobs:
         run: python3 scripts/staging/build_atomic_finance_batch.py > /tmp/imobfy-stage-finance.sql
       - name: Create disposable stage-09-shaped database
         run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_fixture.sql
+      - name: Prove a late SQL failure rolls back all previous steps
+        run: python3 tests/database/run_staging_finance_rollback.py
       - name: Apply SQL batch atomically in disposable PostgreSQL
         run: psql -X -v ON_ERROR_STOP=1 -f /tmp/imobfy-stage-finance.sql
       - name: Test anonymous, cross-user, and valid RPC calls

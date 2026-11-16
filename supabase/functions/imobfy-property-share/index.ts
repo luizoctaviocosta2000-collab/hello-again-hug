@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isOwnedPhotoRow } from "../_shared/property-photo-ownership.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -30,15 +31,22 @@ Deno.serve(async (req: Request) => {
 
     const { data: property, error: propertyError } = await admin.from("properties")
       .select("id,title,property_type,bedrooms,bathrooms,parking_spaces,area_m2,asking_price,sale_value,status,neighborhood,city,state")
-      .eq("id", link.property_id).maybeSingle();
+      .eq("id", link.property_id).eq("user_id", link.user_id).maybeSingle();
     if (propertyError || !property || !["ativo", "active", "reservado", "reserved"].includes(String(property.status).toLowerCase())) {
       return respond({ error: "Este imóvel não está disponível no momento." }, 404);
     }
 
     const { data: photos } = await admin.from("property_photos")
-      .select("storage_path,category,sort_order,is_cover")
-      .eq("property_id", property.id).order("sort_order", { ascending: true }).limit(40);
-    const gallery = await Promise.all((photos || []).map(async (photo: any) => {
+      .select("user_id,property_id,storage_path,category,sort_order,is_cover")
+      .eq("property_id", property.id)
+      .eq("user_id", link.user_id)
+      .order("sort_order", { ascending: true }).limit(40);
+    // The admin client bypasses RLS. Never sign an object path that belongs
+    // to another user or property, even if a malformed photo row references us.
+    const safePhotos = (photos || []).filter((photo) =>
+      isOwnedPhotoRow(photo, link.user_id, property.id)
+    );
+    const gallery = await Promise.all(safePhotos.map(async (photo) => {
       const { data } = await admin.storage.from("property-photos").createSignedUrl(photo.storage_path, 3600);
       return data?.signedUrl ? { url: data.signedUrl, category: photo.category, order: photo.sort_order, cover: photo.is_cover } : null;
     }));

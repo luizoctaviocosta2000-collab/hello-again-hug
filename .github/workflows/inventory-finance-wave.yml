@@ -1,0 +1,69 @@
+name: IMOBFY inventory profile and finance wave regression
+
+on:
+  pull_request:
+    branches:
+      - main
+      - feat/imobfy-staging-security-wave-20261116
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  inventory-finance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: imobfy_inventory_finance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: imobfy_inventory_finance_test
+      PGUSER: postgres
+      PGPASSWORD: local-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate migration bundles and check managed SQL boundaries
+        run: |
+          python3 scripts/staging/build_atomic_finance_batch.py > /tmp/finance-10-13.sql
+          python3 scripts/staging/build_security_wave.py > /tmp/security-14-17.sql
+          python3 scripts/staging/build_inventory_finance_wave.py --check
+          python3 scripts/staging/build_inventory_finance_wave.py > /tmp/inventory-18-22.sql
+          python3 scripts/staging/build_inventory_finance_wave.py --managed > /tmp/inventory-18-22-managed.sql
+          python3 -c 'from pathlib import Path; s=Path("/tmp/inventory-18-22-managed.sql").read_text(); assert not any(x.strip().upper() in ("BEGIN;", "COMMIT;") for x in s.splitlines()); assert s.index("fix_sale_proposal_commission_flow") < s.index("respect_explicit_sale_commission_sides") < s.index("sync_profile_name_fields")'
+      - name: Create disposable database and reconstruct stages 09-17
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/finance-10-13.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_security_wave_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/security-14-17.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/inventory_finance_fixture.sql
+      - name: Apply inventory, finance correction and profile migration as one transaction
+        run: psql -X -v ON_ERROR_STOP=1 -f /tmp/inventory-18-22.sql
+      - name: Validate synthetic tenant inventory, signup and sales
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/inventory_finance_wave_regression.sql
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Install dependencies
+        run: bun install
+      - name: Existing and new Bun tests
+        run: bun run test
+      - name: TypeScript and production build
+        run: |
+          bun run typecheck
+          bun run build

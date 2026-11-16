@@ -1,6 +1,6 @@
 # Staging security gate — migration steps 10–13
 
-**Status:** preparation only. No SQL applied remotely. Production is excluded.
+**Status:** applied to `imobfy-testes` on 16 November 2026, and SQL security checks passed. Production is excluded. See `STAGING-EXECUTION-2026-11-16.md` for version and evidence.
 
 ## Confirmed vulnerability in the historical sequence
 
@@ -11,16 +11,16 @@ At staging step 09, the old migrations have not yet created two financial RPCs. 
 
 Both initially run as SECURITY DEFINER without `auth.uid() = p_user_id` validation, while EXECUTE is granted to `authenticated`. Step 11 protects direct-sale; **step 13** finally protects both. Applying steps 10–13 as separate committed migrations creates a window of unauthorized cross-user financial writes.
 
-## Safe approach proposed for review
+## Approach adopted for isolated staging
 
 - Keep the four **historical migration files unchanged**.
 - Generate one atomic SQL **batch** that includes steps 10, 11, 12, 13 **in that order**, applies the narrow staging-only fix for the unassigned `d` record in direct sales, then revokes unnecessary privileged trigger-function RPC EXECUTE, fixes `set_updated_at` search_path and verifies final grants/function guards before COMMIT.
-- Use one *proven transactional migration execution* for the complete batch only **after explicit approval**. Do not assume nested `BEGIN`/`COMMIT` will behave identically in an API migration executor; verify its transaction contract before remote execution. A single committed migration has a different staging history from the original 4; record the composite version and maintain source mapping. Never double-apply these four migrations afterward.
-- If any step or assertion fails, the DB transaction rolls back. Confirm staging is still at step 09 before any execution. SQL generated here is a preparation artifact, not an instruction to execute immediately.
-- Generate a reviewable SQL file with `python3 scripts/staging/build_atomic_finance_batch.py > /tmp/imobfy-finance-10-13.sql`. The Python script **never connects to a database**. Use `--check` to validate input files without generating output.
+- Supabase Management API's migration runner controlled the transaction. Used `--managed` to omit explicit `BEGIN/COMMIT`, which can break built-in rollback semantics. The staging application was authorized explicitly. A single committed migration has a different staging history from the original 4; record the composite version and maintain source mapping. Never double-apply these four migrations afterward.
+- Before application staging was confirmed at step 09. The migration succeeded and its final state was independently verified. **Do not reapply** this bundle to the current database.
+- Generate a local PostgreSQL test batch with `python3 scripts/staging/build_atomic_finance_batch.py`; for Supabase-managed transactions use `python3 scripts/staging/build_atomic_finance_batch.py --managed`. Neither variant connects to a database. Use `--check` for source inspection. Generation does not authorize applying the same batch again.
 - Do not use a shell pipe straight to a production SQL client. The output has to be reviewed, tested in isolated PostgreSQL 17 and explicitly authorized.
 
-## Acceptance checks after execution (not yet run)
+## Acceptance checks after execution (results in isolated staging)
 
 1. Confirm the four final function definitions have the expected user-bound authorization; especially the two financial RPCs check `auth.uid()` against `p_user_id` on their first executable path.
 2. `anon` cannot execute either financial RPC; `authenticated` can invoke only for own user ID. In real staging with user A and B, attempt B's ID using A's token and assert no rows created.
@@ -35,8 +35,8 @@ If the pre-commit assertion fails, the whole batch must roll back. No user recor
 
 ## Current security baseline (2026-11-16)
 
-- `imobfy-testes` project `etcdlxkpidiqbgdayiol`, 9 migrations applied.
-- Advisors: eight PUBLIC-executable SECURITY DEFINER trigger functions and one mutable search_path function.
+- `imobfy-testes` project `etcdlxkpidiqbgdayiol`: **10 migration history records**, including the composed source stages 10–13 under version `20261116124049`.
+- Advisors: only two warnings on authenticated-invocable SECURITY DEFINER financial RPCs; direct anonymous execution, privileged trigger grants and mutable `set_updated_at` search_path are resolved.
 - The `public` schema's 18 tables have RLS enabled, but real two-user isolation has not been tested.
 - No fixture user accounts have been created; Auth and Storage are not yet homologated.
 
@@ -51,9 +51,16 @@ The consolidated output doesn't certify every downstream migration. Later migrat
 - A staging-only replacement is now versioned at `scripts/staging/patches/generate_sale_commission_unassigned_record.sql` and appended inside the same atomic generator transaction before permission assertions.
 - The test uses two fictitious user UUIDs, an active capture, anonymous access attempts, cross-user financial calls, own-user manual VGV and direct sales. It checks that **sale-only** and **capture-only** entries produce exactly their corresponding commission types, and verifies the numeric formula at R$ 500,000.
 - A deliberately injected SQL failure just before COMMIT was followed by verification that the original table constraint, missing RPCs and trigger permissions were fully restored.
-- The real staging schema was inspected **read-only** for finance columns, the VGV unique index, trigger presence and migration count. It still contains nine migrations; **no remote migrations or user data were changed**.
-- **Remaining:** the disposable fixture is not a full dump of stage 09; it does not reproduce the production Auth/PostgREST/Storage stack or all sales triggers. Finish full staging validation only after explicit authorization. Do not equate these CI results with production release readiness.
+- Before the write, the real staging schema was inspected read-only for finance columns, indexes, trigger presence and migration count. Following explicit approval, the composite was applied remotely; no user or business records were inserted.
+- **Remaining:** the disposable fixture was not a full dump of stage 09; actual Auth/PostgREST/Storage and real two-user business workflows have not been verified. Staging SQL negative checks used simulated JWT claims; positive authorized workflow was tested only with synthetic local PostgreSQL fixtures. Do not equate these CI results with production release readiness.
 
 ### Migration-history caution
 
 The bundle is assembled from historical migrations plus a staging-only correction, so its final schema is intentionally ahead of the original four migration files. Record the composite staging migration version and the corrective change explicitly. Before any production proposal, reconcile the complete post-October migration chain rather than copying this staging bundle blindly.
+
+## Post-application verification
+
+- Migration history and security scan: see [staging execution report](STAGING-EXECUTION-2026-11-16.md).
+- Two finance RPC signatures accessible only to `authenticated` passed real SQL role checks with simulated JWT subjects; cross-account requests were denied, and unauthorized property access failed.
+- Zero auth users, profiles, sales, commissions, or VGV rows after validation.
+- Full integration and subsequent migrations remain pending; do not interpret this as a production release approval.

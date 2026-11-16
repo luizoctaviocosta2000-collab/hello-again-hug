@@ -86,6 +86,14 @@ create table public.vgv_entries(
 create unique index vgv_entries_user_deal_month_idx
   on public.vgv_entries(user_id, deal_id, reference_month);
 
+-- The real staging database already has a sales commission trigger at step 09.
+-- Create a placeholder so step 10's CREATE OR REPLACE FUNCTION updates the live trigger.
+create function public.generate_sale_commission() returns trigger
+  language plpgsql security definer set search_path=public
+  as $ begin return new; end $;
+create trigger sales_generate_commission after insert on public.sales
+for each row execute function public.generate_sale_commission();
+
 create table public.security_gate_marker(id bigint primary key);
 create function public.set_updated_at() returns trigger
   language plpgsql as $$ begin return new; end $$;
@@ -114,3 +122,11 @@ insert into public.profiles (id) values
 insert into public.properties(id, user_id, title) values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','Synthetic A'),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','22222222-2222-4222-8222-222222222222','Synthetic B');
+insert into public.captures(
+  id, user_id, property_id, status, commission_pct
+) values (
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  '11111111-1111-4111-8111-111111111111',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'active', 20
+);

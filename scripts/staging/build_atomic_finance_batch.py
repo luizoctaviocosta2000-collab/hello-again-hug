@@ -159,7 +159,7 @@ def read_repair() -> str:
         raise ValueError("Direct-sale commission repair missing its explicit NULL-deal guard")
     if content.lower().count(expected[0]) != 1:
         raise ValueError("Repair must replace exactly one sales commission trigger function")
-    if re.search(r"(?im)^\\s*(?:BEGIN|COMMIT|ROLLBACK)\\s*;", content):
+    if re.search(r"(?im)^\s*(?:BEGIN|COMMIT|ROLLBACK)\s*;", content):
         raise ValueError("Repair must not break the atomic transaction boundary")
     return content
 

@@ -1,0 +1,68 @@
+name: IMOBFY staging wave 14-17 atomic security
+
+on:
+  pull_request:
+    branches: [main, chore/imobfy-engineering-protocol-20261116, fix/imobfy-property-photo-ownership-20261116]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  staging-security-wave:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: imobfy_stage_security_wave
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: imobfy_stage_security_wave
+      PGUSER: postgres
+      PGPASSWORD: local-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify composer input and managed migration boundaries
+        run: |
+          python3 scripts/staging/build_security_wave.py --check
+          python3 scripts/staging/build_security_wave.py --managed > /tmp/imobfy-staging-wave-managed.sql
+          python3 -c 'from pathlib import Path; s=Path("/tmp/imobfy-staging-wave-managed.sql").read_text(); assert not any(x.strip().upper() in ("BEGIN;", "COMMIT;") for x in s.splitlines()); assert "ai_messages_conversation_tenant_fk" in s and "property_photos_tenant_property_fk" in s'
+          python3 scripts/staging/build_security_wave.py > /tmp/imobfy-staging-wave-local.sql
+          python3 scripts/staging/build_atomic_finance_batch.py > /tmp/imobfy-stage-finance.sql
+      - name: Restore disposable finance stage-13 baseline
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/imobfy-stage-finance.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_security_wave_fixture.sql
+      - name: Apply security, AI chat, photos and sharing as one PostgreSQL transaction
+        run: psql -X -v ON_ERROR_STOP=1 -f /tmp/imobfy-staging-wave-local.sql
+      - name: Test AI owner relationships with two synthetic accounts
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_security_wave_ai_regression.sql
+      - name: Test photo metadata and property share tenant constraints
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/property_photo_boundary_regression.sql
+      - name: Test Storage owner-scoped policies
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_security_wave_storage_regression.sql
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Install dependencies
+        run: bun install
+      - name: Run Bun tests
+        run: bun run test
+      - name: Run typecheck and production build
+        run: |
+          bun run typecheck
+          bun run build

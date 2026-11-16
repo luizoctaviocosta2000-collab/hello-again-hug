@@ -39,6 +39,10 @@ jobs:
         run: python3 scripts/staging/build_atomic_finance_batch.py --check
       - name: Generate one atomic SQL batch
         run: python3 scripts/staging/build_atomic_finance_batch.py > /tmp/imobfy-stage-finance.sql
+      - name: Verify Supabase-managed bundle has no explicit transaction delimiters
+        run: |
+          python3 scripts/staging/build_atomic_finance_batch.py --managed > /tmp/imobfy-stage-finance-managed.sql
+          python3 -c 'from pathlib import Path; s=Path("/tmp/imobfy-stage-finance-managed.sql").read_text(); a=s.splitlines(); assert not any(x.strip().upper() in ("BEGIN;", "COMMIT;") for x in a); assert "public.register_manual_vgv" in s and "public.register_direct_sale" in s'
       - name: Create disposable stage-09-shaped database
         run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_fixture.sql
       - name: Prove a late SQL failure rolls back all previous steps

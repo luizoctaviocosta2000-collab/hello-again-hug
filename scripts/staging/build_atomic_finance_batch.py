@@ -22,6 +22,7 @@ MIGRATIONS = (
     "20260911142000_lock_finance_rpc_to_user.sql",
 )
 RPC_NAMES = ("register_manual_vgv", "register_direct_sale")
+REPAIR_FILE = ROOT / "scripts/staging/patches/generate_sale_commission_unassigned_record.sql"
 
 # Within the same transaction, privilege corrections and assertions must
 # complete before the vulnerable interim function definitions become visible.
@@ -145,7 +146,25 @@ def read_sources() -> list[tuple[str, str, str]]:
     return sources
 
 
-def build_sql(sources: list[tuple[str, str, str]]) -> str:
+def read_repair() -> str:
+    """Verify the staging-only replacement for a direct-sale trigger crash."""
+    content = REPAIR_FILE.read_text(encoding="utf-8")
+    expected = (
+        "create or replace function public.generate_sale_commission()",
+        "if new.deal_id is null then",
+        "sides := coalesce(new.commission_sides",
+        "sides := coalesce(d.sides",
+    )
+    if any(part not in content.lower() for part in expected):
+        raise ValueError("Direct-sale commission repair missing its explicit NULL-deal guard")
+    if content.lower().count(expected[0]) != 1:
+        raise ValueError("Repair must replace exactly one sales commission trigger function")
+    if re.search(r"(?im)^\\s*(?:BEGIN|COMMIT|ROLLBACK)\\s*;", content):
+        raise ValueError("Repair must not break the atomic transaction boundary")
+    return content
+
+
+def build_sql(sources: list[tuple[str, str, str]], repair: str) -> str:
     parts = [
         "-- GENERATED from historical sources. STAGING ONLY. NEVER RUN UNREVIEWED.",
         "-- Four dependent steps must commit atomically, or roll back together.",
@@ -166,6 +185,11 @@ def build_sql(sources: list[tuple[str, str, str]]) -> str:
             "",
         ))
     parts.extend((
+        "-- Stage-only correction: no unassigned d.sides when sale.deal_id is NULL.",
+        repair.rstrip(),
+        "",
+    ))
+    parts.extend((
         "-- Final mandatory security guard; commit is conditional on success.",
         FINAL_GUARD.strip(),
         "COMMIT;",
@@ -180,11 +204,12 @@ def main() -> None:
     args = parser.parse_args()
 
     sources = read_sources()
+    repair = read_repair()
     if args.check:
-        print("PASS: four source migrations found in required order; both RPC guards present in final migration.")
+        print("PASS: four source migrations and direct-sale trigger repair verified; both RPC identity guards present.")
         print("NOT VALIDATED: PostgreSQL execution, tenant isolation, or remote migration history.")
     else:
-        print(build_sql(sources), end="")
+        print(build_sql(sources, repair), end="")
 
 
 if __name__ == "__main__":

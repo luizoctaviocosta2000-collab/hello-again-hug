@@ -78,8 +78,8 @@ create table public.vgv_entries(
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
   deal_id uuid,
-  month date,
-  reference_month date,
+  month date not null,
+  reference_month date not null,
   property_value numeric(14,2) not null default 0,
   vgv numeric(14,2) not null default 0
 );

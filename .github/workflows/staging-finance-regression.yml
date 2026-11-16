@@ -1,0 +1,47 @@
+name: Staging finance authorization regression
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  staging-finance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: imobfy_stage_finance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: imobfy_stage_finance_test
+      PGUSER: postgres
+      PGPASSWORD: local-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate migration inputs
+        run: python3 scripts/staging/build_atomic_finance_batch.py --check
+      - name: Generate one atomic SQL batch
+        run: python3 scripts/staging/build_atomic_finance_batch.py > /tmp/imobfy-stage-finance.sql
+      - name: Create disposable stage-09-shaped database
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_fixture.sql
+      - name: Apply SQL batch atomically in disposable PostgreSQL
+        run: psql -X -v ON_ERROR_STOP=1 -f /tmp/imobfy-stage-finance.sql
+      - name: Test anonymous, cross-user, and valid RPC calls
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_authorization.sql

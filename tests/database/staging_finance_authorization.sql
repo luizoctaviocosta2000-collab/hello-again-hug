@@ -91,7 +91,12 @@ select public.register_manual_vgv(
 select public.register_direct_sale(
   '11111111-1111-4111-8111-111111111111',
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-  500000, now(), array['sale']::text[], 'Synthetic fixture'
+  500000, now(), array['sale']::text[], 'Fixture sale only'
+);
+select public.register_direct_sale(
+  '11111111-1111-4111-8111-111111111111',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  500000, now(), array['capture']::text[], 'Fixture capture only'
 );
 commit;
 
@@ -99,11 +104,11 @@ commit;
 do $$
 begin
   if (select count(*) from public.vgv_entries where user_id =
-    '11111111-1111-4111-8111-111111111111') <> 1
+    '11111111-1111-4111-8111-111111111111') <> 3
     or (select count(*) from public.commissions where user_id =
-    '11111111-1111-4111-8111-111111111111') <> 1
+    '11111111-1111-4111-8111-111111111111') <> 3
     or (select count(*) from public.sales where user_id =
-    '11111111-1111-4111-8111-111111111111') <> 1 then
+    '11111111-1111-4111-8111-111111111111') <> 2 then
     raise exception 'Authorized path failed to create expected entries';
   end if;
   if (select count(*) from public.vgv_entries where user_id =
@@ -114,8 +119,21 @@ begin
     '22222222-2222-4222-8222-222222222222') <> 0 then
     raise exception 'Cross-account write detected';
   end if;
-  if (select user_amount from public.commissions limit 1) <> 5460.00 then
-    raise exception 'Commission mismatch for synthetic 500000 VGV';
+  if (select sum(user_amount) from public.commissions) <> 16380.00 then
+    raise exception 'Commission mismatch for synthetic 500000 VGV scenarios';
+  end if;
+  if (select count(*) from public.commissions where commission_type='captacao') <> 1
+     or (select count(*) from public.commissions where commission_type='venda') <> 2 then
+    raise exception 'Incorrect commission sides after two direct-sale scenarios';
+  end if;
+  if exists (
+    select 1 from public.sales s join public.commissions c on c.sale_id=s.id
+    where s.notes='Fixture sale only' and c.commission_type <> 'venda'
+  ) or exists (
+    select 1 from public.sales s join public.commissions c on c.sale_id=s.id
+    where s.notes='Fixture capture only' and c.commission_type <> 'captacao'
+  ) then
+    raise exception 'Direct sale ignored explicitly selected commission side';
   end if;
 end $$;
 

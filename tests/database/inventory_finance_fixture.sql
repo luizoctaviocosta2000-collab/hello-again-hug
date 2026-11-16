@@ -31,6 +31,10 @@ alter table public.deal_properties
   add column sold boolean not null default false,
   add column updated_at timestamptz not null default now();
 
+-- Real staging has a unique sales.deal_id index, used by accepted-proposal
+-- closing ON CONFLICT(deal_id) DO NOTHING.
+create unique index sales_deal_id_key on public.sales(deal_id);
+
 -- The real source database already has these triggers before the wave.
 -- Stage-14 has created this function, and stage-20 will replace it.
 create trigger deals_create_sale_on_close

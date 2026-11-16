@@ -1,6 +1,6 @@
 # IMOBFY — inventory, proposal, commission and profile wave (prepared 2026-11-16)
 
-**Status: staged code and disposable CI validated. NOT applied to any remote Supabase database.**
+**Historical preparation snapshot.** This wave was **subsequently applied** to `imobfy-testes` on 16 Nov 2026, migration `20261116142621`. For current evidence and limitations see [STAGING-EXECUTION-WAVE-18-22-2026-11-16.md](STAGING-EXECUTION-WAVE-18-22-2026-11-16.md). **Do not reapply.**
 
 ## Scope
 Prepare the next historical sources in a single atomic migration *after* the previously applied
@@ -38,14 +38,14 @@ Because the current staging migration history is composite, **do not replay the 
 The first two CI attempts had incomplete **disposable test fixtures** (proposal amount and unique sales.deal_id) and were corrected to match the real staging schema before the fully successful run. The historical migrations themselves were applied successfully in those attempts.
 
 ## Scope limits and risks
-- **No remote SQL application on this branch.** Staging still has 11 migration entries and no users or business rows. Production untouched.
+- **After this preparation document:** the user authorized staging-only execution; it succeeded, and staging now has 12 migration entries. No users or business rows were created. Production remained untouched.
 - No real authenticated browser/API sessions, WhatsApp, Storage uploads or Gemini integration certified.
 - The migration `202610190002_ai_daily_quotas.sql` and later receipts, visit lifecycle and security hardening are **not included** here; they require their own ordered review.
 - Duplicate direct-sale submissions with null deal ID and replay/idempotency are still open. This corrected commission-type selection, not every money integrity issue.
 - Existing historical production data (including properties with 999+ codes) require separate backfill/compatibility assessment. The staging preflight requires an empty environment.
 - The SQL source `20261116134000_respect_explicit_sale_commission_sides.sql` is identical to PR #57; PR #59 is stacked on #58, and eventual merges must reconcile this duplicate file rather than applying it twice.
 - Before deployment, verify that migration executor owns one atomic transaction; generate its `--managed` bundle without top-level `BEGIN/COMMIT`.
-- Explicit authorization is required to apply this wave on `imobfy-testes`. **Production, merge, publish and real messaging are out of scope**.
+- Explicit authorization to apply this exact wave to `imobfy-testes` was received and used once; further writes require a distinct scope. **Production, merge, publish and real messaging are out of scope**.
 
 ## Next safe operation
 With approval for this exact test environment, re-read migrations, RPCs, trigger presence, and all fixture counts. Apply the single approved composed migration only after CI review, then re-read catalogs, advisor notices and run negative role-level SQL checks. Positive real-user Auth/API E2E remains a separate acceptance gate.

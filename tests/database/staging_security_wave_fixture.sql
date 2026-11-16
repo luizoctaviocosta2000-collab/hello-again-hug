@@ -16,6 +16,10 @@ create table public.deal_properties (
   unique (deal_id,property_id,user_id)
 );
 alter table public.deal_properties enable row level security;
+-- The real stage-13 properties table has owner-scoped RLS; replicate it.
+create policy properties_own_rows on public.properties for all to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 -- Staging already has both tables, with legacy owner-scoped ALL policies.
 create table public.ai_conversations (

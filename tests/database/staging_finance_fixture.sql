@@ -90,7 +90,7 @@ create unique index vgv_entries_user_deal_month_idx
 -- Create a placeholder so step 10's CREATE OR REPLACE FUNCTION updates the live trigger.
 create function public.generate_sale_commission() returns trigger
   language plpgsql security definer set search_path=public
-  as $ begin return new; end $;
+  as $$ begin return new; end $$;
 create trigger sales_generate_commission after insert on public.sales
 for each row execute function public.generate_sale_commission();
 

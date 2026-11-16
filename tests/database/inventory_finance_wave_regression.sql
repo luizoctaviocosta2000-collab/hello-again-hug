@@ -166,3 +166,6 @@ begin
 end $$;
 
 select 'PASS: tenant inventory codes, profile signup, proposal gating, commission sides and VGV' as result;
+
+-- psql-only fixture. Always revert synthetic high-code seed.
+\ir property_code_width_regression.sql

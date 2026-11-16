@@ -6,6 +6,7 @@ Use:
     python3 scripts/staging/build_atomic_finance_batch.py > /tmp/imobfy-finance-10-13.sql
 
 Do not apply the output to production or individually expose steps 10-13.
+For MCP apply_migration use --managed: Supabase manages its own transaction.
 """
 from __future__ import annotations
 
@@ -164,11 +165,10 @@ def read_repair() -> str:
     return content
 
 
-def build_sql(sources: list[tuple[str, str, str]], repair: str) -> str:
+def build_sql(sources: list[tuple[str, str, str]], repair: str, managed: bool = False) -> str:
     parts = [
         "-- GENERATED from historical sources. STAGING ONLY. NEVER RUN UNREVIEWED.",
         "-- Four dependent steps must commit atomically, or roll back together.",
-        "BEGIN;",
         "SET LOCAL lock_timeout = '5s';",
         "SET LOCAL statement_timeout = '60s';",
         "DO $imobfy_preflight$ BEGIN",
@@ -178,6 +178,10 @@ def build_sql(sources: list[tuple[str, str, str]], repair: str) -> str:
         "  END IF;",
         "END; $imobfy_preflight$;",
     ]
+    if managed:
+        parts.insert(2, "-- Transaction owned by Supabase migration runner; never add BEGIN/COMMIT.")
+    else:
+        parts.insert(2, "BEGIN;")
     for number, (name, source, digest) in enumerate(sources, start=10):
         parts.extend((
             f"\n-- STEP {number}, SHA256 {digest}: {name}",
@@ -192,8 +196,9 @@ def build_sql(sources: list[tuple[str, str, str]], repair: str) -> str:
     parts.extend((
         "-- Final mandatory security guard; commit is conditional on success.",
         FINAL_GUARD.strip(),
-        "COMMIT;",
     ))
+    if not managed:
+        parts.append("COMMIT;")
     return "\n".join(parts) + "\n"
 
 
@@ -201,6 +206,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true",
                         help="Validate source ordering and mandatory identity guards only")
+    parser.add_argument("--managed", action="store_true",
+                        help="Omit BEGIN/COMMIT; migration executor owns the transaction")
     args = parser.parse_args()
 
     sources = read_sources()
@@ -209,7 +216,7 @@ def main() -> None:
         print("PASS: four source migrations and direct-sale trigger repair verified; both RPC identity guards present.")
         print("NOT VALIDATED: PostgreSQL execution, tenant isolation, or remote migration history.")
     else:
-        print(build_sql(sources, repair), end="")
+        print(build_sql(sources, repair, managed=args.managed), end="")
 
 
 if __name__ == "__main__":

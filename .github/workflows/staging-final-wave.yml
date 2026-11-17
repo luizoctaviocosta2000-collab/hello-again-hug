@@ -54,6 +54,8 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f /tmp/security-14-17.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/database/inventory_finance_fixture.sql
           psql -X -v ON_ERROR_STOP=1 -f /tmp/inventory-18-22.sql
+      - name: Prepare real-shaped receipt and visit fixture for PostgreSQL tests
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_final_wave_fixture.sql
       - name: Apply stages 23–25 as one transaction with postcondition guards
         run: psql -X -v ON_ERROR_STOP=1 -f /tmp/final-23-25.sql
       - name: Verify existing profile inventory sale commission and property code flows

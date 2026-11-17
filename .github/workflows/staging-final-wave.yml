@@ -1,0 +1,80 @@
+name: IMOBFY final staging migration and tenant regression
+
+on:
+  pull_request:
+    branches:
+      - main
+      - feat/imobfy-inventory-finance-wave-20261116
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  final-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: imobfy_final_staging_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: imobfy_final_staging_test
+      PGUSER: postgres
+      PGPASSWORD: local-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify staging Auth/HTTP smoke script without network
+        run: |
+          python3 -m py_compile scripts/staging/auth_http_homologation.py
+          python3 scripts/staging/auth_http_homologation.py --check
+      - name: Generate and validate ordered atomic migrations
+        run: |
+          python3 scripts/staging/build_atomic_finance_batch.py > /tmp/finance-10-13.sql
+          python3 scripts/staging/build_security_wave.py > /tmp/security-14-17.sql
+          python3 scripts/staging/build_inventory_finance_wave.py > /tmp/inventory-18-22.sql
+          python3 scripts/staging/build_final_staging_wave.py --check
+          python3 scripts/staging/build_final_staging_wave.py > /tmp/final-23-25.sql
+          python3 scripts/staging/build_final_staging_wave.py --managed > /tmp/final-23-25-managed.sql
+          python3 -c 'from pathlib import Path; s=Path("/tmp/final-23-25-managed.sql").read_text(); assert not any(x.strip().upper() in ("BEGIN;", "COMMIT;") for x in s.splitlines()); assert s.index("ai_daily_quotas.sql") < s.index("harden_commission_receipt_ownership.sql") < s.index("atomic_visit_journey.sql")'
+      - name: Reconstruct clean stage 09–22 baseline (disposable PostgreSQL)
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_finance_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/finance-10-13.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_security_wave_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/security-14-17.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/database/inventory_finance_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/inventory-18-22.sql
+      - name: Prepare real-shaped receipt and visit fixture for PostgreSQL tests
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_final_wave_fixture.sql
+      - name: Apply stages 23–25 as one transaction with postcondition guards
+        run: psql -X -v ON_ERROR_STOP=1 -f /tmp/final-23-25.sql
+      - name: Validate canonical visit status after SQL stage 23–25
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/staging/patches/visit_completed_status_compatibility.sql
+      - name: Verify existing profile inventory sale commission and property code flows
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/inventory_finance_wave_regression.sql
+      - name: Verify quota receipt visit and authorization boundaries
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_final_wave_regression.sql
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Install dependencies
+        run: bun install
+      - name: Bun unit tests, types, production build
+        run: |
+          bun run test
+          bun run typecheck
+          bun run build

@@ -1,0 +1,60 @@
+name: Property photo tenant isolation regression
+
+on:
+  pull_request:
+    branches:
+      - main
+      - chore/imobfy-engineering-protocol-20261116
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  photo-tenant-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: imobfy_photo_tenant_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: imobfy_photo_tenant_test
+      PGUSER: postgres
+      PGPASSWORD: local-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Install dependencies
+        run: bun install
+      - name: Run Bun unit tests including photo path ownership
+        run: bun run test
+      - name: TypeScript typecheck
+        run: bun run typecheck
+      - name: Production build
+        run: bun run build
+      - name: Create disposable Auth and Storage fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/property_photo_boundary_fixture.sql
+      - name: Apply historical property photo migration
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/202610140001_property_photos.sql
+      - name: Apply historical property share migration
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/202610150001_property_share_links.sql
+      - name: Apply owner-bound security migration
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261116130000_property_photo_tenant_boundary.sql
+      - name: Verify ownership constraints and RLS for two users
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/property_photo_boundary_regression.sql

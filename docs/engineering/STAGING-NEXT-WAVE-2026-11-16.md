@@ -1,6 +1,6 @@
-# IMOBFY staging — photo security and next migration wave (16 Nov 2026)
+# IMOBFY staging — preflight plan for photo security (16 Nov 2026)
 
-**Read-only staging baseline:** `imobfy-testes` at migration history version `20261116124049`, 10 entries total. The last entry bundles historical source stages 10–13. Production remains untouched.
+**Historical pre-application snapshot.** Stages 14–17 plus AI/photo tenant guards were subsequently applied on 2026-11-16 as `20261116134906_imobfy_staging_14_17_secure_ai_photos_sharing`. See [the verified execution record](STAGING-EXECUTION-WAVE-14-17-2026-11-16.md) for the current state; do not replay these migrations.\n\n**Previous read-only staging baseline:** `imobfy-testes` at migration history version `20261116124049`, 10 entries total. The last entry bundles historical source stages 10–13. Production remains untouched.
 
 ## Source migration inventory after the finance bundle
 
@@ -10,7 +10,7 @@
 | 15 | `202610081500_imobfy_ai_conversations.sql` | Creates/replaces scoped policies; staging tables already exist, so verify no broad duplicate policies remain |
 | 16 | `202610140001_property_photos.sql` | Creates private Storage bucket, photo metadata and RLS; its policy alone does not validate that the file path corresponds to the attached property |
 | 17 | `202610150001_property_share_links.sql` | Creates owner-scoped share tokens and policies; public service-role signing must validate tenant/property |
-| **Security guard** | `20261116130000_property_photo_tenant_boundary.sql` | **New, not yet applied:** composite tenant/property FKs, owner/path constraint, strengthened photo policy |
+| **Security guard** | `20261116130000_property_photo_tenant_boundary.sql` | **Applied in the stage 14–17 composite:** composite tenant/property FKs, owner/path constraint, strengthened photo policy |
 | 18 | `202610150002_properties_complete_capture_fields.sql` | Adds inventory fields and alias trigger |
 | 19 | `202610150003_auto_generate_property_codes.sql` | Adds sequential per-user codes; test concurrency and existing values |
 | 20 | `202610160001_fix_sale_proposal_commission_flow.sql` | Overrides closing and commission triggers; a legacy fallback may generate captação on a sale-only operation. Require an explicit-sides correction before enabling sales |
@@ -41,11 +41,11 @@ The public `imobfy-property-share` Edge Function uses a service-role client to s
 - Bun tests cover the path validation in the shared Edge helper. Typecheck and build also passed in the updated workflow.
 - No Supabase Auth/Storage/Edge Functions were called or deployed in these tests. Real signed URL behavior remains unverified.
 
-## Prerequisites before remote staging rollout
+## Historical prerequisites checked before the completed rollout
 
-- Obtain **separate explicit approval** for applying the next wave of migrations to `imobfy-testes`; approval for source steps 10–13 did not include these changes.
+- Separate explicit user approval for source stages 14–17 was received, and the composite migration succeeded.
 - Preflight the public `properties(id,user_id)` uniqueness and exact schema. Staging currently lacks a composite unique owner index, which the new migration creates.
-- Apply historical photo/share migrations and this security guard in one Supabase-managed transaction, **before** publishing the public-share Edge Function. Exclude nested `BEGIN/COMMIT` from managed migrations.
+- Historical photo/share migrations and the guards were applied in a single Supabase-managed transaction, with no embedded `BEGIN/COMMIT`. The public-share Edge Function is **not deployed**.
 - If existing photos are present in any future environment, inventory their path patterns before applying the strict check; this migration intentionally fails rather than rewriting/deleting records.
 - Do not apply the historical commission trigger override without a reviewed follow-up correction and regression test covering sale-only, capture-only, both and splits.
 - Do not merge either PR or deploy live Edge Functions without owner approval.

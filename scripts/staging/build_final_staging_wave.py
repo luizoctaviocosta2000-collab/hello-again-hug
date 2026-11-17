@@ -22,7 +22,7 @@ SOURCES = (
     "supabase/migrations/20261022133523_harden_commission_receipt_ownership.sql",
     "supabase/migrations/20261022182211_atomic_visit_journey.sql",
 )
-TXN = re.compile(r"(?im)^\\s*(BEGIN|COMMIT|ROLLBACK|START TRANSACTION)\\s*;\\s*$")
+TXN = re.compile(r"(?im)^\s*(BEGIN|COMMIT|ROLLBACK|START TRANSACTION)\s*;\s*$")
 
 PREFLIGHT = r"""
 do $imobfy_final_preflight$
@@ -166,11 +166,11 @@ def render(items: list[tuple[str, str, str]], managed: bool) -> str:
         PREFLIGHT.strip(),
     ])
     for path, clean, sha256 in items:
-        chunks.append(f"-- SOURCE {path} SHA256:{sha256}\\n{clean}")
+        chunks.append(f"-- SOURCE {path} SHA256:{sha256}\n{clean}")
     chunks.append(FINAL_GUARD.strip())
     if not managed:
         chunks.append("COMMIT;")
-    return "\\n\\n".join(chunks) + "\\n"
+    return "\n\n".join(chunks) + "\n"
 
 
 def main() -> None:

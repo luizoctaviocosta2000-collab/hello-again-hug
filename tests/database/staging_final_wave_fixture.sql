@@ -38,7 +38,8 @@ create table public.visits (
   client_id uuid,
   starts_at timestamptz not null,
   ends_at timestamptz,
-  status text not null default 'scheduled',
+  status text not null default 'scheduled'
+    constraint visits_status_check check(status in ('scheduled','confirmed','completed','cancelled','no_show')),
   location text,
   notes text,
   created_at timestamptz not null default now(),

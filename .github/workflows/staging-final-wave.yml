@@ -37,6 +37,10 @@ jobs:
       PGPASSWORD: local-test-only
     steps:
       - uses: actions/checkout@v4
+      - name: Verify staging Auth/HTTP smoke script without network
+        run: |
+          python3 -m py_compile scripts/staging/auth_http_homologation.py
+          python3 scripts/staging/auth_http_homologation.py --check
       - name: Generate and validate ordered atomic migrations
         run: |
           python3 scripts/staging/build_atomic_finance_batch.py > /tmp/finance-10-13.sql

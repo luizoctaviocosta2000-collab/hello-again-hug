@@ -58,6 +58,8 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/database/staging_final_wave_fixture.sql
       - name: Apply stages 23–25 as one transaction with postcondition guards
         run: psql -X -v ON_ERROR_STOP=1 -f /tmp/final-23-25.sql
+      - name: Validate canonical visit status after SQL stage 23–25
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/staging/patches/visit_completed_status_compatibility.sql
       - name: Verify existing profile inventory sale commission and property code flows
         run: psql -X -v ON_ERROR_STOP=1 -f tests/database/inventory_finance_wave_regression.sql
       - name: Verify quota receipt visit and authorization boundaries

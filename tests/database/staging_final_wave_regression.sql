@@ -144,7 +144,7 @@ select public.finish_visit_journey(
 do $finish_verify$
 begin
  if (select status from public.visits
-      where id=(select visit_id from final_stage_test_visits)) <> 'done'
+      where id=(select visit_id from final_stage_test_visits)) <> 'completed'
     or (select count(*) from public.visit_properties
       where visit_id=(select visit_id from final_stage_test_visits) and visited) <> 1 then
    raise exception 'Visit completion and idempotent retry failed';

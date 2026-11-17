@@ -131,7 +131,7 @@ def main():
     if uid_a == uid_b:
         raise AssertionError("The two Supabase login identities must differ")
 
-    property_id, client_id = str(uuid.uuid4()), str(uuid.uuid4())
+    property_id, client_id, forged_id = (str(uuid.uuid4()) for _ in range(3))
     marker = "imobfy-e2e-" + str(uuid.uuid4())
     visit_id = None
     created_property = created_client = False
@@ -147,7 +147,7 @@ def main():
             raise AssertionError("Property read isolation failed")
 
         assert_denied(lambda: api.table("POST", "properties", token_b,
-                      payload={"id": str(uuid.uuid4()), "user_id": uid_a,
+                      payload={"id": forged_id, "user_id": uid_a,
                                "title": marker + "-foreign"}), "Foreign-property insert")
 
         api.table("POST", "clients", token_a,
@@ -196,6 +196,12 @@ def main():
                         api.table("DELETE", table, token_a, row_id)
                 except Exception:
                     cleanup_errors.append(table)
+        # If a foreign-owner insert was unexpectedly accepted, owner A can
+        # still remove its exact fixture id. Never leave a spoofed test row.
+        try:
+            api.table("DELETE", "properties", token_a, forged_id)
+        except Exception:
+            cleanup_errors.append("forged_property")
         if created_client:
             try:
                 api.table("DELETE", "clients", token_a, client_id)
@@ -211,7 +217,8 @@ def main():
             print("WARNING: fixture cleanup failed for " + ", ".join(cleanup_errors),
                   file=sys.stderr)
             print("Fixture IDs for manual cleanup: " + json.dumps({
-                "property_id": property_id, "client_id": client_id, "visit_id": visit_id
+                "property_id": property_id, "forged_id": forged_id,
+                "client_id": client_id, "visit_id": visit_id
             }), file=sys.stderr)
     if cleanup_errors or not succeeded:
         return 1

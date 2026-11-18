@@ -24,6 +24,7 @@ const sources: Record<SpecialistKind, Array<{ field: keyof AgentData; table: str
   financeiro: [
     {field:"commissions",table:"commissions",select:"id,user_amount,status,created_at,due_date",order:"created_at"},
     {field:"receipts",table:"commission_receipts",select:"commission_id,amount,received_at",order:"received_at"},
+    {field:"vgv",table:"vgv_entries",select:"vgv,reference_month",order:"reference_month"},
   ],
 };
 

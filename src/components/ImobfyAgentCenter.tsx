@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { readableFunctionError } from "../lib/function-error";
+import { loadLocalAgentReport } from "../lib/local-agent-report";
 import type { AgentReport, SpecialistKind } from "../../supabase/functions/_shared/specialist-agents";
 import "../imobfy-agents.css";
 
@@ -26,33 +27,46 @@ const agents = [
 
 const priorities: Record<string,string> = { alta:"Prioridade alta", media:"Para avaliar" };
 
-export default function ImobfyAgentCenter() {
+export default function ImobfyAgentCenter({userId}:{userId:string}) {
   const [selected,setSelected] = useState<SpecialistKind>("ads");
   const [reports,setReports] = useState<Partial<Record<SpecialistKind,AgentReport>>>({});
   const [loading,setLoading] = useState(false);
+  const [aiLoading,setAiLoading] = useState(false);
   const [error,setError] = useState("");
   const [notice,setNotice] = useState("");
   const current = agents.find(a => a.id === selected)!;
   const report = reports[selected];
 
   async function analyze() {
-    if(loading) return;
+    if(loading || aiLoading) return;
     setLoading(true);setError("");setNotice("");
     try {
-      const { data, error:invokeError } = await supabase.functions.invoke<AgentReport>(
-        "imobfy-specialist-agents",
-        { body: { agent:selected } },
-      );
-      if(invokeError) throw invokeError;
-      if(!data || data.agent !== selected || !Array.isArray(data.metrics) ||
-         !Array.isArray(data.recommendations) || !Array.isArray(data.sources) ||
-         !["regras","gemini"].includes(data.mode)) {
-        throw new Error("O agente não retornou uma análise válida.");
-      }
+      const data = await loadLocalAgentReport(selected,userId);
       setReports(previous => ({...previous,[selected]:data}));
     } catch(cause) {
-      setError(await readableFunctionError(cause));
+      setError(cause instanceof Error ? cause.message : "Não foi possível consultar os dados.");
     } finally {setLoading(false);}
+  }
+
+  async function requestAiBriefing() {
+    if(loading || aiLoading || !report || report.coverage !== "com_dados") return;
+    setAiLoading(true);setError("");setNotice("");
+    try {
+      const {data,error:invokeError} = await supabase.functions.invoke<AgentReport>(
+        "imobfy-specialist-agents",
+        {body:{agent:selected}},
+      );
+      if(invokeError) throw invokeError;
+      if(!data || data.agent!==selected || !Array.isArray(data.metrics) ||
+         !Array.isArray(data.recommendations) || !Array.isArray(data.sources) ||
+         !["regras","gemini"].includes(data.mode)) {
+        throw new Error("A IA não retornou uma análise válida.");
+      }
+      setReports(previous => ({...previous,[selected]:data}));
+      if(data.mode==="regras") setNotice("Gemini não disponível ou não respondeu com segurança. A análise baseada em regras foi preservada.");
+    } catch(cause) {
+      setError("O complemento da IA não está ativo neste ambiente. Sua análise básica continua disponível. "+await readableFunctionError(cause));
+    } finally {setAiLoading(false);}
   }
 
   async function copyPlan() {
@@ -94,14 +108,19 @@ export default function ImobfyAgentCenter() {
       <section className="agent-detail">
         <div className="agent-detail-head">
           <div><span className="agent-overline">SEU ESPECIALISTA</span><h3>{current.name}</h3><p>{current.goal}</p></div>
-          <button type="button" onClick={()=>void analyze()} disabled={loading} className="agent-run">
-            <RefreshCw size={16} className={loading?"agent-spin":""}/>
-            {loading?"Analisando dados...":report?"Atualizar análise":"Analisar meus dados"}
-          </button>
+          <div className="agent-command-actions">
+            <button type="button" onClick={()=>void analyze()} disabled={loading||aiLoading} className="agent-run">
+              <RefreshCw size={16} className={loading?"agent-spin":""}/>
+              {loading?"Consultando CRM...":report?"Atualizar dados":"Analisar meus dados"}
+            </button>
+            <button type="button" onClick={()=>void requestAiBriefing()}
+              disabled={loading||aiLoading||!report||report.coverage!=="com_dados"} className="agent-run-secondary">
+              <Bot size={16}/>{aiLoading?"Consultando Gemini...":"Complementar com IA"}
+            </button>
+          </div>
         </div>
         <div className="agent-context"><ShieldCheck size={17}/><span>{current.limitation} Não existe permissão para enviar mensagens, gastar verba nem modificar seus registros.</span></div>
-        {error&&<p className="agent-error" role="alert">{error}
-          <span> Se o recurso não estiver implantado no Supabase, será necessário liberá-lo primeiro no ambiente correto.</span></p>}
+        {error&&<p className="agent-error" role="alert">{error}</p>}
         {notice&&<p className="agent-success" role="status">{notice}</p>}
         {!report&&!loading&&<div className="agent-empty"><Bot size={34}/><strong>Pronto para estudar sua operação.</strong><p>O agente só usa dados que estão registrados no IMOBFY. Clique em analisar para receber um diagnóstico, sem mexer em nada.</p></div>}
         {report&&<div className="agent-result" aria-live="polite">

@@ -26,30 +26,7 @@ const domains: Record<SpecialistKind,string> = {
   financeiro: "Você é analista de comissões e recebimentos. Separe valores recebidos de pendentes, destaque conciliação e limitações da amostra. Jamais refaça números oficiais nem autorize pagamentos ou lançamentos.",
 };
 
-type QueryResult = { data: AgentRow[] | null; error: { code?: string; message?: string } | null };
-type ScopedClient = ReturnType<typeof createClient>;
 const MAX_ROWS = 500;
-
-async function scopedRows(
-  db: ScopedClient,
-  userId: string,
-  table: string,
-  columns: string,
-  orderBy: string,
-): Promise<{ rows: AgentRow[]; truncated: boolean }> {
-  const { data, error } = await db.from(table).select(columns)
-    .eq("user_id",userId).order(orderBy,{ascending:false}).limit(MAX_ROWS) as QueryResult;
-  if (error) {
-    // No secrets or SQL details returned to the browser.
-    if (error.code === "42P01" || error.code === "PGRST205") {
-      throw new Error("DATASET_MISSING");
-    }
-    console.error("Agent dataset query failed", { table, code: error.code || "unknown" });
-    throw new Error("DATASET_UNAVAILABLE");
-  }
-  const rows = data || [];
-  return { rows, truncated: rows.length === MAX_ROWS };
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -74,6 +51,24 @@ Deno.serve(async (req: Request) => {
   if (authError || !user) return respond({ error: "Sessão inválida. Entre novamente." }, 401);
 
   try {
+    // This closure retains the precise generic SupabaseClient inferred by Deno,
+    // instead of widening its database/schema types across function parameters.
+    const scopedRows = async (
+      table: string,
+      columns: string,
+      orderBy: string,
+    ): Promise<{rows:AgentRow[];truncated:boolean}> => {
+      const {data,error} = await db.from(table).select(columns)
+        .eq("user_id",user.id).order(orderBy,{ascending:false}).limit(MAX_ROWS);
+      if(error) {
+        if(error.code==="42P01" || error.code==="PGRST205") throw new Error("DATASET_MISSING");
+        console.error("Agent dataset query failed", {table,code:error.code||"unknown"});
+        throw new Error("DATASET_UNAVAILABLE");
+      }
+      const rows = Array.isArray(data) ?
+        data.filter(row => row!==null && typeof row==="object" && !Array.isArray(row)) as AgentRow[] : [];
+      return {rows,truncated:rows.length===MAX_ROWS};
+    };
     const definitions: Record<SpecialistKind,Array<[string,string,string]>> = {
       ads: [
         ["imobfy_ads_daily_metrics","report_date,ad_account_id,campaign_id,campaign_name,spend_brl,clicks,source","report_date"],
@@ -97,7 +92,7 @@ Deno.serve(async (req: Request) => {
     // Queries carry the authenticated user's JWT and RLS, plus an explicit
     // user_id predicate. No service role, no arbitrary query, and no CRM writes.
     const results = await Promise.all(selected.map(async ([table, columns, order]) =>
-      scopedRows(db, user.id, table, columns, order)
+      scopedRows(table, columns, order)
     ));
     const data: AgentData = {};
     const keys: Record<SpecialistKind, (keyof AgentData)[]> = {

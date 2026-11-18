@@ -28,6 +28,7 @@ export type AgentData = {
   visits?: AgentRow[];
   commissions?: AgentRow[];
   receipts?: AgentRow[];
+  vgv?: AgentRow[];
 };
 
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -72,7 +73,7 @@ export function buildSpecialistReport(
     ads: ["Gastos e impressões lançados no IMOBFY", "Etapas vinculadas ao CRM"],
     atendimento: ["Conversas internas e respectivos estados", "Quantidade de rascunhos e perguntas"],
     comercial: ["Negócios e etapas do CRM", "Agenda de visitas"],
-    financeiro: ["Comissões e recebimentos registrados"],
+    financeiro: ["Comissões, VGV e recebimentos registrados"],
   };
   const report: AgentReport = {
     agent,
@@ -161,18 +162,20 @@ export function buildSpecialistReport(
     report.coverage = deals.length ? "com_dados" : "sem_dados";
     report.notice = "Não confirma visitas nem propostas automaticamente. Requer revisão do corretor.";
   } else {
-    const commissions = data.commissions || [], receipts = data.receipts || [];
+    const commissions = data.commissions || [], receipts = data.receipts || [], vgv = data.vgv || [];
     const byCommission = new Map<string,number>();
     for (const r of receipts) {
       const key = String(r.commission_id || "");
       byCommission.set(key, (byCommission.get(key)||0) + Math.round(value(r.amount)*100));
     }
     const totalCents = commissions.reduce((n,c) => n+Math.round(value(c.user_amount)*100), 0);
+    const vgvCents = vgv.reduce((n,row)=>n+Math.round(value(row.vgv)*100),0);
     const pendingCents = commissions.reduce((n,c) => n+Math.max(0, Math.round(value(c.user_amount)*100)-(byCommission.get(String(c.id))||0)), 0);
     const receivedCents = receipts.reduce((n,r)=>n+Math.round(value(r.amount)*100), 0);
     const monthReceiptsCents = receipts.filter(r => String(r.received_at || "").slice(0,10) >= last30)
       .reduce((n,r)=>n+Math.round(value(r.amount)*100), 0);
     report.metrics = [
+      mk("VGV registrado (base)", money(vgvCents/100)),
       mk("Comissões registradas (base)", money(totalCents/100)),
       mk("Recebimentos registrados (base)", money(receivedCents/100)),
       mk("Saldo pendente (base)", money(pendingCents/100)),
@@ -181,7 +184,7 @@ export function buildSpecialistReport(
     if (!commissions.length) report.recommendations.push(rec("Conferir vendas e comissões", "Não há comissões na base consultada; confirme se os fechamentos já foram registrados."));
     else if (pendingCents) report.recommendations.push(rec("Conferir pendências", "Há saldo ainda não coberto por recebimentos registrados; confira datas e acordos."));
     else report.recommendations.push(rec("Reconciliar recebimentos", "Confirme se o registro financeiro corresponde aos valores realmente recebidos."));
-    report.coverage = commissions.length ? "com_dados" : "sem_dados";
+    report.coverage = commissions.length || vgv.length ? "com_dados" : "sem_dados";
     report.notice = "Resumo da base consultada, não extrato bancário nem previsão garantida. IA sem permissão financeira.";
   }
   if (truncated) {

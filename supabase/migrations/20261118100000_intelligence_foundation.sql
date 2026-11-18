@@ -139,7 +139,7 @@ create policy ads_events_insert_manual on public.imobfy_ads_funnel_events
   with check ((select auth.uid())=user_id and source='manual');
 
 revoke all on public.imobfy_attendance_threads, public.imobfy_attendance_messages,
-  public.imobfy_ads_daily_metrics, public.imobfy_ads_funnel_events from public,anon;
+  public.imobfy_ads_daily_metrics, public.imobfy_ads_funnel_events from public,anon,authenticated;
 grant select,insert,delete on public.imobfy_attendance_threads to authenticated;
 grant update (status, automation_mode, updated_at) on public.imobfy_attendance_threads to authenticated;
 grant select,insert on public.imobfy_attendance_messages to authenticated;

@@ -59,6 +59,7 @@ export function summarizeAds(
     );
     if (matching.length !== 1) continue; // ambiguous account attribution
     const row = matching[0];
+    if (!row) continue;
     const personKey = event.client_id || event.deal_id || event.event_key;
     const idempotency = row.key + ":" + event.stage + ":" + personKey;
     if (seen.has(idempotency)) continue;

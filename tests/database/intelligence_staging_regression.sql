@@ -12,8 +12,8 @@ select set_config('request.jwt.claim.sub','88888888-8888-4888-8888-888888888888'
 
 insert into public.clients(id,user_id,name) values
  ('33333333-3333-4333-8333-333333333333','88888888-8888-4888-8888-888888888888','Cliente de teste A');
-insert into public.properties(id,user_id,title,sale_value) values
- ('44444444-4444-4444-8444-444444444444','88888888-8888-4888-8888-888888888888','Imóvel de teste A',500000);
+insert into public.properties(id,user_id,title) values
+ ('44444444-4444-4444-8444-444444444444','88888888-8888-4888-8888-888888888888','Imóvel de teste A');
 
 insert into public.imobfy_attendance_threads(id,user_id,client_id,property_id) values
  ('55555555-5555-4555-8555-555555555555','88888888-8888-4888-8888-888888888888',

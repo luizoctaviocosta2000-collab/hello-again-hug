@@ -1,0 +1,51 @@
+name: IMOBFY SSR runtime smoke
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ssr-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Build SSR app
+        run: bun run build
+      - name: Start built app and request unauthenticated login
+        shell: bash
+        run: |
+          set -euo pipefail
+          bunx vite preview --host 127.0.0.1 --port 4173 > /tmp/imobfy-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 25); do
+            status="$(curl -sS --max-time 3 -o /tmp/imobfy-ssr-login.html -w '%{http_code}' http://127.0.0.1:4173/login || true)"
+            if [[ "$status" == "200" ]]; then
+              if grep -Eiq '(IMOBFY|Clareza para o próximo passo)' /tmp/imobfy-ssr-login.html; then
+                echo "PASS: locally built IMOBFY served /login with the correct app identity."
+                exit 0
+              fi
+              echo "::error::SSR returned 200 without the expected IMOBFY markup."
+              break
+            fi
+            if ! kill -0 "$preview_pid" 2>/dev/null; then
+              echo "Preview server exited; HTTP $status"
+              break
+            fi
+            sleep 2
+          done
+          echo "::error::Local SSR preview did not serve /login successfully."
+          echo "--- preview server log (no application credentials configured) ---"
+          tail -n 90 /tmp/imobfy-preview.log
+          exit 1

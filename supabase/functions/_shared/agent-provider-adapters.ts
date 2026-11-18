@@ -1,5 +1,5 @@
-import type {AgentAction} from "./agent-autonomy-policy";
-import type {AgentActionAdapter} from "./agent-autonomy-dispatch";
+import type {AgentAction} from "./agent-autonomy-policy.ts";
+import type {AgentActionAdapter} from "./agent-autonomy-dispatch.ts";
 
 /**
  * Provider adapters use credentials resolved by a trusted backend from a

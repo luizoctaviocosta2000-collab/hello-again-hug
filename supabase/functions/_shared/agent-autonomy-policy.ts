@@ -91,7 +91,7 @@ const ACTION_DOMAIN: Record<AgentActionKind, AgentDomain> = {
 };
 const validNonnegative = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0;
 const validPositive = (n: unknown) => validNonnegative(n) && (n as number) > 0;
-const policyLimit = (n: unknown) => validNonnegative(n) && n <= 100000;
+const policyLimit = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 10000;
 
 export function createDefaultPolicy(domain: AgentDomain): AgentAutonomyPolicy {
   return {...DEFAULT_AGENT_AUTONOMY, domain};
@@ -138,7 +138,7 @@ export function evaluateAgentAction(
     if (!action.attributionVerified || !validPositive(action.previousDailyBudgetBrl) ||
         !validPositive(action.proposedDailyBudgetBrl) ||
         !validNonnegative(action.qualifiedLeads) || !validNonnegative(action.daysObserved) ||
-        !policyLimit(policy.maxAdsDailyBudgetBrl) || !validNonnegative(policy.maxAdsBudgetChangePct))
+        !policyLimit(policy.maxAdsDailyBudgetBrl) || !validNonnegative(policy.maxAdsBudgetChangePct) || policy.maxAdsBudgetChangePct > 20)
       return deny("INVALID_AD_EVIDENCE", "Orçamento e resultados reais precisam estar válidos.");
     const pct = Math.abs(action.proposedDailyBudgetBrl / action.previousDailyBudgetBrl - 1) * 100;
     if (!validPositive(policy.maxAdsDailyBudgetBrl) || !validPositive(policy.maxAdsBudgetChangePct) ||

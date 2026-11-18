@@ -51,6 +51,8 @@ export default function ImobfyAutonomyConsole({userId}:{userId:string}) {
   const [selected,setSelected]=useState<AgentDomain>("ads");
   const [policies,setPolicies]=useState(blank);
   const [globalStop,setGlobalStop]=useState(true);
+  const [globalSaved,setGlobalSaved]=useState(false);
+  const [persistedDomains,setPersistedDomains]=useState<Set<AgentDomain>>(new Set());
   const [audits,setAudits]=useState<AuditRow[]>([]);
   const [notice,setNotice]=useState("");
   const [error,setError]=useState("");
@@ -75,6 +77,7 @@ export default function ImobfyAutonomyConsole({userId}:{userId:string}) {
     }
     const globalRow=global.data as unknown as {emergency_stop?:boolean}|null;
     setGlobalStop(globalRow?.emergency_stop!==false);
+    setGlobalSaved(!!globalRow);
     const newPolicies=blank();
     const rows=Array.isArray(policyResult.data)?policyResult.data as unknown as DbPolicy[]:[];
     for(const row of rows){
@@ -82,6 +85,7 @@ export default function ImobfyAutonomyConsole({userId}:{userId:string}) {
       newPolicies[row.domain]=normalize(row);
     }
     setPolicies(newPolicies);
+    setPersistedDomains(new Set(rows.filter(row=>agentDomains.includes(row.domain)).map(row=>row.domain)));
     setAudits(Array.isArray(audit.data)?audit.data as unknown as AuditRow[]:[]);
     setState("ready");
   },[userId]);
@@ -96,8 +100,8 @@ export default function ImobfyAutonomyConsole({userId}:{userId:string}) {
     if(selected==="financeiro"&&policy.enablePreapprovedTransfers &&
       !window.confirm("Esta configuração não envia dinheiro agora. Transferências futuras só poderão usar beneficiários e mandatos já autorizados pelo banco. Deseja salvar?"))return;
     setBusy(true);setError("");setNotice("");
-    const {error:writeError}=await supabase.from("imobfy_agent_policies").upsert({
-      user_id:userId,domain:selected,mode:policy.mode,emergency_stop:policy.emergencyStop,
+    const patch={
+      mode:policy.mode,emergency_stop:policy.emergencyStop,
       max_ads_daily_budget_brl:policy.maxAdsDailyBudgetBrl,
       max_ads_budget_change_pct:policy.maxAdsBudgetChangePct,
       max_messages_per_day:policy.maxMessagesPerDay,
@@ -107,9 +111,20 @@ export default function ImobfyAutonomyConsole({userId}:{userId:string}) {
       max_transfer_brl:policy.maxTransferBrl,
       max_transfers_per_day_brl:policy.maxTransfersPerDayBrl,
       updated_at:new Date().toISOString(),
-    },{onConflict:"user_id,domain"});
-    if(writeError) setError("A política foi recusada pelo banco. Verifique os limites e tente novamente.");
-    else setNotice("Política registrada. Não ativa integrações externas nem autoriza execução sem verificações de segurança do servidor.");
+    };
+    // UPDATE omits immutable user_id/domain because column-level grants forbid
+    // changes to identity. ON CONFLICT upsert would require unsafe UPDATE grants.
+    const result=persistedDomains.has(selected)
+      ? await supabase.from("imobfy_agent_policies").update(patch)
+          .eq("user_id",userId).eq("domain",selected).select("domain").maybeSingle()
+      : await supabase.from("imobfy_agent_policies")
+          .insert({user_id:userId,domain:selected,...patch}).select("domain").maybeSingle();
+    if(result.error||!result.data) {
+      setError("A política foi recusada pelo banco. Confira o teto e suas permissões.");
+    }else{
+      setPersistedDomains(current=>new Set([...current,selected]));
+      setNotice("Política registrada. Não ativa integrações externas nem autoriza execução sem verificações do servidor.");
+    }
     setBusy(false);
   }
 
@@ -119,11 +134,17 @@ export default function ImobfyAutonomyConsole({userId}:{userId:string}) {
       "Liberar o bloqueio global NÃO conecta WhatsApp, Meta ou banco. Quando esses serviços forem homologados, os agentes só agirão dentro de suas permissões salvas. Confirmar?"
     ))return;
     setBusy(true);setError("");setNotice("");
-    const {error:writeError}=await supabase.from("imobfy_agent_global_controls").upsert({
-      user_id:userId,emergency_stop:shouldStop,updated_at:new Date().toISOString(),
-    },{onConflict:"user_id"});
-    if(writeError)setError("Não consegui alterar o bloqueio global. Nenhuma liberação foi confirmada.");
-    else {setGlobalStop(shouldStop);setNotice(shouldStop?"Bloqueio de emergência gravado.":"Bloqueio global liberado, sujeito a políticas e integrações oficiais.");}
+    const patch={emergency_stop:shouldStop,updated_at:new Date().toISOString()};
+    const result=globalSaved
+      ? await supabase.from("imobfy_agent_global_controls").update(patch)
+          .eq("user_id",userId).select("emergency_stop").maybeSingle()
+      : await supabase.from("imobfy_agent_global_controls")
+          .insert({user_id:userId,...patch}).select("emergency_stop").maybeSingle();
+    if(result.error||!result.data) setError("Não consegui alterar o bloqueio global. Nenhuma liberação foi confirmada.");
+    else {
+      setGlobalSaved(true);setGlobalStop(shouldStop);
+      setNotice(shouldStop?"Bloqueio de emergência gravado.":"Bloqueio global liberado, sujeito a políticas e integrações oficiais.");
+    }
     setBusy(false);
   }
 

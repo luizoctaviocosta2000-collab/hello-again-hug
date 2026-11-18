@@ -1,3 +1,4 @@
+import { buildSpecialistPlan, type SpecialistPlan } from "./specialist-playbooks.ts";
 /**
  * Read-only specialist agent contract. Deterministic numbers and recommendations
  * are calculated from already RLS-scoped CRM rows; Gemini never supplies metrics.
@@ -17,6 +18,7 @@ export type AgentReport = {
   metrics: AgentMetric[];
   recommendations: AgentRecommendation[];
   briefing?: string;
+  plan?: SpecialistPlan;
   notice: string;
 };
 export type AgentData = {
@@ -195,5 +197,6 @@ export function buildSpecialistReport(
     report.coverage = "amostra";
     report.notice += " Limite de registros atingido: valores podem estar incompletos; não use como totais oficiais.";
   }
+  report.plan = buildSpecialistPlan(agent, data, report, now);
   return report;
 }

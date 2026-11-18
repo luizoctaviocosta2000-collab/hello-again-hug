@@ -1,0 +1,58 @@
+[
+  {
+    "agent": "ads",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "atendimento",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "comercial",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "financeiro",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "ads",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "atendimento",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "comercial",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  },
+  {
+    "agent": "financeiro",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "stepsExpandable": true
+  }
+]

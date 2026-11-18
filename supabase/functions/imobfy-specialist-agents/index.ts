@@ -76,8 +76,8 @@ Deno.serve(async (req: Request) => {
         ["imobfy_ads_funnel_events","event_key,stage,ad_account_id,campaign_id,client_id,deal_id,occurred_at,source","occurred_at"],
       ],
       atendimento: [
-        ["imobfy_attendance_threads","status,updated_at","updated_at"],
-        ["imobfy_attendance_messages","role,created_at","created_at"],
+        ["imobfy_attendance_threads","id,status,updated_at","updated_at"],
+        ["imobfy_attendance_messages","thread_id,role,created_at","created_at"],
       ],
       comercial: [
         ["deals","status,stage,created_at,updated_at","updated_at"],
@@ -122,6 +122,7 @@ Deno.serve(async (req: Request) => {
 
     const system = [
       domains[kind],
+      "Use o plano de trabalho versionado: escolha a prioridade pelas evidências e explicite a lacuna relevante. Hipóteses não são fatos. O roteiro interno não é pesquisa atualizada nem parecer jurídico.",
       "Você é apenas consultor INTERNO. Não pode enviar mensagens, criar compromissos, alterar anúncios, gastar orçamento, registrar vendas, recebimentos ou comissões.",
       "A fonte é o resumo determinístico e anônimo abaixo. Não adivinhe nomes, telefones, campanhas, resultados de vendas nem novos valores.",
       "Proponha uma PRIORIDADE ESTRATÉGICA clara, em uma única frase qualitativa, SEM NÚMEROS, sem URLs, sem e-mails, sem promessas garantidas.",
@@ -138,6 +139,7 @@ Deno.serve(async (req: Request) => {
             metrics: report.metrics,
             recommendations: report.recommendations,
             notice: report.notice,
+            plan: report.plan,
           }) }] }],
           generationConfig: { temperature: 0.2, responseMimeType: "application/json", maxOutputTokens: 300 },
         },

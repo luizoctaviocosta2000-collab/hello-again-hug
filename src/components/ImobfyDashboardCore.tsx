@@ -1,3 +1,4 @@
+import { completeQuery } from "../lib/complete-query";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { ArrowUpRight, BriefcaseBusiness, CalendarDays, Home, Loader2, Target, Users, WalletCards } from "lucide-react";
 import { supabase } from "../lib/supabase";
@@ -24,12 +25,12 @@ export default function ImobfyDashboardCore({ user }: { user: ImobfyUser }) {
   async function load() {
     setLoading(true); setNotice("");
     const [d, v, c, r, cap, ap, cli, profile] = await Promise.all([
-      supabase.from("deals").select("id,status,stage,property_value,created_at,updated_at"),
-      supabase.from("vgv_entries").select("id,deal_id,reference_month,vgv").order("reference_month", { ascending: true }),
-      supabase.from("commissions").select("id,user_amount,status,created_at,reference_month"),
-      supabase.from("commission_receipts").select("commission_id,amount,received_at"),
-      supabase.from("captures").select("id,status"),
-      supabase.from("visits").select("id,starts_at,status,client_id").order("starts_at", { ascending: true }),
+      completeQuery((from, to) => supabase.from("deals").select("id,status,stage,property_value,created_at,updated_at", { count: "exact" }).eq("user_id", user.id).order("id", { ascending: true }).range(from, to)),
+      completeQuery((from, to) => supabase.from("vgv_entries").select("id,deal_id,reference_month,vgv", { count: "exact" }).eq("user_id", user.id).order("reference_month", { ascending: true }).order("id", { ascending: true }).range(from, to)),
+      completeQuery((from, to) => supabase.from("commissions").select("id,user_amount,status,created_at,reference_month", { count: "exact" }).eq("user_id", user.id).order("id", { ascending: true }).range(from, to)),
+      completeQuery((from, to) => supabase.from("commission_receipts").select("id,commission_id,amount,received_at", { count: "exact" }).eq("user_id", user.id).order("id", { ascending: true }).range(from, to)),
+      completeQuery((from, to) => supabase.from("captures").select("id,status", { count: "exact" }).eq("user_id", user.id).order("id", { ascending: true }).range(from, to)),
+      completeQuery((from, to) => supabase.from("visits").select("id,starts_at,status,client_id", { count: "exact" }).eq("user_id", user.id).order("starts_at", { ascending: true }).order("id", { ascending: true }).range(from, to)),
       supabase.from("clients").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("vgv_goal").eq("id", user.id).maybeSingle(),
     ]);

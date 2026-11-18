@@ -87,8 +87,11 @@ export async function dispatchAgentAction(
     }
     return {status:"executed",decision,providerRequestId:receipt.providerRequestId};
   } catch {
-    try { await dependencies.audit.settle(action,"failed","PROVIDER_FAILED_OR_UNCONFIRMED"); }
+    // A timeout or missing acknowledgment does not prove that the provider did
+    // nothing. Keep the reservation executing until a human/worker reconciles
+    // the provider state; never make this action eligible for blind retries.
+    try { await dependencies.audit.settle(action,"executing","PROVIDER_OUTCOME_UNCONFIRMED"); }
     catch {return {status:"requires_reconciliation",decision};}
-    return {status:"failed",decision};
+    return {status:"requires_reconciliation",decision};
   }
 }

@@ -1,0 +1,10 @@
+[
+  {
+    "suite": "photos",
+    "exit": 0
+  },
+  {
+    "suite": "autonomy",
+    "exit": 0
+  }
+]

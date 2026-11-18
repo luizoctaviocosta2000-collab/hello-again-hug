@@ -1,0 +1,10 @@
+[
+  {
+    "suite": "journey",
+    "exit": 0
+  },
+  {
+    "suite": "receipts",
+    "exit": 0
+  }
+]

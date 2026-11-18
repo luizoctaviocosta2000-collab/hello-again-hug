@@ -1,0 +1,5 @@
+PASS tests/database/receipt_fixture.sql
+PASS supabase/migrations/20261022133523_harden_commission_receipt_ownership.sql
+PASS tests/database/receipt_regression.sql
+PASS concurrent receipts: second session blocked, then overpayment rejected
+

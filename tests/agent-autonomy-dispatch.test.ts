@@ -78,11 +78,11 @@ describe("Autonomous dispatcher: no side effects without durable evidence",()=>{
     expect(count).toBe(1);expect(result.status).toBe("requires_reconciliation");
     expect(result.providerRequestId).toBe("meta-999");
   });
-  test("records provider failures instead of reporting success",async()=>{
+  test("holds ambiguous provider failures for reconciliation",async()=>{
     const {audit,calls}=mockAudit();
     const result=await dispatchAgentAction(policy,action,ctx,{
       audit,adapter:{async execute(){throw Error("Provider outage");}},
     });
-    expect(result.status).toBe("failed");expect(calls).toEqual(["reserve","executing","failed"]);
+    expect(result.status).toBe("requires_reconciliation");expect(calls).toEqual(["reserve","executing","executing"]);
   });
 });

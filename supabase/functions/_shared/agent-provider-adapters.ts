@@ -67,6 +67,15 @@ export function createMetaAdsAdapter(
       if(action.kind==="ads.adjust_budget"){
         const id=connection.adsetId;
         if(!id)throw new Error("META_ADSET_MISSING");
+        // Budgets below are expressed in BRL. Resolve currency from Meta itself,
+        // never from a browser-provided connection or inferred country.
+        const accountResponse = await fetcher(graphRoot + 'act_' + account + '?fields=id,currency', {
+          headers: { Authorization: 'Bearer ' + connection.token },
+          signal: AbortSignal.timeout(12_000),
+        });
+        const accountData = await objectJSON(accountResponse);
+        if (String(accountData.id) !== 'act_' + account || accountData.currency !== 'BRL')
+          throw new Error('META_ACCOUNT_CURRENCY_UNSUPPORTED');
         const before=await request(id,undefined,"id,account_id,daily_budget");
         assertOwner(before,id);
         const providerCents=Number(before.daily_budget);

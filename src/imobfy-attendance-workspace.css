@@ -1,0 +1,22 @@
+.attendance-tabs{display:flex;flex-wrap:wrap;gap:10px}.attendance-tabs button{cursor:pointer;border:1px solid var(--border,#dad7d2);background:var(--card,#fff);color:inherit;border-radius:11px;padding:11px 18px;font-weight:700}
+.attendance-tabs button.selected{background:#34373e;border-color:#34373e;color:#fff}
+.attendance-workspace{display:grid;grid-template-columns:minmax(225px,290px) minmax(0,1fr);gap:15px;min-height:580px}
+.attendance-workspace .intel-panel{min-width:0}.attendance-list{padding:16px;overflow:auto}.attendance-list-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.attendance-list-head h3{margin:0!important}.attendance-list-head button{white-space:nowrap;padding:9px!important}
+.attendance-thread{display:grid;width:100%;text-align:left;margin-top:9px;padding:12px;border:1px solid var(--border,#e5e1db);border-radius:11px;cursor:pointer;background:transparent;gap:6px;color:inherit}
+.attendance-thread.selected{background:#f6f0e7;border-color:#c5ad8a}.attendance-thread strong{font-size:13px}.attendance-thread small{font-size:11px;color:#747474}.attendance-thread span{color:#9e825d;font-size:10px;font-weight:700}
+.attendance-create{display:grid;gap:10px;border-bottom:1px solid #ddd;padding:10px 0}
+.attendance-create label,.attendance-composer label{display:grid;gap:7px;font-weight:700;font-size:12px}
+.attendance-create select,.attendance-composer textarea{width:100%;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid #d9d3cb;color:var(--foreground,#292a2f);background:var(--card,#fff);font:inherit}
+.attendance-chat{display:flex;flex-direction:column;gap:13px}.attendance-empty{text-align:center;margin:auto}
+.attendance-convo-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid #eee;padding-bottom:12px}
+.attendance-convo-head h3{margin:0!important}.attendance-convo-head p{margin:5px 0 0}.attendance-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.attendance-actions button{font-size:12px!important;padding:9px 11px!important}.attendance-actions button:disabled{opacity:.5;cursor:not-allowed}
+.attendance-messages{display:flex;flex:1;flex-direction:column;gap:10px;min-height:215px;max-height:500px;overflow-y:auto}
+.attendance-message{padding:12px 14px;border-radius:12px;background:#f6f4f1;max-width:90%;align-self:flex-start}
+.attendance-message.assistant_draft{background:#f1f1ec;align-self:flex-end;border:1px solid #ded7c8}
+.attendance-message small,.attendance-draft span{font-size:10px;letter-spacing:.06em;color:#9a825f;font-weight:800}
+.attendance-message p,.attendance-draft p{font-size:13px;line-height:1.6;color:inherit;white-space:pre-wrap;margin:7px 0}
+.attendance-composer{display:grid;gap:10px;border-top:1px solid #eee;padding-top:13px}
+.attendance-draft{background:#faf6ee;border:1px solid #d4c5ae;border-radius:13px;padding:14px}
+@media(max-width:750px){.attendance-workspace{grid-template-columns:1fr}.attendance-list{max-height:330px}.attendance-message{max-width:100%}}

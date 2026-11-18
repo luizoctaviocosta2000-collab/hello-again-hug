@@ -20,3 +20,13 @@ jobs:
       - run: bun run test
       - run: bun run typecheck
       - run: bun run build
+      - name: Verify built release identity
+        run: |
+          python3 - <<'PY'
+          import json, os
+          with open('.output/public/imobfy-release.json') as f:
+              marker = json.load(f)
+          assert marker['app'] == 'imobfy'
+          assert marker['verification'] == 'build-versioned'
+          assert marker['commit_sha'] == os.environ['GITHUB_SHA']
+          PY

@@ -20,6 +20,7 @@ O motor usa modos off / assisted / bounded. O padrão é **off + emergência lig
 ## Código desta fase
 - supabase/functions/_shared/agent-autonomy-policy.ts: decide deny, needs_approval ou allow.
 - supabase/functions/_shared/agent-autonomy-dispatch.ts: reserva a tentativa com chave única e trilha de auditoria, verifica a decisão e só chama um adaptador oficial se existir; não informa sucesso até receber resposta do provider.
+- supabase/functions/_shared/agent-provider-adapters.ts: adaptadores HTTP para Meta Ads (pausa e orçamento de conjunto com validação de conta/estado anterior e readback) e WhatsApp Cloud API (texto/template e recibo de aceite). Não fazem OAuth nem armazenam credenciais; precisam de ligação segura a tokens de cada tenant. Testados somente com respostas mock.
 - supabase/migrations/20261118180000_agent_autonomy_control_plane.sql: políticas com RLS por proprietário, bloqueio global e auditoria sem INSERT/UPDATE pelo usuário.
 - src/components/ImobfyAutonomyConsole.tsx: configura modos, limites, bloqueio geral e consulta histórico real pela sessão.
 - tests/agent-autonomy-policy.test.ts, tests/agent-autonomy-dispatch.test.ts e testes/database/agent_autonomy_regression.sql: cenários de autorização, replay, consentimento, orçamento, Pix e isolamento.
@@ -36,7 +37,7 @@ O motor usa modos off / assisted / bounded. O padrão é **off + emergência lig
 
 ## Plano de ativação
 - Etapa 1: código e regressões Bun/TypeScript/build/PostgreSQL 17.
-- Etapa 2: staging com duas contas Auth reais, RLS, auditoria, kill switch e simulação sem chamadas externas.
+- Etapa 2: migration aplicada em staging no projeto etcdlxkpidiqbgdayiol, com três tabelas novas protegidas por RLS e sem contas Auth reais no ambiente. Ainda faltam duas contas de teste, auditoria, kill switch e simulação HTTP ponta a ponta.
 - Etapa 3: conectar Meta somente leitura/Insights; WhatsApp oficial com consentimento e webhook; banco apenas com provider regulado e mandato.
 - Etapa 4: shadow (decidir sem executar), assisted (aprovação), bounded (baixo risco e tetos).
 - Etapa 5: go/no-go de produção, migration aprovada, release Lovable por commit, análise de reversão e alertas.
@@ -48,4 +49,4 @@ O motor usa modos off / assisted / bounded. O padrão é **off + emergência lig
 - https://supabase.com/docs/guides/functions/auth
 
 ## Limites atuais
-A conexão Meta disponível via ChatGPT **não fornece tokens ao IMOBFY**. Meta Ads, WhatsApp, Instagram e banking/Pix continuam sem autenticação operacional dentro do app. O despacho em código é um contrato para adaptadores que ainda precisam ser implementados, integrados e homologados. Sem adapter, toda ação real é negada, não simulada como sucesso. Nenhuma mudança de produção está autorizada por este artefato.
+A conexão Meta disponível via ChatGPT **não fornece tokens ao IMOBFY**. Meta Ads, WhatsApp, Instagram e banking/Pix continuam sem autenticação operacional dentro do app. Os adaptadores Meta e WhatsApp já existem como código e passaram por simulações; ainda não estão ligados a OAuth, à fila de eventos nem a credenciais reais do IMOBFY. O despachante não tem worker ativo nem qualquer transferência bancária. Sem adapter, toda ação real é negada, não simulada como sucesso. Nenhuma mudança de produção está autorizada por este artefato.

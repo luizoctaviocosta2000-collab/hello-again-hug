@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Building2, CalendarDays, ChevronRight, CircleDollarSign, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Users, X, BriefcaseBusiness } from "lucide-react";
+import { BarChart3, Building2, CalendarDays, ChevronRight, CircleDollarSign, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Users, X, BriefcaseBusiness, MessageSquareText } from "lucide-react";
 import type { ImobfyUser } from "../lib/imobfy-session";
 import { signOut } from "../lib/imobfy-session";
 
@@ -11,12 +11,14 @@ const primary: NavItem[] = [
   { to: "/", label: "Visão geral", icon: LayoutDashboard },
   { to: "/imoveis", label: "Imóveis", icon: Building2 },
   { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/atendimento", label: "Atendimento", icon: MessageSquareText },
   { to: "/negocios", label: "Negócios", icon: BriefcaseBusiness },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
 ];
 const performance: NavItem[] = [
   { to: "/comissoes", label: "Comissões", icon: CircleDollarSign },
   { to: "/vgv", label: "Meu VGV", icon: BarChart3 },
+  { to: "/ads", label: "Ads Intelligence", icon: BarChart3 },
   { to: "/ia", label: "Imobfy IA", icon: Sparkles },
 ];
 const settings: NavItem[] = [{ to: "/configuracoes", label: "Configurações", icon: Settings }];
@@ -38,10 +40,12 @@ export default function ImobfyAppShell({ user, children }: Props) {
     "/": ["VISÃO GERAL", "Dashboard", "Tudo que merece sua atenção, em um só lugar."],
     "/imoveis": ["OPERAÇÃO", "Imóveis", "Seu estoque, captações e oportunidades de venda."],
     "/clientes": ["RELACIONAMENTO", "Clientes", "Quem está comprando, o que procura e qual é o próximo passo."],
+    "/atendimento": ["RELACIONAMENTO", "Atendimento inteligente", "Histórico interno, IA assistida e encaminhamento humano."],
     "/negocios": ["COMERCIAL", "Negócios", "Acompanhe cada oportunidade até o fechamento."],
     "/agenda": ["ROTINA", "Agenda", "Visitas, follow-ups e compromissos que movem sua operação."],
     "/comissoes": ["FINANCEIRO", "Comissões", "Quanto você gerou, quanto recebeu e quanto ainda falta receber."],
     "/vgv": ["PERFORMANCE", "Meu VGV", "Sua produção imobiliária organizada por período."],
+    "/ads": ["PERFORMANCE", "Ads Intelligence", "Campanhas, custos e conversões atribuídas sem números inventados."],
     "/ia": ["INTELIGÊNCIA", "Imobfy IA", "Transforme os dados da sua operação em próximas ações."],
     "/configuracoes": ["SISTEMA", "Configurações", "Seu perfil, metas e regras de comissionamento."],
   };

@@ -4,7 +4,7 @@ import {
   type AgentAutonomyPolicy,
   type AgentDecision,
   type TrustedExecutionContext,
-} from "./agent-autonomy-policy";
+} from "./agent-autonomy-policy.ts";
 
 /**
  * Adapter boundary for *officially authorized* Meta/WhatsApp/CRM/bank providers.

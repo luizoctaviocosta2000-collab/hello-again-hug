@@ -55,3 +55,13 @@
 .agent-run-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #bba57f;border-radius:10px;background:#f3ebdf;color:#715738;padding:11px 14px;font-size:12px;font-weight:750;cursor:pointer}
 .agent-run-secondary:disabled{opacity:.48;cursor:not-allowed}
 @media(max-width:650px){.agent-command-actions{width:100%}.agent-command-actions button{width:100%}}
+
+.specialist-plan{display:grid;gap:14px;min-width:0}
+.specialist-task{padding:16px;border:1px solid #ddd7ca;border-radius:12px;background:#faf8f3;overflow-wrap:anywhere}
+.specialist-task h5{font-size:16px;margin:10px 0;color:#292b32}
+.specialist-task p,.specialist-plan li{font-size:13px;line-height:1.65;color:#494b52}
+.specialist-task small{display:block;margin-top:12px;font-size:11px;color:#665740}
+.specialist-plan summary{cursor:pointer;font-size:13px;font-weight:650;padding:10px 0;color:#53432e}
+.specialist-plan summary:focus-visible{outline:2px solid #715738;outline-offset:3px;border-radius:4px}
+.specialist-plan ol,.specialist-plan ul{padding-left:22px;margin:8px 0}
+.specialist-plan li+li{margin-top:8px}

@@ -15,8 +15,8 @@ const sources: Record<SpecialistKind, Array<{ field: keyof AgentData; table: str
     {field:"events",table:"imobfy_ads_funnel_events",select:"event_key,stage,ad_account_id,campaign_id,client_id,deal_id,occurred_at,source",order:"occurred_at"},
   ],
   atendimento: [
-    {field:"threads",table:"imobfy_attendance_threads",select:"status,updated_at",order:"updated_at"},
-    {field:"messages",table:"imobfy_attendance_messages",select:"role,created_at",order:"created_at"},
+    {field:"threads",table:"imobfy_attendance_threads",select:"id,status,updated_at",order:"updated_at"},
+    {field:"messages",table:"imobfy_attendance_messages",select:"thread_id,role,created_at",order:"created_at"},
   ],
   comercial: [
     {field:"deals",table:"deals",select:"status,stage,created_at,updated_at",order:"updated_at"},

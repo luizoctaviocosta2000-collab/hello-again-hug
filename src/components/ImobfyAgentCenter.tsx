@@ -1,3 +1,4 @@
+import SpecialistPlanView from "./SpecialistPlanView";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -76,6 +77,9 @@ export default function ImobfyAgentCenter({userId}:{userId:string}) {
       "Gerado em: "+new Date(report.generatedAt).toLocaleString("pt-BR"),
       ...report.metrics.map(m => m.label+": "+m.value),
       ...report.recommendations.map(r => r.title+" — "+r.reason),
+      ...(report.plan?.tasks.flatMap(task => [task.title, "Evidência: " + task.evidence, "Hipótese: " + task.hypothesis, ...task.steps.map((step,index) => `${index + 1}. ${step}`), "Concluir quando: " + task.success]) || []),
+      ...(report.plan?.questions || []),
+      ...(report.plan?.boundaries || []),
       report.briefing || "",
       report.notice,
     ].filter(Boolean).join("\n");
@@ -132,7 +136,8 @@ export default function ImobfyAgentCenter({userId}:{userId:string}) {
           {report.coverage==="sem_dados"&&<p className="agent-warning">Ainda não há informações suficientes nessa área para medir desempenho. Nenhum resultado foi inventado.</p>}
           <div className="agent-metrics">{report.metrics.map(metric=><article key={metric.label}><span>{metric.label}</span><strong>{metric.value}</strong></article>)}</div>
           {report.briefing&&<div className="agent-brief"><span className="agent-overline"><Bot size={14}/> LEITURA ESTRATÉGICA DA IA</span><p>{report.briefing}</p><small>Opinião consultiva da IA; revise antes de agir.</small></div>}
-          <h4>Recomendações para sua aprovação</h4>
+          {report.plan && <SpecialistPlanView plan={report.plan}/>}
+          <h4>Resumo das recomendações</h4>
           <div className="agent-recs">{report.recommendations.map((recommendation,index)=><article key={index}><span className="agent-priority">{priorities[recommendation.priority]||"Para avaliar"}</span><strong>{recommendation.title}</strong><p>{recommendation.reason}</p><small>Requer decisão humana · Nenhuma ação executada</small></article>)}</div>
           <p className="agent-provenance">Fontes: {report.sources.join(" · ")}. {report.notice}</p>
         </div>}

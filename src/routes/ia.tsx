@@ -24,7 +24,7 @@ function IARoute() {
         <button type="button" role="tab" aria-selected={view==="agents"} onClick={()=>setView("agents")}>Equipe de especialistas</button>
         <button type="button" role="tab" aria-selected={view==="chat"} onClick={()=>setView("chat")}>Assistente geral</button>
       </div>
-      {view==="agents" ? <ImobfyAgentCenter/> : <div className="ai-page"><ImobfyAIChat user={user}/></div>}
+      {view==="agents" ? <ImobfyAgentCenter userId={user.id}/> : <div className="ai-page"><ImobfyAIChat user={user}/></div>}
     </div>
   );
 }

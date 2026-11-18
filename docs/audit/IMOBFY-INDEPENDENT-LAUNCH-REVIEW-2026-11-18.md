@@ -45,6 +45,8 @@ Base: `0c7624c12779b6322f4374897e8c5ae7ce5846c7`, `main` de `luizoctaviocosta200
 6. WhatsApp/Instagram/Meta: adapters e testes mock não equivalem a integração pronta. Faltam comprovação operacional de OAuth, escopos, contas sandbox, webhooks assinados, consentimento, idempotência/reconciliação, atribuição de leads e métricas reais. Manter ações externas desativadas até aprovação específica. Nenhuma mensagem, campanha ou dinheiro real utilizado.
 7. Revisar este draft PR, depois validar release limitado ao escopo que passar nos gates. Rollback das alterações locais: reverter commit na branch/release anterior; não há migração nova neste PR. Nenhum merge/deploy está autorizado automaticamente por este relatório.
 
+Commit das correções e regressões: `7f62479` (PR #72). Evidências adicionais são anexadas em commit documental subsequente.
+
 ## Passagem para revisão Astra
 
 Revisar especialmente L01, replay histórico inseguro, funções privilegiadas, isolamento de referências cruzadas, semântica de reconciliação e consistência da paginação sob mutações concorrentes. Executar Auth real, fluxo autenticado e avaliações dos agentes antes de aprovar o produto. Responsividade das telas internas, acessibilidade completa, carga, integrações oficiais e recuperação operacional continuam sem comprovação nesta passagem. A promessa de prazo não altera esses gates.

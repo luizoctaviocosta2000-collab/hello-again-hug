@@ -4,29 +4,29 @@ begin;
 set local statement_timeout='40000ms';
 
 insert into auth.users(id,email,raw_user_meta_data) values
- ('11111111-1111-4111-8111-111111111111','intelligence-a@imobfy.invalid','{"full_name":"Test A"}'::jsonb),
- ('22222222-2222-4222-8222-222222222222','intelligence-b@imobfy.invalid','{"full_name":"Test B"}'::jsonb);
+ ('88888888-8888-4888-8888-888888888888','intelligence-a@imobfy.invalid','{"full_name":"Test A"}'::jsonb),
+ ('99999999-9999-4999-8999-999999999999','intelligence-b@imobfy.invalid','{"full_name":"Test B"}'::jsonb);
 
 set local role authenticated;
-select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+select set_config('request.jwt.claim.sub','88888888-8888-4888-8888-888888888888',true);
 
 insert into public.clients(id,user_id,name) values
- ('33333333-3333-4333-8333-333333333333','11111111-1111-4111-8111-111111111111','Cliente de teste A');
+ ('33333333-3333-4333-8333-333333333333','88888888-8888-4888-8888-888888888888','Cliente de teste A');
 insert into public.properties(id,user_id,title,sale_value) values
- ('44444444-4444-4444-8444-444444444444','11111111-1111-4111-8111-111111111111','Imóvel de teste A',500000);
+ ('44444444-4444-4444-8444-444444444444','88888888-8888-4888-8888-888888888888','Imóvel de teste A',500000);
 
 insert into public.imobfy_attendance_threads(id,user_id,client_id,property_id) values
- ('55555555-5555-4555-8555-555555555555','11111111-1111-4111-8111-111111111111',
+ ('55555555-5555-4555-8555-555555555555','88888888-8888-4888-8888-888888888888',
   '33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444');
 
 insert into public.imobfy_attendance_messages(user_id,thread_id,role,body) values
- ('11111111-1111-4111-8111-111111111111','55555555-5555-4555-8555-555555555555',
+ ('88888888-8888-4888-8888-888888888888','55555555-5555-4555-8555-555555555555',
  'customer','A pergunta foi recebida e registrada manualmente.');
 insert into public.imobfy_ads_daily_metrics(user_id,report_date,ad_account_id,campaign_id,campaign_name,spend_brl,impressions,clicks)
-values ('11111111-1111-4111-8111-111111111111',current_date,'act_abc','cmp_abc','Campanha de teste',40.75,100,8);
+values ('88888888-8888-4888-8888-888888888888',current_date,'act_abc','cmp_abc','Campanha de teste',40.75,100,8);
 
 insert into public.imobfy_ads_funnel_events(user_id,event_key,stage,client_id,campaign_id,ad_account_id)
-values ('11111111-1111-4111-8111-111111111111','manual:test-client-a:lead','lead',
+values ('88888888-8888-4888-8888-888888888888','manual:test-client-a:lead','lead',
 '33333333-3333-4333-8333-333333333333','cmp_abc','act_abc');
 
 do $verify_owner$
@@ -41,20 +41,20 @@ begin
  then raise exception 'Unexpected mutable audit rows'; end if;
  begin
   insert into public.imobfy_ads_funnel_events(user_id,event_key,stage,client_id,campaign_id)
-  values ('11111111-1111-4111-8111-111111111111','manual:test-client-a:lead','lead',
+  values ('88888888-8888-4888-8888-888888888888','manual:test-client-a:lead','lead',
   '33333333-3333-4333-8333-333333333333','cmp_abc');
   raise exception 'Duplicate idempotency key accepted';
  exception when unique_violation then null; end;
  begin
   insert into public.imobfy_ads_daily_metrics(user_id,report_date,ad_account_id,campaign_id,campaign_name,spend_brl,source)
-  values ('11111111-1111-4111-8111-111111111111',current_date,'act_meta','cmp_meta','Fraude Meta',1,'meta');
+  values ('88888888-8888-4888-8888-888888888888',current_date,'act_meta','cmp_meta','Fraude Meta',1,'meta');
   raise exception 'Browser impersonated official Meta source';
  exception when insufficient_privilege then null; end;
 end $verify_owner$;
 
-select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+select set_config('request.jwt.claim.sub','99999999-9999-4999-8999-999999999999',true);
 insert into public.clients(id,user_id,name)
-values ('66666666-6666-4666-8666-666666666666','22222222-2222-4222-8222-222222222222','Cliente de teste B');
+values ('66666666-6666-4666-8666-666666666666','99999999-9999-4999-8999-999999999999','Cliente de teste B');
 
 do $verify_isolation$
 begin
@@ -66,18 +66,18 @@ begin
  end if;
  begin
    insert into public.imobfy_attendance_threads(user_id,client_id)
-   values ('22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333');
+   values ('99999999-9999-4999-8999-999999999999','33333333-3333-4333-8333-333333333333');
    raise exception 'Foreign-client attendance thread inserted';
  exception when foreign_key_violation then null; end;
  begin
    insert into public.imobfy_ads_funnel_events(user_id,event_key,stage,client_id)
-   values ('22222222-2222-4222-8222-222222222222','manual:foreign:lead','lead',
+   values ('99999999-9999-4999-8999-999999999999','manual:foreign:lead','lead',
    '33333333-3333-4333-8333-333333333333');
    raise exception 'Foreign-client ads event inserted';
  exception when foreign_key_violation then null; end;
  begin
    insert into public.imobfy_attendance_messages(user_id,thread_id,role,body)
-   values ('22222222-2222-4222-8222-222222222222','55555555-5555-4555-8555-555555555555',
+   values ('99999999-9999-4999-8999-999999999999','55555555-5555-4555-8555-555555555555',
    'customer','Tentativa de acesso cruzado');
    raise exception 'Foreign thread message inserted';
  exception when foreign_key_violation then null; end;

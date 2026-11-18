@@ -19,7 +19,7 @@ const performance: NavItem[] = [
   { to: "/comissoes", label: "Comissões", icon: CircleDollarSign },
   { to: "/vgv", label: "Meu VGV", icon: BarChart3 },
   { to: "/ads", label: "Ads Intelligence", icon: BarChart3 },
-  { to: "/ia", label: "Imobfy IA", icon: Sparkles },
+  { to: "/ia", label: "IA e especialistas", icon: Sparkles },
 ];
 const settings: NavItem[] = [{ to: "/configuracoes", label: "Configurações", icon: Settings }];
 
@@ -46,7 +46,7 @@ export default function ImobfyAppShell({ user, children }: Props) {
     "/comissoes": ["FINANCEIRO", "Comissões", "Quanto você gerou, quanto recebeu e quanto ainda falta receber."],
     "/vgv": ["PERFORMANCE", "Meu VGV", "Sua produção imobiliária organizada por período."],
     "/ads": ["PERFORMANCE", "Ads Intelligence", "Campanhas, custos e conversões atribuídas sem números inventados."],
-    "/ia": ["INTELIGÊNCIA", "Imobfy IA", "Transforme os dados da sua operação em próximas ações."],
+    "/ia": ["INTELIGÊNCIA", "Equipe de especialistas", "Agentes para tráfego, atendimento, vendas e financeiro."],
     "/configuracoes": ["SISTEMA", "Configurações", "Seu perfil, metas e regras de comissionamento."],
   };
   const [kicker, title, description] = pageTitles[pathname] || ["IMOBFY", "Gestão imobiliária", "Sua operação imobiliária, organizada em um só lugar."];

@@ -1,0 +1,27 @@
+name: IMOBFY specialist agents contract and Edge build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  specialist-agents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Validate recommendation and disclosure contract
+        run: bun test tests/specialist-agents.test.ts
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Compile actual specialist Edge Function with strict remote imports
+        run: deno check supabase/functions/imobfy-specialist-agents/index.ts

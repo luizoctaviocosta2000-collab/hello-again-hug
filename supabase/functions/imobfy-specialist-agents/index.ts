@@ -1,3 +1,4 @@
+import { isIncompleteAgentDataset } from "../_shared/agent-coverage.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateWithGemini, geminiFailure, geminiModels, geminiText } from "../_shared/gemini.ts";
 import {
@@ -58,7 +59,7 @@ Deno.serve(async (req: Request) => {
       columns: string,
       orderBy: string,
     ): Promise<{rows:AgentRow[];truncated:boolean}> => {
-      const {data,error} = await db.from(table).select(columns)
+      const {data,error,count} = await db.from(table).select(columns, { count: "exact" })
         .eq("user_id",user.id).order(orderBy,{ascending:false}).limit(MAX_ROWS);
       if(error) {
         if(error.code==="42P01" || error.code==="PGRST205") throw new Error("DATASET_MISSING");
@@ -67,7 +68,7 @@ Deno.serve(async (req: Request) => {
       }
       const rows = Array.isArray(data) ?
         data.filter(row => row!==null && typeof row==="object" && !Array.isArray(row)) as unknown as AgentRow[] : [];
-      return {rows,truncated:rows.length===MAX_ROWS};
+      return {rows,truncated:isIncompleteAgentDataset(count,rows.length)};
     };
     const definitions: Record<SpecialistKind,Array<[string,string,string]>> = {
       ads: [

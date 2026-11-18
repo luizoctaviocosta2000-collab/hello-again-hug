@@ -1,3 +1,4 @@
+import { isIncompleteAgentDataset } from "../../supabase/functions/_shared/agent-coverage";
 import { supabase } from "./supabase";
 import {
   buildSpecialistReport,
@@ -33,8 +34,8 @@ export async function loadLocalAgentReport(agent: SpecialistKind, verifiedUserId
   const data: AgentData = {};
   if (!verifiedUserId) throw new Error("Sessão inválida. Entre novamente.");
   const outcomes = await Promise.all(sources[agent].map(async source => {
-    const {data:rows,error} = await supabase.from(source.table)
-      .select(source.select).eq("user_id",verifiedUserId)
+    const {data:rows,error,count} = await supabase.from(source.table)
+      .select(source.select, { count: "exact" }).eq("user_id",verifiedUserId)
       .order(source.order,{ascending:false}).limit(limit);
     if (error) {
       if (error.code==="42P01" || error.code==="PGRST205" || /does not exist|Could not find the table/i.test(error.message)) {
@@ -43,12 +44,12 @@ export async function loadLocalAgentReport(agent: SpecialistKind, verifiedUserId
       throw new Error("Não consegui carregar os registros da área. Confira sua conexão e entre novamente.");
     }
     const safeRows = Array.isArray(rows) ? rows.filter(row => row !== null && typeof row === "object" && !Array.isArray(row)) as unknown as AgentRow[] : [];
-    return {field:source.field,rows:safeRows};
+    return {field:source.field,rows:safeRows,incomplete:isIncompleteAgentDataset(count,safeRows.length)};
   }));
   let truncated = false;
   for (const result of outcomes) {
     data[result.field] = result.rows;
-    if (result.rows.length===limit) truncated = true;
+    if (result.incomplete) truncated = true;
   }
   const report = buildSpecialistReport(agent,data,new Date(),truncated);
   report.notice += " Análise calculada com sua sessão autenticada e regras locais; nenhuma chamada Gemini foi feita.";

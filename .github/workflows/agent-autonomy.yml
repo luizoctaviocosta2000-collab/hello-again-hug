@@ -1,0 +1,52 @@
+name: IMOBFY autonomous agents guardrails and tenant isolation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  agent-autonomy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ephemeral-test-only
+          POSTGRES_DB: imobfy_agent_autonomy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: imobfy_agent_autonomy
+      PGUSER: postgres
+      PGPASSWORD: ephemeral-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - run: bun test tests/agent-autonomy-policy.test.ts tests/agent-autonomy-dispatch.test.ts tests/agent-provider-adapters.test.ts
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check backend action policy and dispatcher
+        run: deno check supabase/functions/_shared/agent-autonomy-policy.ts supabase/functions/_shared/agent-autonomy-dispatch.ts supabase/functions/_shared/agent-provider-adapters.ts
+      - name: Bootstrap isolated Auth/JWT roles
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/agent_autonomy_fixture.sql
+      - name: Apply safe autonomy schema to ephemeral PostgreSQL 17
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261118180000_agent_autonomy_control_plane.sql
+      - name: Verify cross-tenant RLS, caps, kill switch, audit and replay protection
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/database/agent_autonomy_regression.sql

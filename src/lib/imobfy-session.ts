@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { verifiedUserFromAuthResult } from "./verified-auth-user";
 
 export type ImobfyUser = {
   id: string;
@@ -21,8 +22,6 @@ export function getSession(): ImobfyUser | null {
 
 export async function restoreSession(): Promise<ImobfyUser | null> {
   if (typeof window === "undefined") return null;
-  const localSession = getSession();
-  if (!supabase) return localSession;
 
   try {
     const result = await Promise.race([
@@ -32,39 +31,27 @@ export async function restoreSession(): Promise<ImobfyUser | null> {
       ),
     ]);
 
-    if (result.error) {
-      const authError = result.error as { status?: number; name?: string; message?: string };
-      const message = authError.message || "";
-      const invalidSession =
-        authError.status === 401 ||
-        authError.name === "AuthSessionMissingError" ||
-        /session (is )?(missing|invalid|expired)|jwt expired/i.test(message);
-
-      if (invalidSession) {
-        clearSession();
-        return null;
-      }
-
-      // A temporary API/network error must not erase a valid cached session.
-      return localSession;
+    // A cached localStorage profile is never sufficient to grant UI access.
+    // Only a positively verified Supabase Auth identity opens private routes.
+    const verifiedUser = verifiedUserFromAuthResult(result);
+    if (verifiedUser) {
+      setSession(verifiedUser);
+      return verifiedUser;
     }
 
-    const { data } = result;
-    if (!data.user) {
-      clearSession();
-      return null;
-    }
-
-    const user: ImobfyUser = {
-      id: data.user.id,
-      name: (data.user.user_metadata?.full_name as string | undefined) || data.user.email?.split("@")[0] || "Corretor",
-      email: data.user.email || "",
-    };
-    setSession(user);
-    return user;
+    // Preserve cached display preferences on transient network errors, but
+    // ALWAYS deny access until Auth can positively verify the session.
+    const authError = result.error as { status?: number; name?: string; message?: string } | null;
+    const message = authError?.message || "";
+    const definitivelyInvalid =
+      authError?.status === 401 ||
+      authError?.name === "AuthSessionMissingError" ||
+      /session (is )?(missing|invalid|expired)|jwt expired/i.test(message);
+    if (!result.error || definitivelyInvalid) clearSession();
+    return null;
   } catch {
-    // Timeouts and transport failures are not proof that the session is invalid.
-    return localSession;
+    // Includes timeout/offline: fail closed rather than trusting localStorage.
+    return null;
   }
 }
 

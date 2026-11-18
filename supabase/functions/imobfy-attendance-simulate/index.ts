@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateWithGemini, geminiFailure, geminiModels, geminiText } from "../_shared/gemini.ts";
-import { parseAttendanceDraft, safeAttendanceHistory } from "../_shared/attendance-contract.ts";
+import { parseAttendanceDraft, redactAttendancePII, safeAttendanceHistory } from "../_shared/attendance-contract.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -82,9 +82,9 @@ Deno.serve(async (req) => {
   try {
     const contents = history.map((turn) => ({
       role: turn.role === "customer" ? "user" : "model",
-      parts: [{ text: turn.text }],
+      parts: [{ text: redactAttendancePII(turn.text) }],
     }));
-    contents.push({ role: "user", parts: [{ text: message }] });
+    contents.push({ role: "user", parts: [{ text: redactAttendancePII(message) }] });
     const { result, model } = await generateWithGemini({
       apiKey: geminiKey,
       models: geminiModels(Deno.env.get("GEMINI_ATTENDANCE_MODEL"), Deno.env.get("GEMINI_MODEL")),

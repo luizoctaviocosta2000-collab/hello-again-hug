@@ -58,8 +58,10 @@ describe("IMOBFY specialist agents: safe, evidence-only reports", () => {
     const report = buildSpecialistReport("financeiro",{
       commissions:[{id:"commission-1",user_amount:"500.00"}],
       receipts:[{commission_id:"commission-1",amount:"125.30",received_at:"2026-11-17"}],
+      vgv:[{vgv:"750000",reference_month:"2026-11-01"}],
     },now);
     expect(report.metrics.find(x=>x.label==="Saldo pendente (base)")?.value).toContain("374,70");
+    expect(report.metrics.find(x=>x.label==="VGV registrado (base)")?.value).toContain("750.000,00");
     expect(report.metrics.find(x=>x.label==="Recebido nos últimos 30 dias")?.value).toContain("125,30");
     expect(report.recommendations.every(x=>x.requiresApproval)).toBe(true);
   });

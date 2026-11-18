@@ -1,0 +1,4 @@
+PASS migration: 20261118100000_intelligence_foundation.sql
+PASS migration: 20261118180000_agent_autonomy_control_plane.sql
+PASS intelligence tenant/source/idempotency regression
+PASS autonomy tenant/permissions/defaults regression

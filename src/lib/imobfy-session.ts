@@ -60,8 +60,16 @@ export function setSession(user: ImobfyUser) {
 }
 
 export async function signOut() {
-  if (supabase) await supabase.auth.signOut();
-  clearSession();
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      // A failed global sign-out must not keep browser tokens alive.
+      const { error: localError } = await supabase.auth.signOut({ scope: "local" });
+      if (localError) throw localError;
+    }
+  } finally {
+    clearSession();
+  }
 }
 
 export function clearSession() {

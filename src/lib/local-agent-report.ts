@@ -42,7 +42,8 @@ export async function loadLocalAgentReport(agent: SpecialistKind, verifiedUserId
       }
       throw new Error("Não consegui carregar os registros da área. Confira sua conexão e entre novamente.");
     }
-    return {field:source.field,rows:(rows || []) as AgentRow[]};
+    const safeRows = Array.isArray(rows) ? rows.filter(row => row !== null && typeof row === "object" && !Array.isArray(row)) as unknown as AgentRow[] : [];
+    return {field:source.field,rows:safeRows};
   }));
   let truncated = false;
   for (const result of outcomes) {

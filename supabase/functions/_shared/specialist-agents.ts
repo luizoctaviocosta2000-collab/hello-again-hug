@@ -68,7 +68,8 @@ export function buildSpecialistReport(
   truncated = false,
 ): AgentReport {
   const ago30 = new Date(now.getTime() - 30 * 86400000);
-  const last30 = shortDate(ago30);
+  // Daily advertising records cover today and the preceding 29 UTC dates.
+  const last30 = shortDate(new Date(now.getTime() - 29 * 86400000));
   const sourceNames: Record<SpecialistKind, string[]> = {
     ads: ["Gastos e impressões lançados no IMOBFY", "Etapas vinculadas ao CRM"],
     atendimento: ["Conversas internas e respectivos estados", "Quantidade de rascunhos e perguntas"],
@@ -147,7 +148,7 @@ export function buildSpecialistReport(
     const coming = visits.filter(r => {
       const t = Date.parse(String(r.starts_at || ""));
       return Number.isFinite(t) && t >= now.getTime() && t <= now.getTime()+7*86400000
-        && !["cancelled","canceled","done","completed"].includes(String(r.status));
+        && ["scheduled","confirmed","pending","pendente","confirmado"].includes(String(r.status));
     });
     report.metrics = [
       mk("Negócios em aberto", count(active.length)),
@@ -172,7 +173,10 @@ export function buildSpecialistReport(
     const vgvCents = vgv.reduce((n,row)=>n+Math.round(value(row.vgv)*100),0);
     const pendingCents = commissions.reduce((n,c) => n+Math.max(0, Math.round(value(c.user_amount)*100)-(byCommission.get(String(c.id))||0)), 0);
     const receivedCents = receipts.reduce((n,r)=>n+Math.round(value(r.amount)*100), 0);
-    const monthReceiptsCents = receipts.filter(r => String(r.received_at || "").slice(0,10) >= last30)
+    const monthReceiptsCents = receipts.filter(r => {
+      const timestamp = Date.parse(String(r.received_at || ""));
+      return Number.isFinite(timestamp) && timestamp >= ago30.getTime() && timestamp <= now.getTime();
+    })
       .reduce((n,r)=>n+Math.round(value(r.amount)*100), 0);
     report.metrics = [
       mk("VGV registrado (base)", money(vgvCents/100)),

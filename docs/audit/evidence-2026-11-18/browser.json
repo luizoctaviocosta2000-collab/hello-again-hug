@@ -1,0 +1,74 @@
+[
+  {
+    "width": 1440,
+    "test": "login layout",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "test": "forged cached profile rejected",
+    "route": "/",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 1440,
+    "test": "forged cached profile rejected",
+    "route": "/imoveis",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 1440,
+    "test": "forged cached profile rejected",
+    "route": "/comissoes",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 1440,
+    "test": "forged cached profile rejected",
+    "route": "/atendimento",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 1440,
+    "test": "forged cached profile rejected",
+    "route": "/ads",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 390,
+    "test": "login layout",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "test": "forged cached profile rejected",
+    "route": "/",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 390,
+    "test": "forged cached profile rejected",
+    "route": "/imoveis",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 390,
+    "test": "forged cached profile rejected",
+    "route": "/comissoes",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 390,
+    "test": "forged cached profile rejected",
+    "route": "/atendimento",
+    "redirectedToLogin": true
+  },
+  {
+    "width": 390,
+    "test": "forged cached profile rejected",
+    "route": "/ads",
+    "redirectedToLogin": true
+  }
+]

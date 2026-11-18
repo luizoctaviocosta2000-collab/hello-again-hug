@@ -15,7 +15,7 @@ const json=(v:unknown,status=200)=>new Response(JSON.stringify(v),{status,header
 
 describe("official Meta / WhatsApp execution adapters (mock network only)",()=>{
   test("pauses only an ad confirmed under the authorized account and verifies readback",async()=>{
-    let state="ACTIVE";let writes=0;let allUrls:string[]=[];
+    let state="ACTIVE";let writes=0;const allUrls:string[]=[];
     const network=(async(input:RequestInfo|URL,init?:RequestInit)=>{
       const url=String(input);allUrls.push(url);
       expect(init?.headers).toHaveProperty("Authorization","Bearer "+token);
@@ -44,6 +44,7 @@ describe("official Meta / WhatsApp execution adapters (mock network only)",()=>{
   test("refuses stale Meta budget and only writes exact centavos",async()=>{
     let budget=10000,writes=0;
     const network=(async(_input:RequestInfo|URL,init?:RequestInit)=>{
+      if (String(_input).includes("/act_123456789?")) return json({id:"act_123456789",currency:"BRL"});
       if(init?.method==="POST"){
         budget=Number(new URLSearchParams(String(init.body)).get("daily_budget"));
         writes++;return json({success:true});

@@ -1,0 +1,34 @@
+name: IMOBFY public site release smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  published-login-smoke:
+    name: Verify public Lovable login availability
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check public login without credentials or customer data
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This checks the PUBLISHED endpoint, not GitHub build or Lovable preview.
+          url="https://imobfyy.lovable.app/login"
+          http_code="$(curl -sS -L --retry 2 --retry-delay 2 --max-time 25 -o /tmp/imobfy-login.html -w '%{http_code}' "$url")"
+          echo "Live login returned HTTP $http_code"
+          if [[ "$http_code" != "200" ]]; then
+            echo "::error::Public Lovable login is not accessible (HTTP $http_code)."
+            exit 1
+          fi
+          if ! grep -Eiq '(IMOBFY|Clareza para o próximo passo)' /tmp/imobfy-login.html; then
+            echo "::error::Public page did not include the expected IMOBFY identity."
+            exit 1
+          fi
+          echo "PASS: public IMOBFY login is reachable and carries app identity."
+          echo "NOTE: this does NOT prove the newest GitHub commit is published, nor test authenticated journeys."

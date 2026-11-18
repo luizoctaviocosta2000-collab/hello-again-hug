@@ -152,8 +152,8 @@ export function buildSpecialistPlan(
     add(
       "attendance-review",
       "Revisar fila e repasses humanos",
-      `${handoffs} repasse(s) humano(s); ${oldQuestions} conversa(s) ativa(s) com última pergunta registrada há pelo menos 24 horas.`,
-      "Uma pergunta antiga merece revisão, mas o registro interno não comprova atraso na resposta externa.",
+      `${handoffs} repasse(s) humano(s); ${oldQuestions} conversa(s) ativa(s) com última mensagem do cliente registrada há pelo menos 24 horas.`,
+      "Uma mensagem antiga merece revisão, mas o registro interno não comprova atraso na resposta externa.",
       [
         "Atender primeiro os repasses ao corretor.",
         "Abrir o histórico e confirmar se houve resposta no canal autorizado; não tratar rascunho como envio.",

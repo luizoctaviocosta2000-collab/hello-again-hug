@@ -7,7 +7,7 @@ Base `18fa320fe5dfb6a95938b2875c177dea0991ee65`; branch `feat/specialist-playboo
 Antes: indicadores, recomendação curta e frase opcional Gemini. Agora: plano setorial versionado com evidência, hipótese explicitamente não confirmada, passos, critério de conclusão, prioridade, perguntas e limites. Funciona sem Gemini e entra no contexto anônimo ao pedir complemento. UI exibe passos expansíveis e inclui plano na cópia. Não alega execução ou persistência de tarefas.
 
 - Ads: conferir origem/qualificação antes de investir; teste de criativo com variável isolada, período, limite aprovado e critério de qualidade.
-- Atendimento: priorizar handoff e conversas ativas com última pergunta há 24h; não presumir resposta externa nem tratar rascunho como entrega. Perguntas de intenção, região, prazo e requisitos.
+- Atendimento: priorizar handoff e conversas ativas com última mensagem do cliente há 24h; não presumir resposta externa nem tratar rascunho como entrega. Perguntas de intenção, região, prazo e requisitos.
 - Comercial: distinguir falta de atualização de falta de contato; investigar objeção antes de retomar; preparar visita e retorno com condições confirmadas.
 - Financeiro: recibos parciais, recibos acima da comissão, vencimento ausente/inválido e saldo vencido. Canceladas não entram na sugestão de acompanhamento de vencimentos. Não declarar inadimplência nem substituir regras configuradas por percentuais fixos.
 - Dados ausentes/amostra: somente tarefa de conferir a base, sem decisão setorial sobre fontes truncadas.

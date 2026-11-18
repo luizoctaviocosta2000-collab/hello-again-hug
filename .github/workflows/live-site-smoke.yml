@@ -33,11 +33,11 @@ jobs:
           fi
           echo "PASS: public IMOBFY login is reachable and carries app identity."
           echo "NOTE: this does NOT prove the newest GitHub commit is published, nor test authenticated journeys."
-      - name: Confirm Lovable published the latest static release marker
+      - name: Verify exact commit identity served by Lovable
         shell: bash
         run: |
           set -euo pipefail
-          expected="$(python3 -c 'import json; print(json.load(open("public/imobfy-release.json"))["release_id"])')"
+          expected="$GITHUB_SHA"
           for attempt in 1 2 3 4; do
             status="$(curl -sS -L --max-time 25 --output /tmp/imobfy-live-release.json -w '%{http_code}' "https://imobfyy.lovable.app/imobfy-release.json?probe=${GITHUB_SHA}")"
             if [[ "$status" == "200" ]] && python3 - "$expected" <<'PY'
@@ -47,7 +47,8 @@ jobs:
               with open("/tmp/imobfy-live-release.json", encoding="utf-8") as response:
                   actual = json.load(response)
               assert actual.get("app") == "imobfy"
-              assert actual.get("release_id") == sys.argv[1]
+              assert actual.get("verification") == "build-versioned"
+              assert actual.get("commit_sha") == sys.argv[1]
           except (OSError, ValueError, AssertionError):
               sys.exit(1)
           PY

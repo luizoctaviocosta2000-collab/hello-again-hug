@@ -2,7 +2,7 @@
 18 de novembro de 2026
 
 ## Objetivo e limite desta entrega
-Uma central real no IMOBFY com quatro especialistas consultivos: Ads, Atendimento, Comercial e Financeiro. O centro reutiliza a rota autenticada \`/ia\`, mantendo o chat geral. Cada especialista chama \`imobfy-specialist-agents\` e obtém métricas determinísticas e recomendações exclusivas da sua área, com comentários estratégicos opcionais via Gemini. A interface mostra claramente quando o resultado vem de regras ou da IA.
+Uma central real no IMOBFY com quatro especialistas consultivos: Ads, Atendimento, Comercial e Financeiro. O centro reutiliza a rota autenticada \`/ia\`, mantendo o chat geral. Cada especialista consulta por sua própria sessão autenticada os dados do CRM e calcula métricas determinísticas e recomendações; o botão **Complementar com IA** chama \`imobfy-specialist-agents\` para obter um comentário estratégico opcional via Gemini. A interface mostra claramente quando o resultado vem de regras ou da IA.
 
 **Não há agentes autônomos que operam campanhas ou respondem clientes nesta etapa.** É proibido declarar "WhatsApp conectado" ou "Meta Ads conectado" com base nesta implantação. Essas integrações ainda requerem APIs oficiais, contas autorizadas, tokens mantidos no backend, consentimento, envio idempotente, aprovação humana e homologação ponta a ponta.
 
@@ -20,10 +20,11 @@ Uma central real no IMOBFY com quatro especialistas consultivos: Ads, Atendiment
 - As ações do agente ficam fora do servidor; botões só geram análise/cópia ou abrem o módulo relevante. Nenhum \`INSERT\`, \`UPDATE\`, \`DELETE\`, WhatsApp outbound, Conversions API ou Meta Campaign write.
 
 ## Ponto de integração e evidências
-- Frontend: \`src/components/ImobfyAgentCenter.tsx\`, \`src/imobfy-agents.css\`, \`src/routes/ia.tsx\`, \`ImobfyAppShell.tsx\`.
+- Frontend: \`src/components/ImobfyAgentCenter.tsx\`, \`src/lib/local-agent-report.ts\`, \`src/imobfy-agents.css\`, \`src/routes/ia.tsx\`, \`ImobfyAppShell.tsx\`.
 - Backend: \`supabase/functions/imobfy-specialist-agents/index.ts\`; helper puro \`supabase/functions/_shared/specialist-agents.ts\`.
 - Testes: \`tests/specialist-agents.test.ts\`, além de toda regressão do repositório (Bun, TypeScript, Vite/Nitro, SQL).
-- Novo endpoint **não** deve ser exposto em produção até homologar JWT real e autorização cruzada em staging, carga Gemini e estado do Lovable. A ausência de Edge Function em produção deve aparecer como erro honesto no UI, não como simulação de dados.
+- Novo endpoint **não** deve ser exposto em produção até homologar JWT real e autorização cruzada em staging, carga Gemini e estado do Lovable. O modo local consultivo **funciona sem essa Edge Function**, respeitando RLS; o botão Gemini informa honestamente quando a função não está instalada.
+- Staging: \`imobfy-specialist-agents\` v1 ativa com verificação JWT; como staging não possui contas Auth de teste, ainda falta validação HTTP autenticada e resposta Gemini real.
 
 ## Próximas fases necessárias
 1. Testar com duas contas Auth emitidas no Supabase de testes e dados sintéticos. Verificar que nenhum usuário consegue consultar os registros de outro via RPC/Edge; testar invalid JWT, token expirado, fallback quota, custo e erros Gemini.

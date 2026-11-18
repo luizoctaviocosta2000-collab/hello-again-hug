@@ -22,11 +22,11 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build SSR app
         run: bun run build
-      - name: Start built app and request unauthenticated login
+      - name: Start Cloudflare Worker build and request unauthenticated login
         shell: bash
         run: |
           set -euo pipefail
-          bunx vite preview --host 127.0.0.1 --port 4173 > /tmp/imobfy-preview.log 2>&1 &
+          bunx wrangler@4 dev --config .output/server/wrangler.json --port 4173 > /tmp/imobfy-preview.log 2>&1 &
           preview_pid=$!
           trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 25); do
@@ -40,12 +40,12 @@ jobs:
               break
             fi
             if ! kill -0 "$preview_pid" 2>/dev/null; then
-              echo "Preview server exited; HTTP $status"
+              echo "Worker runtime exited; HTTP $status"
               break
             fi
             sleep 2
           done
-          echo "::error::Local SSR preview did not serve /login successfully."
+          echo "::error::Cloudflare Worker runtime did not serve /login successfully."
           echo "--- preview server log (no application credentials configured) ---"
           tail -n 90 /tmp/imobfy-preview.log
           exit 1

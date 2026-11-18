@@ -90,6 +90,7 @@ Deno.serve(async (req: Request) => {
       financeiro: [
         ["commissions","id,user_amount,status,created_at,due_date","created_at"],
         ["commission_receipts","commission_id,amount,received_at","received_at"],
+        ["vgv_entries","vgv,reference_month","reference_month"],
       ],
     };
     const selected = definitions[kind];
@@ -103,7 +104,7 @@ Deno.serve(async (req: Request) => {
       ads: ["metrics","events"],
       atendimento: ["threads","messages"],
       comercial: ["deals","visits"],
-      financeiro: ["commissions","receipts"],
+      financeiro: ["commissions","receipts","vgv"],
     };
     results.forEach((result,index) => { data[keys[kind][index]!] = result.rows; });
     const truncated = results.some(r => r.truncated);

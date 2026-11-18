@@ -21,9 +21,9 @@ export type AttendanceDraft = { draft: string; brief: AttendanceBrief };
  */
 export function redactAttendancePII(value: string): string {
   return value
-    .replace(/\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b/gi, "[e-mail omitido]")
-    .replace(/(?<!\\w)(?:\\+?55[\\s.-]?)?(?:\\(?(?:0?[1-9][0-9])\\)?[\\s.-]?)?(?:9[\\s.-]?)?[6-9][0-9]{3}[\\s.-]?[0-9]{4}(?!\\w)/g, "[telefone omitido]")
-    .replace(/\\b(?:CPF|C\\.?P\\.?F\\.?)\\s*(?:[:#-]\\s*)?[0-9]{3}[.\\s-]?[0-9]{3}[.\\s-]?[0-9]{3}[-\\s]?[0-9]{2}\\b/gi, "[documento omitido]");
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[e-mail omitido]")
+    .replace(/(?<!\w)(?:\+?55[\s.-]?)?(?:\(?(?:0?[1-9][0-9])\)?[\s.-]?)?(?:9[\s.-]?)?[6-9][0-9]{3}[\s.-]?[0-9]{4}(?!\w)/g, "[telefone omitido]")
+    .replace(/\b(?:CPF|C\.?P\.?F\.?)\s*(?:[:#-]\s*)?[0-9]{3}[.\s-]?[0-9]{3}[.\s-]?[0-9]{3}[-\s]?[0-9]{2}\b/gi, "[documento omitido]");
 }
 
 function short(value: unknown, max: number): string {

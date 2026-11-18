@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
         throw new Error("DATASET_UNAVAILABLE");
       }
       const rows = Array.isArray(data) ?
-        data.filter(row => row!==null && typeof row==="object" && !Array.isArray(row)) as AgentRow[] : [];
+        data.filter(row => row!==null && typeof row==="object" && !Array.isArray(row)) as unknown as AgentRow[] : [];
       return {rows,truncated:rows.length===MAX_ROWS};
     };
     const definitions: Record<SpecialistKind,Array<[string,string,string]>> = {

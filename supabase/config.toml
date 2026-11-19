@@ -1,0 +1,9 @@
+project_id = "imobfy"
+
+[functions.imobfy-meta-insights]
+verify_jwt = true
+
+# Meta cannot present a Supabase JWT. Only this webhook uses HMAC authentication
+# over the raw request bytes and a private server-owned phone/WABA mapping.
+[functions.imobfy-whatsapp-webhook]
+verify_jwt = false

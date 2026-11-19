@@ -6,6 +6,7 @@ export type GeminiRequest = {
 };
 export type GeminiResponse = {
   candidates?: Array<{ content?: { parts?: GeminiPart[] }; finishReason?: string }>;
+  promptFeedback?: { blockReason?: string };
 };
 
 export class GeminiError extends Error {
@@ -55,7 +56,16 @@ export async function generateWithGemini(options: {
       });
       if (response.ok) {
         if (!body || typeof body !== "object") throw new GeminiError(502, model, "INVALID_RESPONSE");
-        return { result: body as GeminiResponse, model };
+        const result = body as GeminiResponse;
+        if (result.promptFeedback?.blockReason)
+          throw new GeminiError(502, model, "BLOCKED_RESPONSE");
+        const candidate = Array.isArray(result.candidates) ? result.candidates[0] : undefined;
+        if (candidate?.finishReason && candidate.finishReason !== "STOP")
+          throw new GeminiError(502, model, "INCOMPLETE_RESPONSE");
+        if (!candidate || !Array.isArray(candidate.content?.parts) ||
+          !candidate.content.parts.some(part => typeof part?.text === "string" && part.text.trim()))
+          throw new GeminiError(502, model, "EMPTY_RESPONSE");
+        return { result, model };
       }
       const providerError = (body as { error?: { status?: string; message?: string } } | null)?.error;
       const reason = typeof providerError?.status === "string" && /^[A-Z_]+$/.test(providerError.status) ? providerError.status : "HTTP_ERROR";
@@ -86,7 +96,7 @@ export async function generateWithGemini(options: {
 }
 
 export function geminiText(result: GeminiResponse): string {
-  return (result.candidates?.[0]?.content?.parts ?? []).map((part) => part.text ?? "").join("\n").trim();
+  return (result.candidates?.[0]?.content?.parts ?? []).map((part) => typeof part?.text === "string" ? part.text : "").join("\n").trim();
 }
 
 export function geminiFailure(error: unknown): { status: number; message: string } {

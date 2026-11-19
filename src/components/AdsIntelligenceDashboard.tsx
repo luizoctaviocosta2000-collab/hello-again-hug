@@ -3,6 +3,7 @@ import { Activity, BarChart3, CheckCircle2, CircleHelp, Loader2, Plus, ShieldChe
 import { supabase } from "../lib/supabase";
 import { adsAdvice, summarizeAds, type AdDailyMetric, type AdFunnelEvent, type FunnelStage } from "../lib/ads-intelligence";
 import "../imobfy-intelligence.css";
+import MetaInsightsPanel from "./MetaInsightsPanel";
 
 type ClientOption = { id: string; name: string };
 const BRL = (value: number) => value.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
@@ -119,6 +120,7 @@ export default function AdsIntelligenceDashboard({userId}:{userId:string}) {
  }
 
  return <div className="intel-page">
+  <MetaInsightsPanel />
   <header className="intel-head"><div><span className="intel-eyebrow"><BarChart3 size={15}/> IMOBFY / PERFORMANCE</span><h2>Ads Intelligence<span>.</span></h2><p>Gastos informados, conversões atribuídas e sinais para decidir melhor. Nenhum anúncio é alterado automaticamente.</p></div>
    <div className="intel-tag"><ShieldCheck size={16}/> Modo leitura e aprovação humana</div>
   </header>

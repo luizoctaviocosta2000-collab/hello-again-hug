@@ -1,0 +1,41 @@
+name: Official connector boundaries
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  whatsapp-sql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: disposable-test-only
+          POSTGRES_DB: connector_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: connector_test
+      PGPASSWORD: disposable-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          psql -v ON_ERROR_STOP=1 -f tests/database/whatsapp_ingress_fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261118100000_intelligence_foundation.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119100000_whatsapp_ingress.sql
+          psql -v ON_ERROR_STOP=1 -f tests/database/whatsapp_ingress_regression.sql
+  edge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.5.6
+      - run: deno check supabase/functions/imobfy-ai/index.ts supabase/functions/imobfy-attendance-simulate/index.ts supabase/functions/imobfy-meta-insights/index.ts supabase/functions/imobfy-whatsapp-webhook/index.ts

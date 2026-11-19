@@ -1,7 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { generateWithGemini, geminiModels, geminiText, geminiFailure } from "../_shared/gemini.ts";
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
-const out=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json"}});const wait=(n:number)=>new Promise(r=>setTimeout(r,n));
-async function ask(key:string,m:string,system:string,contents:any[]){const u=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`;const body={systemInstruction:{parts:[{text:system}]},contents,generationConfig:{temperature:.25,maxOutputTokens:1400}};let status=0,text="";const deadline=Date.now()+23000;for(let i=0;i<3;i++){const remaining=deadline-Date.now();if(remaining<=0)break;const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),Math.min(7000,remaining));try{const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify(body),signal:controller.signal});if(r.ok)return await r.json();status=r.status;text=await r.text();if(![429,500,502,503,504].includes(status)||i===2)break;}catch(e){if((e as Error)?.name==="AbortError"){status=504;text="Tempo limite da IA excedido.";}else throw e;}finally{clearTimeout(timeout)}if(Date.now()<deadline)await wait(Math.min(700*(i+1),Math.max(0,deadline-Date.now())))}throw new Error(`Gemini (${status}): ${text||"tempo limite excedido"}`);}Deno.serve(async req=>{if(req.method==="OPTIONS")return new Response("ok",{headers:cors});if(req.method!=="POST")return out({error:"Método não permitido."},405);const auth=req.headers.get("Authorization"),key=Deno.env.get("GEMINI_API_KEY")?.trim();if(!auth)return out({error:"Não autenticado."},401);if(!key)return out({error:"A chave Gemini não está disponível no servidor."},503);const sb=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_ANON_KEY")!,{global:{headers:{Authorization:auth}}});const {data:{user},error:ue}=await sb.auth.getUser();if(ue||!user)return out({error:"Sessão inválida."},401);let b:any={};try{b=await req.json()}catch{}const q=String(b.question||"").trim();if(!q)return out({error:"Digite uma pergunta."},400);if(q.length>6000)return out({error:"A pergunta está muito longa. Resuma para até 6.000 caracteres."},413);const {data:quotaAllowed,error:quotaError}=await sb.rpc("consume_ai_quota",{p_feature:"chat"});if(quotaError){console.error("AI quota check failed:",quotaError.message);return out({error:"Não foi possível validar seu limite diário de IA. Tente novamente em instantes."},503)}if(quotaAllowed!==true)return out({error:"Você atingiu o limite diário de 60 mensagens da IA. Tente novamente amanhã."},429);let cid=typeof b.conversation_id==="string"?b.conversation_id.trim():null;if(!cid||cid==="null"||cid==="undefined"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cid))cid=null;if(cid){const {data:c,error}=await sb.from("ai_conversations").select("id").eq("id",cid).eq("user_id",user.id).maybeSingle();if(error||!c)cid=null}if(cid){/* existing conversation validated above */}const lower=q.toLocaleLowerCase("pt-BR");
+const out=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
+Deno.serve(async req=>{if(req.method==="OPTIONS")return new Response("ok",{headers:cors});if(req.method!=="POST")return out({error:"Método não permitido."},405);const auth=req.headers.get("Authorization"),key=Deno.env.get("GEMINI_API_KEY")?.trim();if(!auth)return out({error:"Não autenticado."},401);if(!key)return out({error:"A chave Gemini não está disponível no servidor."},503);const sb=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_ANON_KEY")!,{global:{headers:{Authorization:auth}}});const {data:{user},error:ue}=await sb.auth.getUser();if(ue||!user)return out({error:"Sessão inválida."},401);let b:any={};try{b=await req.json()}catch{}const q=String(b.question||"").trim();if(!q)return out({error:"Digite uma pergunta."},400);if(q.length>6000)return out({error:"A pergunta está muito longa. Resuma para até 6.000 caracteres."},413);const {data:quotaAllowed,error:quotaError}=await sb.rpc("consume_ai_quota",{p_feature:"chat"});if(quotaError){console.error("AI quota check failed:",quotaError.code);return out({error:"Não foi possível validar seu limite diário de IA. Tente novamente em instantes."},503)}if(quotaAllowed!==true)return out({error:"Você atingiu o limite diário de 60 mensagens da IA. Tente novamente amanhã."},429);let cid=typeof b.conversation_id==="string"?b.conversation_id.trim():null;if(!cid||cid==="null"||cid==="undefined"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cid))cid=null;if(cid){const {data:c,error}=await sb.from("ai_conversations").select("id").eq("id",cid).eq("user_id",user.id).maybeSingle();if(error||!c)cid=null}if(cid){/* existing conversation validated above */}const lower=q.toLocaleLowerCase("pt-BR");
 const normalized=lower.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const has=(...terms:string[])=>terms.some(t=>normalized.includes(t));
 const matches=(pattern:RegExp)=>pattern.test(normalized);
@@ -96,4 +97,35 @@ const system=`Você é o Imobfy AI, cérebro comercial de um CRM imobiliário. R
 Intenção detectada: ${intent}. Para perguntas sobre agenda, diferencie visitas imobiliárias (tabela visits) de tarefas e compromissos pessoais/comerciais (tabela appointments). Quando existir agenda_reference, use explicitamente o horário atual e o fuso America/Sao_Paulo para interpretar hoje, amanhã e atrasos. Ordene mentalmente os compromissos pelo início; use starts_at e status originais. Só diga que algo está atrasado quando o início já passou e o status não indicar conclusão ou cancelamento. Se o status for ambíguo, explique a incerteza. Não presuma que uma tarefa foi concluída sem status correspondente.
 CONTEXTO:
 ${JSON.stringify(context)}`;
-try{const m=Deno.env.get("GEMINI_MODEL")?.trim()||"gemini-3.5-flash-lite";const r=await ask(key,m,system,contents);const answer=(r.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("\n").trim();if(!answer)return out({error:"Não consegui gerar uma resposta agora."},502);const {data:nc,error:ce}=cid?{data:{id:cid},error:null as any}:await sb.from("ai_conversations").insert({user_id:user.id,title:q.slice(0,80)}).select("id").single();if(ce||!nc)return out({error:"A resposta foi gerada, mas não consegui salvar a conversa."},500);cid=nc.id;const um=await sb.from("ai_messages").insert({user_id:user.id,conversation_id:cid,role:"user",content:q});if(um.error)return out({error:"A resposta foi gerada, mas não consegui registrar sua pergunta."},500);await sb.from("ai_messages").insert({user_id:user.id,conversation_id:cid,role:"assistant",content:answer});await sb.from("ai_conversations").update({updated_at:new Date().toISOString()}).eq("id",cid).eq("user_id",user.id);return out({answer,conversation_id:cid,model:m})}catch(e){const msg=e instanceof Error?e.message:String(e);console.error(msg);if(/503|high demand/i.test(msg))return out({error:"O Gemini está temporariamente sob alta demanda. O Imobfy tentou novamente automaticamente; tente de novo em alguns segundos."},503);return out({error:`Não consegui falar com a IA. ${msg}`},502)}});
+try {
+  const { result, model } = await generateWithGemini({
+    apiKey: key,
+    models: geminiModels(Deno.env.get("GEMINI_CHAT_MODEL"), Deno.env.get("GEMINI_MODEL")),
+    request: {
+      systemInstruction: { parts: [{ text: system }] },
+      contents,
+      generationConfig: { temperature: 0.25, maxOutputTokens: 1400 },
+    },
+  });
+  const answer = geminiText(result);
+  const conversation = cid
+    ? { data: { id: cid }, error: null }
+    : await sb.from("ai_conversations").insert({ user_id: user.id, title: q.slice(0, 80) }).select("id").single();
+  if (conversation.error || !conversation.data)
+    return out({ error: "A resposta foi gerada, mas não consegui salvar a conversa." }, 500);
+  cid = conversation.data.id;
+  // One INSERT makes the question/answer pair atomic; never report a persisted
+  // answer if only the customer's question was saved.
+  const saved = await sb.from("ai_messages").insert([
+    { user_id: user.id, conversation_id: cid, role: "user", content: q },
+    { user_id: user.id, conversation_id: cid, role: "assistant", content: answer },
+  ]);
+  if (saved.error)
+    return out({ error: "A resposta foi gerada, mas o histórico não foi salvo. Tente novamente.", conversation_id: cid }, 500);
+  const updated = await sb.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", cid).eq("user_id", user.id);
+  return out({ answer, conversation_id: cid, model,
+    ...(updated.error ? { warning: "Histórico salvo; ordenação da conversa não foi atualizada." } : {}) });
+} catch (cause) {
+  const failure = geminiFailure(cause);
+  return out({ error: failure.message }, failure.status);
+}});

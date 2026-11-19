@@ -5,6 +5,21 @@ const request = { contents: [{ role: "user", parts: [{ text: "synthetic test" }]
 const answer = () => Response.json({ candidates: [{ content: { parts: [{ text: "OK" }] } }] });
 
 describe("Gemini transport", () => {
+  test("rejects blocked, empty, malformed and truncated HTTP 200 without retries", async () => {
+    for (const body of [
+      { promptFeedback: { blockReason: "SAFETY" } },
+      { candidates: [] },
+      { candidates: [{ content: { parts: [{ text: 123 }] } }] },
+      { candidates: [{ finishReason: "MAX_TOKENS", content: { parts: [{ text: "partial" }] } }] },
+    ]) {
+      let calls = 0;
+      await expect(generateWithGemini({
+        apiKey: "test", models: ["test-model"], request,
+        fetch: (async () => { calls++; return Response.json(body); }) as typeof fetch,
+      })).rejects.toBeInstanceOf(GeminiError);
+      expect(calls).toBe(1);
+    }
+  });
   test("falls back only when the feature-specific model is unavailable", async () => {
     const models: string[] = [];
     const result = await generateWithGemini({ apiKey: "test", models: geminiModels("retired-model", "current-model"), request, retryDelayMs: 0, fetch: (async (url: string | URL | Request) => {

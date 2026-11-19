@@ -3,6 +3,7 @@ import { ArrowRight, Check, Clipboard, Headphones, MessageCircle, Plus, ShieldAl
 import { supabase } from "../lib/supabase";
 import { restoreSession } from "../lib/imobfy-session";
 import { readableFunctionError } from "../lib/function-error";
+import { attendanceContext } from "../lib/attendance-context";
 import type { AttendanceBrief } from "../../supabase/functions/_shared/attendance-contract";
 import ImobfyAttendanceSimulator from "./ImobfyAttendanceSimulator";
 import "../imobfy-intelligence.css";
@@ -12,7 +13,7 @@ type Thread = {
  id:string;user_id:string;client_id:string|null;property_id:string|null;
  status:"open"|"handoff"|"paused"|"closed";channel:string;updated_at:string;
 };
-type ThreadMessage = {id:string;thread_id:string;role:"customer"|"assistant_draft"|"agent_note";body:string;created_at:string};
+type ThreadMessage = {id:string;thread_id:string;role:"customer"|"assistant_draft"|"agent_note";body:string;created_at:string;source:string;delivery_state:string};
 type Client = {id:string;name:string};
 type Property = {id:string;title:string};
 type DraftResponse={draft?:string;brief?:AttendanceBrief;property_id?:string;mode?:string;error?:string};
@@ -45,7 +46,7 @@ export default function ImobfyAttendanceWorkspace(){
  const reload=useCallback(async(uid:string)=>{
    const [t,m,c,p]=await Promise.all([
     supabase.from("imobfy_attendance_threads").select("id,user_id,client_id,property_id,status,channel,updated_at").eq("user_id",uid).order("updated_at",{ascending:false}).limit(100),
-    supabase.from("imobfy_attendance_messages").select("id,thread_id,role,body,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(300),
+    supabase.from("imobfy_attendance_messages").select("id,thread_id,role,body,created_at,source,delivery_state").eq("user_id",uid).order("created_at",{ascending:false}).limit(300),
     supabase.from("clients").select("id,name").eq("user_id",uid).order("name").limit(500),
     supabase.from("properties").select("id,title").eq("user_id",uid).order("created_at",{ascending:false}).limit(200),
    ]);
@@ -107,15 +108,13 @@ export default function ImobfyAttendanceWorkspace(){
  }
  async function generateDraft(){
   if(!current?.property_id){setError("Associe um imóvel para gerar uma resposta baseada em dados.");return;}
-  const last=[...currentMessages].reverse().find(m=>m.role==="customer");
-  if(!last){setError("Registre primeiro a pergunta do interessado.");return;}
+   const context=attendanceContext(currentMessages);
+   if(!context){setError("Registre primeiro a pergunta do interessado.");return;}
   setBusy(true);setError("");setDraft("");
   try{
    // No write tools and no outbound customer communication.
-   const history=currentMessages.filter(m=>m.role==="customer"||m.role==="assistant_draft")
-    .slice(-11).map(m=>({role:m.role==="customer"?"customer":"assistant",text:m.body}));
-   const {data,error:err}=await supabase.functions.invoke<DraftResponse>("imobfy-attendance-simulate",{
-    body:{property_id:current.property_id,message:last.body,history:history.slice(0,-1)},
+    const {data,error:err}=await supabase.functions.invoke<DraftResponse>("imobfy-attendance-simulate",{
+     body:{property_id:current.property_id,...context},
    });
    if(err)throw err;
    if(data?.mode!=="simulator_only"||data.property_id!==current.property_id||!data.draft||!data.brief)
@@ -137,15 +136,26 @@ export default function ImobfyAttendanceWorkspace(){
   }catch(cause){setError(cause instanceof Error?cause.message:"Não consegui salvar o rascunho.");}
   finally{setBusy(false)}
  }
- async function changeStatus(next:Thread["status"]){
+  async function changeStatus(next:Thread["status"]){
   if(!current||!userId)return;
   setBusy(true);setError("");
   const {error:err}=await supabase.from("imobfy_attendance_threads")
-   .update({status:next,automation_mode:next==="paused"?"paused":"assisted",updated_at:new Date().toISOString()})
+    .update({status:next,automation_mode:next==="open"?"assisted":"paused",updated_at:new Date().toISOString()})
    .eq("id",current.id).eq("user_id",userId);
   if(err)setError(err.message);else{setNotice(next==="handoff"?"Encaminhamento ao corretor registrado.":"Estado atualizado.");await reload(userId);}
   setBusy(false);
- }
+  }
+  async function linkProperty(propertyId:string){
+   if(!current||!userId)return;
+   setBusy(true);setError("");setDraft("");setBrief(null);
+   try{
+    const {error:err}=await supabase.from("imobfy_attendance_threads")
+     .update({property_id:propertyId||null}).eq("id",current.id).eq("user_id",userId);
+    if(err)throw err;
+    await reload(userId);
+   }catch{setError("Não foi possível vincular o imóvel. Verifique a migration de entrada WhatsApp e as permissões.");}
+   finally{setBusy(false);}
+  }
  async function copyDraft(){
   if(!draft)return;
   try{await navigator.clipboard.writeText(draft);setNotice("Texto copiado para avaliação humana; nenhum envio automático.");}
@@ -154,7 +164,7 @@ export default function ImobfyAttendanceWorkspace(){
 
  return <div className="intel-page">
   <header className="intel-head"><div><span className="intel-eyebrow"><Headphones size={16}/> IMOBFY / RELACIONAMENTO</span><h2>Atendimento inteligente<span>.</span></h2><p>Histórico interno, rascunhos de IA e encaminhamento humano. Primeiro a confiança, depois a automação.</p></div><div className="intel-tag"><ShieldAlert size={16}/> Envio automático desligado</div></header>
-  <div className="intel-warning"><ShieldAlert size={17}/><span><strong>Nenhum contato automático está ativo.</strong> WhatsApp e Instagram dependem de integração oficial, consentimento, templates quando aplicáveis e aprovação. Mensagens internas registradas aqui não representam mensagens recebidas ou enviadas nessas plataformas.</span></div>
+   <div className="intel-warning"><ShieldAlert size={17}/><span><strong>Envio automático desligado.</strong> Entradas WhatsApp só aparecem após conexão oficial e webhook habilitado. Rascunhos e registros manuais não representam envios. Instagram ainda não conectado.</span></div>
   <div className="attendance-tabs"><button type="button" className={section==="inbox"?"selected":""} onClick={()=>setSection("inbox")}>Conversa interna</button><button type="button" className={section==="lab"?"selected":""} onClick={()=>setSection("lab")}>Laboratório de IA</button></div>
   {section==="lab"?<ImobfyAttendanceSimulator/>:<>
    {error&&<p className="intel-error" role="alert">{error}</p>}
@@ -168,16 +178,20 @@ export default function ImobfyAttendanceWorkspace(){
       <label>Imóvel vinculado<select value={newPropertyId} onChange={e=>setNewPropertyId(e.target.value)}><option value="">Nenhum</option>{properties.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}</select></label>
       <button disabled={busy||!newClientId} type="button" onClick={()=>void newThread()}>Criar conversa interna</button></div>}
      {threads.length===0?<p>Nenhuma conversa registrada. Abra uma para organizar o atendimento.</p>:
-      threads.map(t=><button type="button" key={t.id} className={t.id===active?"attendance-thread selected":"attendance-thread"} onClick={()=>setActive(t.id)}><strong>{clientName(t.client_id)}</strong><small>{propertyName(t.property_id)}</small><span>{labelStatus[t.status]} · Interno</span></button>)}
+       threads.map(t=><button type="button" disabled={busy} key={t.id} className={t.id===active?"attendance-thread selected":"attendance-thread"} onClick={()=>setActive(t.id)}><strong>{clientName(t.client_id)}</strong><small>{propertyName(t.property_id)}</small><span>{labelStatus[t.status]} · {t.channel==="whatsapp"?"WhatsApp":"Interno"}</span></button>)}
     </aside>
     <section className="intel-panel attendance-chat">
      {!current?<div className="attendance-empty"><MessageCircle size={28}/><h3>Escolha ou crie uma conversa</h3><p>O histórico e os rascunhos aparecerão aqui.</p></div>:<>
-      <div className="attendance-convo-head"><div><h3>{clientName(current.client_id)}</h3><p>{propertyName(current.property_id)} · canal interno · {labelStatus[current.status]}</p></div>
+       <div className="attendance-convo-head"><div><h3>{clientName(current.client_id)}</h3><p>{propertyName(current.property_id)} · {current.channel==="whatsapp"?"WhatsApp (entrada)":"canal interno"} · {labelStatus[current.status]}</p></div>
        <div className="attendance-actions"><button type="button" disabled={busy} onClick={()=>void changeStatus("handoff")}>Encaminhar ao corretor</button><button type="button" disabled={busy} onClick={()=>void changeStatus(current.status==="paused"?"open":"paused")}>{current.status==="paused"?"Retomar":"Pausar"}</button></div>
-      </div>
-      <div className="attendance-messages" role="log" aria-label="Histórico interno">
+       </div>
+       <label>Imóvel confirmado no CRM <select disabled={busy} value={current.property_id||""} onChange={e=>void linkProperty(e.target.value)}>
+        <option value="">Selecione para gerar rascunhos</option>
+        {properties.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}
+       </select></label>
+       <div className="attendance-messages" role="log" aria-label="Histórico interno">
        {currentMessages.length===0&&<p>Nenhuma mensagem. Registre a pergunta recebida para começar.</p>}
-       {currentMessages.map(m=><div key={m.id} className={"attendance-message "+m.role}><small>{m.role==="customer"?"PERGUNTA REGISTRADA":m.role==="assistant_draft"?"RASCUNHO DA IA":"NOTA INTERNA"}</small><p>{m.body}</p></div>)}
+        {currentMessages.map(m=><div key={m.id} className={"attendance-message "+m.role}><small>{m.source==="whatsapp"&&m.delivery_state==="received"?"RECEBIDA PELO WHATSAPP":m.role==="customer"?"PERGUNTA REGISTRADA":m.role==="assistant_draft"?"RASCUNHO DA IA":"NOTA INTERNA"}</small><p>{m.body}</p></div>)}
       </div>
       <div className="attendance-composer"><label>Pergunta do interessado (registro manual)<textarea maxLength={4000} rows={3} value={incoming} onChange={e=>setIncoming(e.target.value)} placeholder="Registre o que o lead realmente perguntou..."/></label>
        <div className="attendance-actions"><button type="button" disabled={busy||!incoming.trim()} onClick={()=>void logMessage()}>Registrar pergunta</button><button type="button" disabled={busy||!current.property_id||currentMessages.every(m=>m.role!=="customer")} onClick={()=>void generateDraft()}>Gerar rascunho com IA <ArrowRight size={15}/></button></div>
